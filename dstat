@@ -1,0 +1,566 @@
+#!/usr/bin/python2
+
+import os, sys, glob, re, shutil, getopt, popen2
+import ConfigParser, urlparse, time, signal, resource
+
+VERSION = "0.4"
+
+enable = ('yes', 'on', 'true', '1')
+disable = ('no', 'off', 'false', '0')
+
+class Options:
+	def __init__(self, args):
+		self.count = -1
+		self.sleep = 1
+		self.disklist = None
+		self.intlist = None
+		self.netlist = None
+
+		try:
+			opts, args = getopt.getopt (args, 'acdghilmnpsvyD:I:N:',
+				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net',
+				'page', 'proc', 'swap', 'sys', 'version', '--vm', 'vmstat'])
+		except getopt.error, exc:
+			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
+			sys.exit(1)
+
+		self.modlist = []
+
+		for opt, arg in opts:
+			if opt in ['-a', '--all']:
+				self.modlist = [ 'cpu', 'disk', 'mem', 'net', 'page', 'sys' ]
+			elif opt in ['-c', '--cpu']:
+				self.modlist.append('cpu')
+			elif opt in ['-h', '--help']:
+				self.usage()
+				self.help()
+				sys.exit(0)
+			elif opt in ['-d', '--disk']:
+				self.modlist.append('disk')
+			elif opt in ['-D']:
+				self.disklist = arg.split(',')
+			elif opt in ['-i', '--int']:
+				self.modlist.append('int')
+			elif opt in ['-g', '--page']:
+				self.modlist.append('page')
+			elif opt in ['-I']:
+				self.intlist = arg.split(',')
+			elif opt in ['-m', '--mem']:
+				self.modlist.append('mem')
+			elif opt in ['-l', '--load']:
+				self.modlist.append('load')
+			elif opt in ['-n', '--net']:
+				self.modlist.append('net')
+			elif opt in ['-N']:
+				self.netlist = arg.split(',')
+			elif opt in ['-p', '--proc']:
+				self.modlist.append('proc')
+			elif opt in ['-s', '--swap']:
+				self.modlist.append('swap')
+			elif opt in ['-y', '--sys']:
+				self.modlist.append('sys')
+			elif opt in ['-v', '--version']:
+				self.version()
+				sys.exit(0)
+			elif opt in ['--vm', '--vmstat']:
+				self.modlist = [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
+				self.disklist = ('total',)
+
+		if not self.modlist:
+			self.modlist = [ 'cpu', 'disk', 'net', 'sys' ]
+
+		if len(args) > 0:
+			self.sleep = int(args[0])
+
+		if len(args) > 1:
+			self.count = int(args[1])
+
+	def version(self):
+		print 'Dstat %s' % VERSION
+		print 'Written by Dag Wieers <dag@wieers.com>'
+		print 'Homepage at http://dag.wieers.com/home-made/dstat/>'
+		print
+		print 'Platform %s/%s' % (os.name, sys.platform)
+		print 'Python %s' % sys.version
+
+	def usage(self):
+		print 'usage: dstat [-acdgilmnpsy] [-D dev1..] [-I #..] [-N if1..] [delay [count]]'
+
+	def help(self):
+		print '''Versatile tool for generating system resource statistics
+
+Dstat options:
+  -a, --all          enable cpu, disk, mem, net, page and sys (eq. -cdmngy)
+  -c, --cpu          enable cpu stats
+  -d, --disk         enable disk stats
+     -D total,dev1      include dev1 and total number
+  -g, --page         enable page stats
+  -i, --int          enable interrupt stats
+     -I 5,9             include int5 and int9
+  -l, --load         enable load stats
+  -m, --mem          enable memory stats
+  -n, --net          enable network stats
+     -N if2,total       include if2 and total
+  -p, --proc         enable process stats
+  -s, --swap         enable swap stats
+  -y, --sys          enable system stats
+'''
+
+class Config:
+	def __init__(self):
+		self.configfile = op.configfile
+		self.cfg = ConfigParser.ConfigParser()
+
+		(s,b,p,q,f,o) = urlparse.urlparse(self.configfile)
+		if s in ('http', 'ftp', 'file'):
+			configfh = urllib.urlopen(self.configfile)
+			try:
+				self.cfg.readfp(configfh)
+			except ConfigParser.MissingSectionHeaderError, e:
+				die(6, 'Error accessing URL: %s' % self.configfile)
+		else:
+			if os.access(self.configfile, os.R_OK):
+				try:
+					self.cfg.read(self.configfile)
+				except:
+					die(7, 'Syntax error reading file: %s' % self.configfile)
+			else:
+				die(6, 'Error accessing file: %s' % self.configfile)
+
+	def getoption(self, section, option, var):
+		"Get an option from a section from configfile"
+		try:
+			var = self.cfg.get(section, option)
+			info(3, 'Setting option %s in section [%s] to: %s' % (option, section, var))
+		except ConfigParser.NoSectionError, e:
+			info(4, 'Failed to find section [%s] in %s' % (section, op.configfile))
+		except ConfigParser.NoOptionError, e:
+#			info(4, 'Failed to find option %s in [%s], set to default: %s' % (option, section, var))
+			info(4, 'Setting option %s in section [%s] to: %s (default)' % (option, section, var))
+		return var
+
+class dstat:
+	def init(self):
+		self.title1 = self.set_title1()
+		self.title2 = self.set_title2()
+
+		self.val = {}
+		for i in self.vars: self.val[i] = 0
+
+		self.cn1 = {}
+		for i in self.vars: self.cn1[i] = 0
+
+		self.cn2 = {}
+		for i in self.vars: self.cn2[i] = 0
+
+	def set_title1(self):
+		max = len(self.vars) * self.len + len(self.vars) - 1
+		return self.name.center(max).replace(' ', '-')
+
+	def set_title2(self):
+		str = ''
+		for c, i in enumerate(self.nick):
+			str = str + i.center(self.len).replace(' ', '_')
+			if c != len(self.nick)-1:
+				str = str + ' '
+		return str
+
+	def stats(self):
+		pass
+
+	def show(self):
+		sep = ' '
+		for c, name in enumerate(self.vars):
+			if self.format == '%s':
+					sys.stdout.write(self.format % conv(self.len, self.val[name]))
+			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
+					sys.stdout.write(self.format % convlist(self.len, self.val[name]))
+					sep = ':'
+			else:
+					sys.stdout.write(self.format % self.val[name])
+			if c != len(self.vars)-1:
+				sys.stdout.write(sep)
+				
+class dstat_cpu(dstat):
+	def __init__(self):
+		self.name = 'cpu usage'
+		self.vars = ('user', 'sys', 'idle', 'wait')
+		self.len = 3
+		self.format = '%3d'
+		self.nick = ( 'usr', 'sys',	'idl',	'wai' )
+		self.init()
+		self.cn1['sum'] = 0
+
+	def stats(self):
+		for line in open('/proc/stat', 'r').readlines():
+			list = line.split()
+			cn = map(int, list[1:])
+			if list[0] == 'cpu':
+				self.cn2['user'] = cn[0]
+				self.cn2['sys'] = cn[2]
+				self.cn2['idle'] = cn[3]
+				self.cn2['wait'] = cn[4]
+				self.cn2['sum'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait']
+
+		for name in self.vars:
+			self.val[name] = round((self.cn2[name]-self.cn1[name])*100.0/(self.cn2['sum']-self.cn1['sum']))
+
+		self.cn1.update(self.cn2)
+
+class dstat_disk(dstat):
+	def __init__(self):
+		self.format = '%s %s'
+		self.len = 11
+		self.name = 'disk i/o'
+		if op.disklist:
+			self.vars = op.disklist
+		else:
+			self.vars = self.discover()
+#		self.vars = ('hda', 'hdc', 'sda', 'local', 'total')
+		self.diskset = {
+			'local': ('sda', 'hda', 'hdc'),
+			'lores': ('sdb', 'sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh', 'sdi', 'sdj', 'sdk', 'sdl', 'sdm', 'sdn', 'sdo', 'sdp', 'sdq', 'sdr', 'sds', 'sdt'),
+			'hires': ('sdu', 'sdv', 'sdw', 'sdx', 'sdy', 'sdz', 'sdaa', 'sdab', 'sdac', 'sdad' ),
+		}
+		self.nick = self.vars
+		self.init()
+
+		for name in self.vars: self.cn1[name] = (0, 0)
+		self.cn1['total'] = (0, 0)
+		for name in self.vars: self.cn2[name] = (0, 0)
+		self.cn2['total'] = (0, 0)
+		for name in self.vars: self.val[name] = (0, 0)
+		self.val['total'] = (0, 0)
+
+	def discover(self):
+		retlist = []
+		for line in open('/proc/diskstats', 'r').readlines():
+			list = line.split(); dev = list[2]
+			if dev in ('hda', 'hdb', 'hdc', 'hdd', 'sda', 'sdb', 'sdc', 'sdd'):
+				retlist.append(dev)
+		if len(retlist) > 2: retlist = retlist[0:2]
+		retlist.sort()
+		return retlist
+#		return ('local', 'lores', 'hires')
+
+	def stats(self):
+		for name in self.vars: self.cn2[name] = (0, 0)
+		for line in open('/proc/diskstats', 'r').readlines():
+			list = line.split()
+			cn = map(int, list[3:])
+			name = list[2]
+			if name in self.vars:
+				self.cn2[name] = ( self.cn2[name][0] + cn[2] * 512 / op.sleep, self.cn2[name][1] + cn[6] * 512 / op.sleep)
+#			for set in self.diskset:
+			for set in self.vars:
+				if set in self.diskset and name in self.diskset[set]:
+					self.cn2[set] = ( self.cn2[set][0] + cn[2] * 512 / op.sleep, self.cn2[set][1] + cn[6] * 512 / op.sleep)
+			if len(cn) > 7:
+				self.cn2['total'] = ( self.cn2['total'][0] + cn[2] * 512 / op.sleep, self.cn2['total'][1] + cn[6] * 512 / op.sleep)
+
+		if count != 0:
+			for name in self.cn2:
+				self.val[name] = ( self.cn2[name][0]-self.cn1[name][0], self.cn2[name][1]-self.cn1[name][1] )
+
+		self.cn1.update(self.cn2)
+
+class dstat_int(dstat):
+	def __init__(self):
+		self.format = '%4d'
+		self.len = 4
+		self.name = 'interrupts'
+		if op.intlist:
+			self.vars = op.intlist
+		else:
+			self.vars = self.discover()
+		self.nick = self.vars
+		self.init()
+
+	def discover(self):
+		return ('5', '9', '10', '14', '15')
+
+	def stats(self):
+		for line in open('/proc/interrupts', 'r').readlines():
+			list = line.split()
+			name = list[0].split(':')[0]
+			if name in self.vars:
+				self.cn2[name] = int(list[1])
+
+		if count != 0:
+			for name in self.cn2:
+				self.val[name] = self.cn2[name]-self.cn1[name]
+
+		self.cn1.update(self.cn2)
+
+class dstat_load(dstat):
+	def __init__(self):
+		self.len = 4
+		self.format = '%4.2f'
+		self.name = 'load avg'
+		self.nick = ('_1m', '_5m', '_15m')
+		self.vars = ('load1', 'load5', 'load15')
+		self.init()
+
+	def stats(self):
+		for line in open('/proc/loadavg', 'r').readlines():
+			list = line.split()
+			self.val['load1'] = float(list[0])
+			self.val['load5'] = float(list[1])
+			self.val['load15'] = float(list[2])
+
+class dstat_mem(dstat):
+	def __init__(self):
+		self.name = 'memory usage'
+		self.len = 5
+		self.format = '%s'
+		self.nick = ('used', 'free', 'buff', 'cach')
+		self.vars = ('MemUsed', 'MemFree', 'Buffers', 'Cached')
+		self.init()
+
+	def stats(self):
+		for line in open('/proc/meminfo', 'r').readlines():
+			list = line.split()
+			name = list[0].split(':')[0]
+			if name in self.vars + ('MemTotal',):
+				self.val[name] = int(list[1]) * 1024
+		self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
+
+class dstat_net(dstat):
+	def __init__(self):
+		self.name = 'network'
+		self.len = 11
+		self.format = '%s %s'
+		if op.netlist:
+			self.vars = op.netlist
+		else:
+			self.vars = self.discover()
+		self.nick = self.vars
+		self.init()
+
+		for name in self.vars: self.cn1[name] = (0, 0)
+		self.cn1['total'] = (0, 0)
+		for name in self.vars: self.cn2[name] = (0, 0)
+		self.cn2['total'] = (0, 0)
+		for name in self.vars: self.val[name] = (0, 0)
+		self.val['total'] = (0, 0)
+
+	def discover(self):
+		retlist = []
+		for line in open('/proc/net/dev', 'r').readlines():
+			list = line.split(); iface = list[0].split(':')[0]
+			if iface in ('eth0', 'eth1', 'eth2', 'wifi0', 'bond0'):
+				retlist.append(iface)
+		if len(retlist) > 2: retlist = retlist[0:2]
+		retlist.sort()
+		return retlist
+#		return ('bond0', 'eth0', 'eth1')
+
+	def stats(self):
+		self.cn2['total'] = (0, 0)
+		for line in open('/proc/net/dev', 'r').readlines():
+			list = line.split()
+			list2 = list[0].split(':')
+			name = list2[0]
+			if len(list2) > 1 and list2[1].strip():
+				list = list2[1:] + list[1:]
+			else:
+				list = list[1:]
+			if name in (self.vars) :
+				cn = map(int, list)
+				self.cn2[name] = ( round(cn[0] /op.sleep), round(cn[8] /op.sleep) )
+			if name in ('bond0', 'bond1', 'bond2', 'eth0', 'eth1', 'eth2', 'eth3', 'eth4', 'eth5'):
+				cn = map(int, list)
+				self.cn2['total'] = ( self.cn2['total'][0] + round(cn[0] /op.sleep), self.cn2['total'][1] + round(cn[8] /op.sleep))
+
+		if count != 0:
+			for name in self.cn2:
+				self.val[name] = ( self.cn2[name][0]-self.cn1[name][0], self.cn2[name][1]-self.cn1[name][1] )
+
+		self.cn1.update(self.cn2)
+
+class dstat_page(dstat):
+	def __init__(self):
+		self.name = 'paging'
+		self.format = '%s'
+		self.len = 5
+		self.vars = ('pswpin', 'pswpout')
+		self.nick = ('in', 'out')
+		self.init()
+
+	def stats(self):
+		for line in open('/proc/vmstat', 'r').readlines():
+			list = line.split()
+			cn = map(int, list[1:])
+			if list[0] in self.vars:
+				self.cn2[list[0]] = cn[0] * pagesize / op.sleep
+		if count != 0:
+			for name in self.vars:
+				self.val[name] = self.cn2[name]-self.cn1[name]
+		self.cn1.update(self.cn2)
+
+class dstat_proc(dstat):
+	def __init__(self):
+		self.name = 'procs'
+		self.format = '%2d'
+		self.len = 2
+#		self.vars = ('procs_running', 'procs_blocked', 'processes')
+		self.vars = ('procs_running', 'procs_blocked')
+#		self.nick = ('ru', 'bl', 'nw')
+		self.nick = ('ru', 'bl')
+		self.init()
+
+	def stats(self):
+		for line in open('/proc/stat', 'r').readlines():
+			list = line.split()
+			cn = map(int, list[1:])
+			if list[0] in ('processess'):
+				self.cn2[list[0]] = cn[0]
+			elif list[0] in self.vars:
+				self.val[list[0]] = cn[0]
+		if count != 0:
+			self.val['processes'] = self.cn2['processes']-self.cn1['processes']
+		self.val['procs_running'] = self.val['procs_running']-1
+		self.cn1.update(self.cn2)
+
+class dstat_swap(dstat):
+	def __init__(self):
+		self.name = 'swap'
+		self.len = 5
+		self.format = '%s'
+		self.nick = ('used', 'free')
+		self.vars = ('SwapUsed', 'SwapFree')
+		self.init()
+
+	def stats(self):
+		for line in open('/proc/meminfo', 'r').readlines():
+			list = line.split()
+			name = list[0].split(':')[0]
+			if name in self.vars + ('SwapTotal',):
+				self.val[name] = int(list[1]) * 1024
+		self.val['SwapUsed'] = self.val['SwapTotal'] - self.val['SwapFree']
+
+class dstat_sys(dstat):
+	def __init__(self):
+		self.name = 'system'
+		self.format = '%5d'
+		self.len = 5
+		self.nick = ('int', 'csw')
+		self.vars = ('intr', 'ctxt')
+		self.names = { 'intr': 'int', 'ctxt': 'csw' }
+		self.init()
+
+	def stats(self):
+		for line in open('/proc/stat', 'r').readlines():
+			list = line.split()
+			cn = map(int, list[1:])
+			if list[0] in self.vars:
+				self.cn2[list[0]] = cn[0] /op.sleep
+
+		if count != 0:
+			for name in self.vars:
+				self.val[name] = self.cn2[name]-self.cn1[name]
+		self.cn1.update(self.cn2)
+
+	def show(self):
+		for count, name in enumerate(self.vars):
+			sys.stdout.write('%5d' % self.val[name])
+			if count != len(self.vars)-1:
+				sys.stdout.write(' ')
+
+def convlist(max, list):
+	max = max / len(list)
+	retlist = ()
+	for var in list:
+		retlist = retlist + (conv(max, var), )
+	return retlist
+
+def conv(max, var):
+	c = 0
+	var = round(var)
+	while len(str(int(var))) > max-1:
+		var = int(var / 1024.0)
+		c = c + 1
+	if c == 0:		unit = 'B' ### 'b' is better for the eyes than 'B'
+	elif c == 1:	unit = 'k'
+	elif c == 2:	unit = 'm'
+	elif c == 3:	unit = 'g'
+	elif c == 4:	unit = 't'
+	elif c == 5:	unit = 'p'
+	return str(int(var)).rjust(max-1) + unit
+
+def handler(signum, frame):
+	pass
+
+def main():
+	global count, pagesize
+	count = 0
+	pagesize = resource.getpagesize()
+
+	olist = []
+	for mod in op.modlist:
+		if mod == 'cpu':	olist.append(dstat_cpu())
+		elif mod == 'disk':	olist.append(dstat_disk())
+		elif mod == 'int':	olist.append(dstat_int())
+		elif mod == 'load':	olist.append(dstat_load())
+		elif mod == 'mem':	olist.append(dstat_mem())
+		elif mod == 'net':	olist.append(dstat_net())
+		elif mod == 'page':	olist.append(dstat_page())
+		elif mod == 'proc':	olist.append(dstat_proc())
+		elif mod == 'swap':	olist.append(dstat_swap())
+		elif mod == 'sys':	olist.append(dstat_sys())
+
+#	sys.setcheckinterval(op.sleep * 1.5 * 100)
+	signal.signal(signal.SIGALRM, handler)
+	signal.alarm(op.sleep)
+	while count != op.count:
+
+		if count % 23 == 0:
+			for c, o in enumerate(olist):
+				sys.stdout.write(o.title1)
+				if c != len(olist)-1:
+					sys.stdout.write(' ')
+			sys.stdout.write('\n')
+
+			for c, o in enumerate(olist):
+				sys.stdout.write(o.title2)
+				if c != len(olist)-1:
+					sys.stdout.write('|')
+			sys.stdout.write('\n')
+
+		for c, o in enumerate(olist):
+			o.stats()
+			o.show()
+			if c != len(olist)-1:
+				sys.stdout.write('|')
+		sys.stdout.write('\n')
+
+		count = count + 1
+
+		if count != op.count:
+			signal.pause()
+			signal.alarm(op.sleep)
+
+### Workaround for python <= 2.2.1
+try:
+     True, False
+except NameError:
+     True = 1
+     False = 0
+Yes = yes = On = on = True
+No = no = Off = off = False
+
+### Main entrance
+if __name__ == '__main__':
+	op=Options(sys.argv[1:])
+#	cf=Config()
+	try:
+		main()
+	except KeyboardInterrupt, e:
+		print 'Exiting on user request'
+		sys.exit(6)
+	except OSError, e:
+#		print e.errno
+		print 'OSError: %s' %e
+		sys.exit(7)
+
+# vim:ts=4:sw=4

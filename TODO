@@ -1,0 +1,23 @@
+### Usability
++ Use /etc/dstat.conf to influence output
++ Add --config option
++ Add -o/--output option
++ Make -I eth0,acpi or -I ide0,yenta work
++ Show header when out of display instead of 22 lines (see term ?)
++ Maybe add colors to indicate units better (may become ugly)
++ Allow to force to given magnitude
+
+### Extensions
++ Add all stats to seperate modules and allow people to plugin their own modules
+
+### Statistics
++ Add application stats ( -a or -A pid,cmd)
++ Add ip stats (icmp, tcp, udp)
++ Add ntp stats
++ Add user stats (number of users logged on)
++ Add --diff option to print intermediate results (ie. when delay = 5, you see 1sec updates in other color)
++ Look into interfacing with bind, sendmail, postfix, squid, amavisd, 
++ Look into interfacing with laus
+
+### Bugs
++ Implement protection against counter rollovers

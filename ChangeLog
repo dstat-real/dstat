@@ -1,0 +1,22 @@
+* 0.4
+- Added interrupt stats
+- Order of the stats adhere the order of the options
+- Interval more precise, using signals instead of sleep
+- Modular rewrite using classes
+- Added -D, -I and -N options to customize list
+- Allow to specify 'total' for -D and -N to get aggregated numbers
+- Added --vmstat option, vmstat alike output
+- Implemented a basic interface and disk 'discovery' function
+- Replaced hardcoded 4096 by resource.getpagesize()
+- Initial public release
+
+* 0.3
+- Added load stats
+- Added memory stats
+- Output now fits into space and adds unit
+- Converted all values to bytes
+
+* 0.2
+- Added disk io
+- Added proc stats
+- Important layout changes
