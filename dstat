@@ -675,10 +675,10 @@ class dstat_proc(dstat):
 	def __init__(self):
 		self.name = 'procs'
 		self.format = '%is'
-		self.len = 2
+		self.len = 3
 		self.vars = ('procs_running', 'procs_blocked', 'processes')
 #		self.vars = ('procs_running', 'procs_blocked')
-		self.nick = ('ru', 'bl', 'nw')
+		self.nick = ('run', 'blk', 'new')
 #		self.nick = ('ru', 'bl')
 		self.init()
 
@@ -901,9 +901,9 @@ def conv(max, var, base = 1024):
 		repr = str(long(round(var))) + unit[c]
 		if len(repr) <= max:
 			if not op.integer and ( base != 1000 or c > 0):
-				if len('%1.2f' % var) < max:
+				if len('%1.2f' % var + unit[c]) <= max:
 					repr = '%1.2f' % var + unit[c]
-				elif len('%1.1f' % var) < max:
+				elif len('%1.1f' % var + unit[c]) <= max:
 					repr = '%1.1f' % var + unit[c]
 			break
 		var = var / base
