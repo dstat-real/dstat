@@ -240,20 +240,20 @@ class dstat:
 		sep = ' '
 		for name in self.vars:
 			if self.format in ('%s', '%bs'):
-					sys.stdout.write('%s' % conv(self.len, self.val[name], 1024))
+				sys.stdout.write('%s' % conv(self.len, self.val[name], 1024))
 			elif self.format == '%ds':
-					sys.stdout.write('%s' % conv(self.len, self.val[name], 1000))
+				sys.stdout.write('%s' % conv(self.len, self.val[name], 1000))
 			elif self.format == '%ps':
-					sys.stdout.write('%s' % conv(self.len, self.val[name] / step, 100))
+				sys.stdout.write('%s' % conv(self.len, self.val[name], 100))
 			elif self.format == '%f':
-					sys.stdout.write('%s' % conv(self.len, self.val[name], 1))
+				sys.stdout.write('%s' % conv(self.len, self.val[name], 1))
 			elif self.format == '%is':
-					sys.stdout.write('%s' % conv(self.len, self.val[name], 0))
+				sys.stdout.write('%s' % conv(self.len, self.val[name], 0))
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
-					sys.stdout.write(self.format % convlist(self.len, self.val[name]))
-					sep = ansi['default'] + '|'
+				sys.stdout.write(self.format % convlist(self.len, self.val[name]))
+				sep = ansi['default'] + '|'
 			else:
-					sys.stdout.write(self.format % self.val[name])
+				sys.stdout.write(self.format % self.val[name])
 			if name != self.vars[-1]:
 				sys.stdout.write(sep)
 
@@ -263,9 +263,7 @@ class dstat_cpu(dstat):
 		self.len = 3
 		self.format = '%ps'
 		self.vars = ('user', 'sys', 'idle', 'wait', 'hardirq', 'softirq')
-#		self.vars = ('user', 'sys', 'idle', 'wait')
 		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
-#		self.nick = ( 'usr', 'sys', 'idl', 'wai' )
 		self.init()
 		self.cn1['total'] = 0
 
@@ -277,13 +275,10 @@ class dstat_cpu(dstat):
 		return False
 
 	def stats(self):
-		if step == 1:
-			for name in self.vars: self.val[name] = 0
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
 			if len(l) <= 7 or l[0] != 'cpu': continue
 			self.cn2['user'] = long(l[1]) + long(l[2])
-#			self.cn2['sys'] = long(l[3]) + long(l[6]) + long(l[7])
 			self.cn2['sys'] = long(l[3])
 			self.cn2['idle'] = long(l[4])
 			self.cn2['wait'] = long(l[5])
@@ -291,8 +286,9 @@ class dstat_cpu(dstat):
 			self.cn2['softirq'] = long(l[7])
 			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait'] + self.cn2['hardirq'] + self.cn2['softirq']
 		for name in self.vars:
-			self.val[name] = self.val[name] + 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
-		self.cn1.update(self.cn2)
+			self.val[name] = 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 class dstat_cpu24(dstat):
 	def __init__(self):
@@ -312,8 +308,6 @@ class dstat_cpu24(dstat):
 		return False
 
 	def stats(self):
-		if step == 1:
-			for name in self.vars: self.val[name] = 0
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
 			if len(l) < 4 or l[0] != 'cpu': continue
@@ -322,8 +316,9 @@ class dstat_cpu24(dstat):
 			self.cn2['idle'] = long(l[4])
 			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle']
 		for name in self.vars:
-			self.val[name] = self.val[name] + 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
-		self.cn1.update(self.cn2)
+			self.val[name] = 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 class dstat_disk(dstat):
 	def __init__(self):
@@ -874,7 +869,6 @@ def convlist(max, list):
 #	return map(conv, list)
 
 def conv(max, var, base = 1024):
-	### lowercase (b) is better for the eyes than uppercase
 	if var < 0:
 		return ansi['default'] + '- '.rjust(max)
 
@@ -898,6 +892,7 @@ def conv(max, var, base = 1024):
 	elif base == 1000:
 		unit = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	else:
+		### lowercase (b) is better for the eyes than uppercase
 		unit = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 
 	c = 0
@@ -909,11 +904,15 @@ def conv(max, var, base = 1024):
 					repr = '%1.2f' % var + unit[c]
 				elif len('%1.1f' % var + unit[c]) <= max:
 					repr = '%1.1f' % var + unit[c]
+			else:
+				var = long(round(var))
 			break
 		var = var / base
 		c = c + 1
 
-	if var != 0:
+	if type(var) == int and long(round(var)) != 0:
+	 	return ansi[color[c]] + repr.rjust(max)
+	elif var != 0:
 	 	return ansi[color[c]] + repr.rjust(max)
 	else:
 		return ansi['default'] + '0 '.rjust(max)
@@ -1114,7 +1113,7 @@ def main():
 
 		### The last step in a loop is to show the definitive line on a new line
 		if step == op.delay:
-			sys.stdout.write('\n' + ansi['clearline'] + ansi['save'])
+			sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
 		else:
 			sys.stdout.write(ansi['clearline'] + ansi['restore'])
 
@@ -1155,7 +1154,6 @@ if __name__ == '__main__':
 		print
 		print ansi['reset'] + 'OSError: %s' %e
 		sys.exit(7)
-
 sys.exit(0)
 
 
