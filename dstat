@@ -14,11 +14,11 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 # Copyright 2004 Dag Wieers <dag@wieers.com>
 
-from __future__ import generators
-import os, sys, re, getopt, fcntl, termios, struct
+#from __future__ import generators
+import os, sys, re, getopt, fcntl, termios, struct, time
 import ConfigParser, urlparse, signal, resource
 
-VERSION = "0.5"
+VERSION = "0.5.1"
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -36,9 +36,9 @@ class Options:
 		self.header = True
 
 		try:
-			opts, args = getopt.getopt (args, 'acdghilmnpsvyD:I:N:',
+			opts, args = getopt.getopt (args, 'acdghilmnpstvyD:I:N:',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net',
-				'page', 'proc', 'swap', 'sys', 'version', 'vm', 'vmstat',
+				'page', 'proc', 'swap', 'sys', 'time', 'version', 'vm', 'vmstat',
 				'integer', 'nocolor', 'noheader', 'noupdate'])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
@@ -77,6 +77,8 @@ class Options:
 				self.modlist.append('proc')
 			elif opt in ['-s', '--swap']:
 				self.modlist.append('swap')
+			elif opt in ['-t', '--time']:
+				self.modlist.append('time')
 			elif opt in ['-y', '--sys']:
 				self.modlist.append('sys')
 			elif opt in ['-v', '--version']:
@@ -131,12 +133,13 @@ Dstat options:
      -N eth1,total      include eth1 and total
   -p, --proc         enable process stats
   -s, --swap         enable swap stats
+  -t, --time         enable time counter
   -y, --sys          enable system stats
 
   --integer          show integer values
   --nocolor          disable colors
   --noheader         disable repetitive headers
-  --noupdate         disable intermediates updates when delay > 1
+  --noupdate         disable intermediate updates when delay > 1
 '''
 
 class Config:
@@ -209,7 +212,7 @@ class dstat:
 					sys.stdout.write(self.format % conv(self.len, self.val[name]))
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
 					sys.stdout.write(self.format % convlist(self.len, self.val[name]))
-#					sep = '[01;30m:[0m'
+#					sep = ansi['gray'] + ':' + ansi['default']
 					sep = ':'
 			else:
 					sys.stdout.write(self.format % self.val[name])
@@ -660,9 +663,24 @@ class dstat_sys(dstat):
 
 	def show(self):
 		for name in self.vars:
-			sys.stdout.write('%5d' % self.val[name])
+			sys.stdout.write(self.format % self.val[name])
 			if name != self.vars[-1]:
 				sys.stdout.write(' ')
+
+class dstat_time(dstat):
+	def __init__(self):
+		self.name = 'time'
+		self.format = '%10d'
+		self.len = 10
+		self.nick = ('epoch',)
+		self.vars = ('epoch',)
+		self.init()
+
+	def stats(self):
+		self.val['epoch'] = time.time()
+
+	def show(self):
+		sys.stdout.write(self.format % self.val['epoch'])
 
 ansi = {
 	'black': '\033[0;30m',
@@ -723,7 +741,7 @@ def conv(max, var, base = 1024):
 		color = ('darkred', 'brown', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'darkred', 'darkgreen')
 		
 	c = 0
-#	var = var / step
+	var = var / step
 	while True:
 		if len('%d' % round(long(var))) < max:
 			if not op.integer and len('%1.2f' % var) < max:
@@ -731,7 +749,7 @@ def conv(max, var, base = 1024):
 			elif not op.integer and len('%1.1f' % var) < max:
 				ret = '%1.1f' % var
 			else:
-				ret = '%d' % round(var)
+				ret = '%d' % round(long(var))
 			break
 		var = var / base
 		c = c + 1
@@ -818,14 +836,15 @@ def main():
 		elif mod == 'proc':	olist.append(dstat_proc())
 		elif mod == 'swap':	olist.append(dstat_swap())
 		elif mod == 'sys':	olist.append(dstat_sys())
+		elif mod == 'time':	olist.append(dstat_time())
 
 	### Remove defect objects
 	for o in olist + []:
 		if not o.check():
 			olist.remove(o)
 
-#	if os.geteuid() == 0:
-#		os.nice(-10)
+	if os.geteuid() == 0:
+		os.nice(-10)
 #	sys.setcheckinterval(op.delay * 1.5 * 100)
 	signal.signal(signal.SIGALRM, handler)
 	while count != op.count:

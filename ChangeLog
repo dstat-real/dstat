@@ -1,3 +1,7 @@
+* 0.5.1
+- Fixed bug that caused counters to not be averages when delay > 1
+- Added time stats (-t)
+
 * 0.5
 - Changed some more int()'s into long()'s (Pasi Pirhonen)
 - Fixed the cpu out of index, /proc instability (Pasi Pirhonen)
@@ -11,7 +15,7 @@
 - Fixed 2 crash bugs caused by /proc instability
 
 * 0.4
-- Added interrupt stats
+- Added interrupt stats (-i)
 - Order of the stats adhere the order of the options
 - Interval more precise, using signals instead of sleep
 - Modular rewrite using classes
@@ -32,12 +36,12 @@
 - Initial public release
 
 * 0.3
-- Added load stats
-- Added memory stats
+- Added load stats (-l)
+- Added memory stats (-m)
 - Output now fits into space and adds unit
 - Converted all values to bytes
 
 * 0.2
-- Added disk io
-- Added proc stats
+- Added disk io (-d)
+- Added proc stats (-p)
 - Important layout changes

@@ -1,6 +1,7 @@
 ### Usability
 + Add --config option and use /etc/dstat.conf to influence output
-+ Add -o/--output option and parsable output options
++ Add -o/--output option to save directly to a file
++ Add --parse option to give parsable output (maybe CSV output ?)
 + Allow to force to given magnitude
 + Look at possibilities to show deviation (on second line ?)
 
@@ -8,12 +9,15 @@
 + Add all stats to seperate modules and allow people to plugin their own modules
 
 ### Statistics
++ Add time counter
 + Add application stats (-a or -A pid,cmd)
 + Add ip stats (icmp, tcp, udp)
 + Add ntp stats
 + Add user stats (number of users logged on)
-+ Look into interfacing with bind, sendmail, postfix, squid, amavisd, laus, gpfs, hw ?
++ Look into interfacing with apps (bind, sendmail, postfix, squid, amavisd, laus)
++ Look into interfacing with specific HW counters in /proc
 
 ### Bugs
 + Implement better (?) protection against counter rollovers
 + If you have 2 devices with the same name, -I will only work on the first one
++ When using -D hdk, -I 99, -N eth9 dstat should fail when it does not exist 
