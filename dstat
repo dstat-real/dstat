@@ -89,7 +89,7 @@ class Options:
 			self.modlist = [ 'cpu', 'disk', 'net', 'sys' ]
 
 		if len(args) > 0:
-			self.sleep = float(args[0])
+			self.sleep = int(args[0])
 
 		if len(args) > 1:
 			self.count = int(args[1])
@@ -228,7 +228,7 @@ class dstat_cpu(dstat):
 				self.cn2['wait'] = int(l[5])
 				self.cn2['sum'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait']
 		for name in self.vars:
-			self.val[name] = (100.0 * (self.cn2[name]-self.cn1[name]) + (self.cn2['sum']-self.cn1['sum'])/2) /(self.cn2['sum']-self.cn1['sum'])
+			self.val[name] = (100.0 * (self.cn2[name]-self.cn1[name]) + (self.cn2['sum']-self.cn1['sum']) / 2) / (self.cn2['sum']-self.cn1['sum'])
 		self.cn1.update(self.cn2)
 
 class dstat_disk(dstat):
@@ -288,8 +288,8 @@ class dstat_disk(dstat):
 		if count != 0:
 			for name in self.cn2:
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) * 512 / op.sleep,
-					(self.cn2[name][1]-self.cn1[name][1]) * 512 / op.sleep,
+					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / op.sleep,
+					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / op.sleep,
 				)
 		self.cn1.update(self.cn2)
 
@@ -342,8 +342,8 @@ class dstat_disk24(dstat_disk):
 		if count != 0:
 			for name in self.cn2:
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) * 1024 / itv * hz / 2,
-					(self.cn2[name][1]-self.cn1[name][1]) * 1024 / itv * hz / 2,
+					(self.cn2[name][0]-self.cn1[name][0]) * 1024.0 / itv * hz / 2.0,
+					(self.cn2[name][1]-self.cn1[name][1]) * 1024.0 / itv * hz / 2.0,
 				)
 #		print '[rd=', self.cn2[name][0]-self.cn1[name][0], 'wr=', self.cn2[name][1]-self.cn1[name][1] , ']',
 		self.cn1.update(self.cn2)
@@ -372,8 +372,8 @@ class dstat_disk24old(dstat_disk24):
 		if count != 0:
 			for name in self.cn2:
 				self.val[name] = (
-					(self.cn2[name][0]-self.cn1[name][0]) * 512 / op.sleep,
-					(self.cn2[name][1]-self.cn1[name][1]) * 512 / op.sleep,
+					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / op.sleep,
+					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / op.sleep,
 				)
 		self.cn1.update(self.cn2)
 
@@ -415,7 +415,7 @@ class dstat_int(dstat):
 						self.cn2[mod] = int(l[1])
 		if count != 0:
 			for name in self.cn2:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) / op.sleep
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / op.sleep
 		self.cn1.update(self.cn2)
 
 class dstat_load(dstat):
@@ -458,7 +458,7 @@ class dstat_mem(dstat):
 			l = line.split()
 			name = l[0].split(':')[0]
 			if name in self.vars + ('MemTotal',):
-				self.val[name] = int(l[1]) * 024
+				self.val[name] = int(l[1]) * 1024.0
 		self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
 
 class dstat_net(dstat):
@@ -512,8 +512,8 @@ class dstat_net(dstat):
 		if count != 0:
 			for name in self.cn2:
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) / op.sleep,
-					(self.cn2[name][1]-self.cn1[name][1]) / op.sleep
+					(self.cn2[name][0]-self.cn1[name][0]) * 1.0 / op.sleep,
+					(self.cn2[name][1]-self.cn1[name][1]) * 1.0 / op.sleep
 				 )
 		self.cn1.update(self.cn2)
 
@@ -538,7 +538,7 @@ class dstat_page(dstat):
 				self.cn2[name] = int(l[1])
 		if count != 0:
 			for name in self.vars:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize / op.sleep
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize * 1.0 / op.sleep
 		self.cn1.update(self.cn2)
 
 class dstat_page24(dstat_page):
@@ -555,7 +555,7 @@ class dstat_page24(dstat_page):
 				self.cn2['pswpout'] = int(l[2])
 		if count != 0:
 			for name in self.vars:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize / op.sleep
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize * 1.0 / op.sleep
 		self.cn1.update(self.cn2)
 
 class dstat_proc(dstat):
@@ -582,7 +582,7 @@ class dstat_proc(dstat):
 				self.val[name] = int(l[1])
 #			if name in ('processess',):
 #				self.cn2[name] = int(l[1])
-		self.val['procs_running'] = self.val['procs_running']-1
+		self.val['procs_running'] = self.val['procs_running'] - 1
 #		if count != 0:
 #			self.val['processes'] = self.cn2['processes']-self.cn1['processes']
 		self.cn1.update(self.cn2)
@@ -606,7 +606,7 @@ class dstat_swap(dstat):
 			l = line.split()
 			name = l[0].split(':')[0]
 			if name in self.vars + ('SwapTotal',):
-				self.val[name] = int(l[1]) * 1024
+				self.val[name] = int(l[1]) * 1024.0
 		self.val['SwapUsed'] = self.val['SwapTotal'] - self.val['SwapFree']
 
 class dstat_sys(dstat):
@@ -631,7 +631,7 @@ class dstat_sys(dstat):
 				self.cn2[l[0]] = int(l[1])
 		if count != 0:
 			for name in self.vars:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) / op.sleep
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / op.sleep
 		self.cn1.update(self.cn2)
 
 	def show(self):
@@ -654,10 +654,8 @@ def conv(max, var, base = 1024):
 	### lowercase (b) is better for the eyes than uppercase
 	units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	c = 0
-#	var = int(var * 1.0)
-	var = var * 1.0
 	while True:
-		if len(str(var)) < max:
+		if len('%d' % round(var)) < max:
 			if op.float and len('%1.2f' % var) < max:
 				ret = '%1.2f' % var
 			elif op.float and len('%1.1f' % var) < max:
@@ -665,11 +663,9 @@ def conv(max, var, base = 1024):
 			else:
 				ret = '%d' % round(var)
 			break
-		var = var / base * 1.0
+		var = var / base
 		c = c + 1
-#	print '[%d]' % digit,
 	if var != 0:
-#		return str(int(round(var))).rjust(max-1) + units[c]
 		return ret.rjust(max-1) + units[c]
 	else:
 		return ' ' * (max-2) + '0 '
@@ -753,7 +749,7 @@ def main():
 #	sys.setcheckinterval(op.sleep * 1.5 * 100)
 	signal.signal(signal.SIGALRM, handler)
 	while count != op.count:
-		signal.alarm(int(op.sleep))
+		signal.alarm(op.sleep)
 
 		rows = getwinsize()[0]
 		if count % (rows-2)  == 0:
