@@ -227,9 +227,11 @@ class dstat:
 
 	def title2(self):
 		ret = ''
+		i = 0
 		for str in self.nick:
 			ret = ret + str[0:self.len].center(self.len).replace(' ', '_')
-			if str != self.nick[-1]: ret = ret + ' '
+			if i != len(self.nick): ret = ret + ' '
+			i = i + 1
 		return ansi['blue'] + ret + ansi['default']
 
 	def check(self):
@@ -240,6 +242,7 @@ class dstat:
 
 	def show(self):
 		sep = ' '
+		i = 0
 		for name in self.vars:
 			if self.format in ('%s', '%bs'):
 				sys.stdout.write('%s' % conv(self.len, self.val[name], 1024))
@@ -259,8 +262,9 @@ class dstat:
 				sep = ansi['default'] + '|'
 			else:
 				sys.stdout.write(self.format % self.val[name])
-			if name != self.vars[-1]:
+			if i != len(self.vars):
 				sys.stdout.write(sep)
+			i = i + 1
 
 class dstat_cpu(dstat):
 	def __init__(self):
@@ -1089,7 +1093,7 @@ def main():
 			showheader = False
 			for o in plist:
 				sys.stdout.write(o.title1)
-				if o != plist[-1]:
+				if o is not plist[-1]:
 					sys.stdout.write(ansi['darkblue'] + ' ' + ansi['default'])
 				elif olist != plist:
 					sys.stdout.write(ansi['darkblue'] + '>' + ansi['default'])
@@ -1097,7 +1101,7 @@ def main():
 
 			for o in plist:
 				sys.stdout.write(o.title2)
-				if o != plist[-1]:
+				if o is not plist[-1]:
 					sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
 				elif olist != plist:
 					sys.stdout.write(ansi['darkblue'] + '>' + ansi['default'])
@@ -1120,9 +1124,9 @@ def main():
 			o.stats()
 			if o in plist:
 				o.show()
-				if o != plist[-1]:
+				if o is not plist[-1]:
 					sys.stdout.write(ansi['default'] + '|' + ansi['default'])
-				elif o != olist[-1]:
+				elif o is not olist[-1]:
 					sys.stdout.write(ansi['default'] + '>' + ansi['default'])
 
 		### If intermediate results, update increases with 1 sec (=interval)
