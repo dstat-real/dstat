@@ -16,7 +16,7 @@
 
 #from __future__ import generators
 import fcntl, struct, termios
-import os, sys, re, getopt, time
+import os, sys, re, getopt, time, string
 import ConfigParser, urlparse, signal, resource
 
 VERSION = "0.5.3"
@@ -54,23 +54,23 @@ class Options:
 			elif opt in ['-d', '--disk']:
 				self.modlist.append('disk')
 			elif opt in ['-D']:
-				self.disklist = arg.split(',')
+				self.disklist = string.split(arg,',')
 			elif opt in ['-i', '--int']:
 				self.modlist.append('int')
 			elif opt in ['-g', '--page']:
 				self.modlist.append('page')
 			elif opt in ['-I']:
-				self.intlist = arg.split(',')
+				self.intlist = string.split(arg, ',')
 			elif opt in ['-m', '--mem']:
 				self.modlist.append('mem')
 			elif opt in ['-M', '--mods', '--modules']:
-				self.modlist = self.modlist + arg.split(',')
+				self.modlist = self.modlist + string.split(arg, ',')
 			elif opt in ['-l', '--load']:
 				self.modlist.append('load')
 			elif opt in ['-n', '--net']:
 				self.modlist.append('net')
 			elif opt in ['-N']:
-				self.netlist = arg.split(',')
+				self.netlist = string.split(arg, ',')
 			elif opt in ['-p', '--proc']:
 				self.modlist.append('proc')
 			elif opt in ['-s', '--swap']:
@@ -220,12 +220,12 @@ class dstat:
 
 	def title1(self):
 		max = self.width()
-		return ansi['darkblue'] + self.name[0:max-2].center(max).replace(' ', '-') + ansi['default']
+		return ansi['darkblue'] + string.replace(string.center(self.name[0:max-2],max), ' ', '-') + ansi['default']
 
 	def title2(self):
 		ret = ''
 		for str in self.nick:
-			ret = ret + str[0:self.len].center(self.len).replace(' ', '_')
+			ret = ret + string.replace(string.center(str[0:self.len], self.len), ' ', '_')
 			if str != self.nick[-1]: ret = ret + ' '
 		return ansi['blue'] + ret + ansi['default']
 
@@ -260,14 +260,14 @@ class dstat_cpu(dstat):
 
 	def check(self):
 		if os.path.exists('/proc/stat'):
-			l = open('/proc/stat', 'r').readline().split()
+			l = string.split(open('/proc/stat', 'r').readline())
 			if len(l) > 5:
 				return True
 		return False
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) <= 5 or l[0] != 'cpu': continue
 			self.cn2['user'] = long(l[1]) + long(l[2])
 			self.cn2['sys'] = long(l[3])
@@ -290,14 +290,14 @@ class dstat_cpu24(dstat):
 
 	def check(self):
 		if os.path.exists('/proc/stat'):
-			l = open('/proc/stat', 'r').readline().split()
+			l = string.split(open('/proc/stat', 'r').readline())
 			if len(l) == 5:
 				return True
 		return False
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) < 4 or l[0] != 'cpu': continue
 			self.cn2['user'] = long(l[1]) + long(l[2])
 			self.cn2['sys'] = long(l[3])
@@ -333,7 +333,7 @@ class dstat_disk(dstat):
 	def discover(self):
 		retlist = []
 		for line in open('/proc/diskstats', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) < 13 or l[3] == '0': continue
 			name = l[2]
 			if not re.match('^(ram\d+|loop\d+)$', name):
@@ -350,7 +350,7 @@ class dstat_disk(dstat):
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/diskstats', 'r').readlines():
-			l = line.split();
+			l = string.split(line);
 			if len(l) < 13: continue
 			name = l[2]
 			if name in self.vars:
@@ -372,7 +372,7 @@ class dstat_disk24(dstat_disk):
 	def discover(self):
 		retlist = []
 		for line in open('/proc/partitions', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
 			if not re.match('^(ram[0-9]+|loop[0-9]+|name)$', name):
@@ -383,7 +383,7 @@ class dstat_disk24(dstat_disk):
 
 	def check(self):
 		if os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
-			l = open('/proc/partitions', 'r').readline().split()
+			l = string.split(open('/proc/partitions', 'r').readline())
 			if len(l) > 4:
 				return True
 		return False
@@ -391,7 +391,7 @@ class dstat_disk24(dstat_disk):
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/partitions', 'r').readlines():
-			l = line.split();
+			l = string.split(line)
 			if len(l) < 15: continue
 			name = l[3]
 			if name == 'name': continue
@@ -414,7 +414,7 @@ class dstat_disk24old(dstat_disk24):
 	def discover(self):
 		retlist = []
 		for line in open('/proc/partitions', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) != 4 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
 			if not re.match('^(ram[0-9]+|loop[0-9]+|name)$', name):
@@ -427,7 +427,7 @@ class dstat_disk24old(dstat_disk24):
 		if os.path.exists('/proc/stat') and \
 			not os.path.exists('/proc/diskstats'):
 			if os.path.exists('/proc/partitions'):
-				l = open('/proc/partitions', 'r').readline().split()
+				l = string.split(open('/proc/partitions', 'r').readline())
 				if len(l) <= 4:
 					return True
 			else:
@@ -437,11 +437,11 @@ class dstat_disk24old(dstat_disk24):
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split(':');
+			l = string.split(line, ':');
 			if len(l) < 3: continue
 			name = l[0]
 			if name == 'disk_io':
-				for pair in line.split()[1:]:
+				for pair in string.split(line)[1:]:
 					m = re.match('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$', pair)
 					if m:
 						l = m.groups()
@@ -475,9 +475,9 @@ class dstat_int(dstat):
 	def discover(self):
 		retlist = []
 		for line in open('/proc/interrupts', 'r').readlines():
-			l = line.split();
+			l = string.split(line)
 			if len(l) < 1: continue
-			name = l[0].split(':')[0]
+			name = string.split(l[0], ':')[0]
 			if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'): continue
 			if len(l) > 1 and l[1] != '0':
 				retlist.append(name)
@@ -491,9 +491,9 @@ class dstat_int(dstat):
 
 	def stats(self):
 		for line in open('/proc/interrupts', 'r').readlines():
-			l = line.split();
+			l = string.split(line)
 			if len(l) < 2: continue
-			name = l[0].split(':')[0]
+			name = string.split(l[0], ':')[0]
 			if name in self.vars:
 				self.cn2[name] = long(l[1])
 			elif len(l) > 2 + procs:
@@ -522,7 +522,7 @@ class dstat_load(dstat):
 
 	def stats(self):
 		for line in open('/proc/loadavg', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) < 3: continue
 			self.val['load1'] = float(l[0])
 			self.val['load5'] = float(l[1])
@@ -544,9 +544,9 @@ class dstat_mem(dstat):
 
 	def stats(self):
 		for line in open('/proc/meminfo', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) < 2: continue
-			name = l[0].split(':')[0]
+			name = string.split(l[0], ':')[0]
 			if name in self.vars + ('MemTotal',):
 				self.val[name] = long(l[1]) * 1024.0
 		self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
@@ -570,9 +570,9 @@ class dstat_net(dstat):
 	def discover(self):
 		retlist = []
 		for line in open('/proc/net/dev', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) < 2: continue
-			name = l[0].split(':')[0]
+			name = string.split(l[0],':')[0]
 			if l[1] == '0': continue
 			if not re.match('^(Inter-\||face|lo)$', name):
 				retlist.append(name)
@@ -588,12 +588,12 @@ class dstat_net(dstat):
 	def stats(self):
 		self.cn2['total'] = (0, 0)
 		for line in open('/proc/net/dev', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) < 1: continue
-			l2 = l[0].split(':')
+			l2 = string.split(l[0], ':')
 			if len(l2) < 1: continue
 			name = l2[0]
-			if len(l2) > 1 and l2[1].strip():
+			if len(l2) > 1 and string.strip(l2[1]):
 				l = l2[1:] + l[1:]
 			else:
 				l = l[1:]
@@ -626,7 +626,7 @@ class dstat_page(dstat):
 
 	def stats(self):
 		for line in open('/proc/vmstat', 'r').readlines():
-			l = line.split();
+			l = string.split(line);
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
@@ -645,7 +645,7 @@ class dstat_page24(dstat_page):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split();
+			l = string.split(line);
 			if len(l) < 3: continue
 			name = l[0]
 			if name == 'swap':
@@ -676,7 +676,7 @@ class dstat_proc(dstat):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split();
+			l = string.split(line)
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
@@ -707,9 +707,9 @@ class dstat_swap(dstat):
 
 	def stats(self):
 		for line in open('/proc/meminfo', 'r').readlines():
-			l = line.split()
+			l = string.split(line)
 			if len(l) < 2: continue
-			name = l[0].split(':')[0]
+			name = string.split(l[0], ':')[0]
 			if name in self.vars + ('SwapTotal',):
 				self.val[name] = long(l[1]) * 1024.0
 		self.val['SwapUsed'] = self.val['SwapTotal'] - self.val['SwapFree']
@@ -731,7 +731,7 @@ class dstat_sys(dstat):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split();
+			l = string.split(line);
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
@@ -765,7 +765,7 @@ class dstat_tcp(dstat):
 	def stats(self):
 		self.val['listen'] = self.val['established'] = self.val['syn_sent'] = self.val['time_wait'] = 0
 		for line in open('/proc/net/tcp', 'r').readlines():
-			l = line.split();
+			l = string.split(line)
 			if len(l) < 12: continue
 			if l[3] == '0A': self.val['listen'] = self.val['listen'] + 1
 			elif l[3] == '01': self.val['established'] = self.val['established'] + 1
@@ -813,7 +813,7 @@ class dstat_udp(dstat):
 	def stats(self):
 		self.val['connections'] = 0
 		for line in open('/proc/net/udp', 'r').readlines():
-			l = line.split();
+			l = string.split(line)
 			if l[3] == '07': self.val['connections'] = self.val['connections'] + 1
 
 	def show(self):
@@ -898,7 +898,7 @@ def conv(max, var, base = 1024):
 		var = var / base
 		c = c + 1
 	if var != 0:
-	 	return ansi[color[c]] + ret.rjust(max-1) + unit[c] + ansi['default']
+	 	return ansi[color[c]] + string.rjust(ret,max-1) + unit[c] + ansi['default']
 	else:
 		return ' ' * (max-2) + '0 '
 
@@ -926,8 +926,8 @@ def getwinsize():
 def getcpunr():
 	procs = 0
 	for line in open('/proc/stat', 'r').readlines():
-		name = line.split()[0]
-		if len(name) == 4and name[0:3] == 'cpu':
+		name = string.split(line)[0]
+		if len(name) == 4 and name[0:3] == 'cpu':
 			procs = procs + 1
 	return procs
 
@@ -952,7 +952,7 @@ def dev(maj, min):
 #	"Return the mountpoint of a mounted device/file"
 #	for entry in open('/etc/mtab', 'r').readlines():
 #		if entry:
-#			list = entry.split()
+#			list = string.split(entry)
 #			if dev == list[0]:
 #				return list[1]
 

@@ -1,3 +1,6 @@
+* 0.5.4
+- Added a python 1.5 version of dstat (Ville Herva)
+
 * 0.5.3
 - Added -M or --mods option to allow modules
 - Added --full option to expand the -D, -I and -N discovery lists
@@ -8,7 +11,7 @@
 - Added --tcp and --udp stats (may be improved later ?)
 - Fixes to disk24old and new cpu24 (for Debian 2.4.26 kernel)
 - Signal handling cleanup
-- Partitions are excluded from discovered on 2.4 kernels
+- Partitions are excluded from discovery on 2.4 kernels
 
 * 0.5.2
 - Improved disk and net discovery functions (Ville Herva)
