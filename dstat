@@ -30,11 +30,13 @@ class Options:
 		self.disklist = None
 		self.intlist = None
 		self.netlist = None
+		self.float = False
 
 		try:
 			opts, args = getopt.getopt (args, 'acdghilmnpsvyD:I:N:',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net',
-				'page', 'proc', 'swap', 'sys', 'version', '--vm', 'vmstat'])
+				'page', 'proc', 'swap', 'sys', 'version', 'vm', 'vmstat',
+				'float'])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
 			sys.exit(1)
@@ -80,12 +82,14 @@ class Options:
 			elif opt in ['--vm', '--vmstat']:
 				self.modlist = [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 				self.disklist = ('total',)
+			elif opt in ['--float']:
+				self.float = True
 
 		if not self.modlist:
 			self.modlist = [ 'cpu', 'disk', 'net', 'sys' ]
 
 		if len(args) > 0:
-			self.sleep = int(args[0])
+			self.sleep = float(args[0])
 
 		if len(args) > 1:
 			self.count = int(args[1])
@@ -119,6 +123,8 @@ Dstat options:
   -p, --proc         enable process stats
   -s, --swap         enable swap stats
   -y, --sys          enable system stats
+
+  --float            show numbers as floats (more detail)
 '''
 
 class Config:
@@ -327,12 +333,12 @@ class dstat_disk24(dstat_disk):
 			name = l[3]
 			if name == 'name': continue
 			if name in self.vars:
-				self.cn2[name] = ( self.cn2[name][0] + float(l[6]), self.cn2[name][1] + float(l[10]) )
+				self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
 			for set in self.vars:
 				if set in self.diskset and name in self.diskset[set]:
-					self.cn2[set] = ( self.cn2[set][0] + float(l[6]), self.cn2[set][1] + float(l[10]) )
+					self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
 			if len(l) > 10:
-				self.cn2['total'] = ( self.cn2['total'][0] + float(l[6]), self.cn2['total'][1] + float(l[10]))
+				self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]))
 		if count != 0:
 			for name in self.cn2:
 				self.val[name] = ( 
@@ -452,7 +458,7 @@ class dstat_mem(dstat):
 			l = line.split()
 			name = l[0].split(':')[0]
 			if name in self.vars + ('MemTotal',):
-				self.val[name] = int(l[1]) * 1024
+				self.val[name] = int(l[1]) * 024
 		self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
 
 class dstat_net(dstat):
@@ -500,9 +506,9 @@ class dstat_net(dstat):
 			else:
 				l = l[1:]
 			if iface in (self.vars) :
-				self.cn2[iface] = ( float(l[0]), float(l[8]) )
+				self.cn2[iface] = ( long(l[0]), long(l[8]) )
 			if re.match('^(bond\d|eth\d|wifi\d)$', iface):
-				self.cn2['total'] = ( self.cn2['total'][0] + float(l[0]), self.cn2['total'][1] + float(l[8]))
+				self.cn2['total'] = ( self.cn2['total'][0] + long(l[0]), self.cn2['total'][1] + long(l[8]))
 		if count != 0:
 			for name in self.cn2:
 				self.val[name] = ( 
@@ -650,11 +656,21 @@ def conv(max, var, base = 1024):
 	c = 0
 #	var = int(var * 1.0)
 	var = var * 1.0
-	while len(str(int(var))) > max-1:
+	while True:
+		if len(str(var)) < max:
+			if op.float and len('%1.2f' % var) < max:
+				ret = '%1.2f' % var
+			elif op.float and len('%1.1f' % var) < max:
+				ret = '%1.1f' % var
+			else:
+				ret = '%d' % round(var)
+			break
 		var = var / base * 1.0
 		c = c + 1
+#	print '[%d]' % digit,
 	if var != 0:
-		return str(int(round(var))).rjust(max-1) + units[c]
+#		return str(int(round(var))).rjust(max-1) + units[c]
+		return ret.rjust(max-1) + units[c]
 	else:
 		return ' ' * (max-2) + '0 '
 
@@ -737,7 +753,7 @@ def main():
 #	sys.setcheckinterval(op.sleep * 1.5 * 100)
 	signal.signal(signal.SIGALRM, handler)
 	while count != op.count:
-		signal.alarm(op.sleep)
+		signal.alarm(int(op.sleep))
 
 		rows = getwinsize()[0]
 		if count % (rows-2)  == 0:
