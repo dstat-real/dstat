@@ -3,15 +3,14 @@
 + Allow to force to given magnitude
 + Look at possibilities to show deviation (on second line ?)
 + Improve manpage
++ I should be able to detect when ANSI sequences are not possible (anyone?)
 
 ### Export/Graph
 + Add -o/--output option to save directly to a file
 + Add --parse option to give parsable output (maybe CSV output ?)
 
-### Extensions
+### Extending statistics (help welcome!)
 + Add all stats to seperate modules and allow people to plugin their own modules
-
-### Statistics (help welcome!)
 + Add application stats (-a or -A pid,cmd)
 + Add icmp stats ?
 + Add ntp stats

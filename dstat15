@@ -19,7 +19,7 @@ import fcntl, struct, termios
 import os, sys, re, getopt, time, string
 import ConfigParser, urlparse, signal, resource
 
-VERSION = "0.5.3"
+VERSION = "0.5.4"
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -350,7 +350,7 @@ class dstat_disk(dstat):
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/diskstats', 'r').readlines():
-			l = string.split(line);
+			l = string.split(line)
 			if len(l) < 13: continue
 			name = l[2]
 			if name in self.vars:
@@ -375,7 +375,7 @@ class dstat_disk24(dstat_disk):
 			l = string.split(line)
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
-			if not re.match('^(ram[0-9]+|loop[0-9]+|name)$', name):
+			if not re.match('^(ram\d+|loop\d+|name)$', name):
 				retlist.append(name)
 		if not op.full and len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
@@ -398,7 +398,7 @@ class dstat_disk24(dstat_disk):
 			if name in self.vars:
 				self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
 			for set in self.vars:
-				if set in self.diskset and name in self.diskset[set]:
+				if set in self.diskset.keys() and name in self.diskset[set]:
 					self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
 			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]))
 		if update:
@@ -417,7 +417,7 @@ class dstat_disk24old(dstat_disk24):
 			l = string.split(line)
 			if len(l) != 4 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
-			if not re.match('^(ram[0-9]+|loop[0-9]+|name)$', name):
+			if not re.match('^(ram\d+|loop\d+|name)$', name):
 				retlist.append(name)
 		if not op.full and len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
@@ -437,7 +437,7 @@ class dstat_disk24old(dstat_disk24):
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
-			l = string.split(line, ':');
+			l = string.split(line, ':')
 			if len(l) < 3: continue
 			name = l[0]
 			if name == 'disk_io':
@@ -626,7 +626,7 @@ class dstat_page(dstat):
 
 	def stats(self):
 		for line in open('/proc/vmstat', 'r').readlines():
-			l = string.split(line);
+			l = string.split(line)
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
@@ -645,7 +645,7 @@ class dstat_page24(dstat_page):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = string.split(line);
+			l = string.split(line)
 			if len(l) < 3: continue
 			name = l[0]
 			if name == 'swap':
@@ -731,7 +731,7 @@ class dstat_sys(dstat):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = string.split(line);
+			l = string.split(line)
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
@@ -1028,7 +1028,7 @@ def main():
 	signal.alarm(interval)
 
 	### Let the games begin
-	while loop != op.count:
+	while update <= op.delay * op.count or op.count == -1:
 
 		### Trim object list to what is visible on screen
 		(rows, cols) = getwinsize()
@@ -1060,14 +1060,14 @@ def main():
 		oldplist = plist
 
 		### Prepare the colors for intermediate updates, last step in a loop is normal
-		if step != op.delay:
-			ansi['default'] = ansi['gray']
-		else:
+		if step == op.delay:
 			ansi['default'] = ansi['reset']
+		else:
+			ansi['default'] = ansi['gray']
 		sys.stdout.write(ansi['default'])
 
 		### Debugging info
-#		sys.stdout.write('[%d:%d:%d]' % (loop,step,update))
+#		sys.stdout.write('[%d:%d:%d]' % (loop, step, update))
 
 		### Show the stats, calculate all objects (visible, invisible)
 		for o in olist:
@@ -1081,19 +1081,19 @@ def main():
 
 		### If intermediate results, update increases with 1 sec (=interval)
 		update = update + interval
-		loop = update / op.delay 
-		oldstep = step
-		step = ((update - 1) % op.delay) + 1
 
 		### Do not pause when this is the final loop
-		if loop != op.count:
+		if update <= op.delay * op.count or op.count == -1:
 			signal.pause()
 
 		### The last step in a loop is to show the definitive line on a new line
-		if oldstep == op.delay:
+		if step == op.delay:
 			sys.stdout.write('\n' + ansi['clearline'] + ansi['save'])
 		else:
 			sys.stdout.write(ansi['restore'] + ansi['clearline'])
+
+		loop = update / op.delay 
+		step = ((update - 1) % op.delay) + 1
 
 ### Unbuffered sys.stdout
 sys.stdout = os.fdopen(1, 'w', 0)

@@ -19,7 +19,7 @@ import fcntl, struct, termios
 import os, sys, re, getopt, time
 import ConfigParser, urlparse, signal, resource
 
-VERSION = "0.5.3"
+VERSION = "0.5.4"
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -38,7 +38,7 @@ class Options:
 		self.header = True
 
 		try:
-			opts, args = getopt.getopt (args, 'acdghilmnpstvyD:I:M:N:',
+			opts, args = getopt.getopt (args, 'acdfghilmnpstvyD:I:M:N:',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net', 'page',
 				'proc', 'swap', 'sys', 'tcp', 'time', 'udp', 'version', 'vmstat',
 				'full', 'integer', 'mods', 'modules', 'nocolor', 'noheader', 'noupdate'])
@@ -90,12 +90,13 @@ class Options:
 				self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 				self.disklist = ('total',)
 
-			elif opt in ['--full']:
+			elif opt in ['-f', '--full']:
 				self.full = True
 			elif opt in ['--integer']:
 				self.integer = True
 			elif opt in ['--nocolor']:
 				self.color = False
+				self.update = False
 			elif opt in ['--noheader']:
 				self.header = False
 			elif opt in ['--noupdate']:
@@ -162,7 +163,7 @@ Dstat options:
   -a, --all          equals -cdngyl
   -v, --vmstat       equals -pmgdsc -D total
 
-  --full             expand -D, -I and -N disovery lists
+  -f, --full         expand -D, -I and -N disovery lists
   --integer          show integer values
   --nocolor          disable colors
   --noheader         disable repetitive headers
@@ -350,7 +351,7 @@ class dstat_disk(dstat):
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/diskstats', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if len(l) < 13: continue
 			name = l[2]
 			if name in self.vars:
@@ -375,7 +376,7 @@ class dstat_disk24(dstat_disk):
 			l = line.split()
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
-			if not re.match('^(ram[0-9]+|loop[0-9]+|name)$', name):
+			if not re.match('^(ram\d+|loop\d+|name)$', name):
 				retlist.append(name)
 		if not op.full and len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
@@ -391,14 +392,14 @@ class dstat_disk24(dstat_disk):
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/partitions', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if len(l) < 15: continue
 			name = l[3]
 			if name == 'name': continue
 			if name in self.vars:
 				self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
 			for set in self.vars:
-				if set in self.diskset and name in self.diskset[set]:
+				if set in self.diskset.keys() and name in self.diskset[set]:
 					self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
 			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]))
 		if update:
@@ -417,7 +418,7 @@ class dstat_disk24old(dstat_disk24):
 			l = line.split()
 			if len(l) != 4 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
-			if not re.match('^(ram[0-9]+|loop[0-9]+|name)$', name):
+			if not re.match('^(ram\d+|loop\d+|name)$', name):
 				retlist.append(name)
 		if not op.full and len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
@@ -437,7 +438,7 @@ class dstat_disk24old(dstat_disk24):
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split(':');
+			l = line.split(':')
 			if len(l) < 3: continue
 			name = l[0]
 			if name == 'disk_io':
@@ -475,7 +476,7 @@ class dstat_int(dstat):
 	def discover(self):
 		retlist = []
 		for line in open('/proc/interrupts', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if len(l) < 1: continue
 			name = l[0].split(':')[0]
 			if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'): continue
@@ -491,7 +492,7 @@ class dstat_int(dstat):
 
 	def stats(self):
 		for line in open('/proc/interrupts', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if len(l) < 2: continue
 			name = l[0].split(':')[0]
 			if name in self.vars:
@@ -626,7 +627,7 @@ class dstat_page(dstat):
 
 	def stats(self):
 		for line in open('/proc/vmstat', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
@@ -645,7 +646,7 @@ class dstat_page24(dstat_page):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if len(l) < 3: continue
 			name = l[0]
 			if name == 'swap':
@@ -676,7 +677,7 @@ class dstat_proc(dstat):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
@@ -731,7 +732,7 @@ class dstat_sys(dstat):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
@@ -765,7 +766,7 @@ class dstat_tcp(dstat):
 	def stats(self):
 		self.val['listen'] = self.val['established'] = self.val['syn_sent'] = self.val['time_wait'] = 0
 		for line in open('/proc/net/tcp', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if len(l) < 12: continue
 			if l[3] == '0A': self.val['listen'] = self.val['listen'] + 1
 			elif l[3] == '01': self.val['established'] = self.val['established'] + 1
@@ -813,7 +814,7 @@ class dstat_udp(dstat):
 	def stats(self):
 		self.val['connections'] = 0
 		for line in open('/proc/net/udp', 'r').readlines():
-			l = line.split();
+			l = line.split()
 			if l[3] == '07': self.val['connections'] = self.val['connections'] + 1
 
 	def show(self):
@@ -927,7 +928,7 @@ def getcpunr():
 	procs = 0
 	for line in open('/proc/stat', 'r').readlines():
 		name = line.split()[0]
-		if len(name) == 4and name[0:3] == 'cpu':
+		if len(name) == 4 and name[0:3] == 'cpu':
 			procs = procs + 1
 	return procs
 
@@ -1027,8 +1028,11 @@ def main():
 	signal.signal(signal.SIGALRM, signaler)
 	signal.alarm(interval)
 
+	### Always show header the first time
+	showheader = True
+
 	### Let the games begin
-	while loop != op.count:
+	while update <= op.delay * op.count or op.count == -1:
 
 		### Trim object list to what is visible on screen
 		(rows, cols) = getwinsize()
@@ -1040,7 +1044,14 @@ def main():
 				plist.append(o)
 
 		### Check when to display the header
-		if oldplist != plist or (loop == 0 or op.header) and step == op.delay and loop % (rows - 1) == 0:
+		if op.header:
+			if oldplist != plist:
+				showheader = True
+			elif step == 1 and loop % (rows - 1) == 0:
+				showheader = True
+
+		if showheader:
+			showheader = False
 			for o in plist:
 				sys.stdout.write(o.title1)
 				if o != plist[-1]:
@@ -1059,15 +1070,15 @@ def main():
 
 		oldplist = plist
 
-		### Prepare the colors for intermediate updates, last step in a loop is normal
-		if step != op.delay:
-			ansi['default'] = ansi['gray']
-		else:
+		### Prepare the colors for intermediate updates, last step in a loop is definitive
+		if step == op.delay:
 			ansi['default'] = ansi['reset']
+		else:
+			ansi['default'] = ansi['gray']
 		sys.stdout.write(ansi['default'])
 
 		### Debugging info
-#		sys.stdout.write('[%d:%d:%d]' % (loop,step,update))
+#		sys.stdout.write('[%d:%d:%d]' % (loop, step, update))
 
 		### Show the stats, calculate all objects (visible, invisible)
 		for o in olist:
@@ -1081,19 +1092,19 @@ def main():
 
 		### If intermediate results, update increases with 1 sec (=interval)
 		update = update + interval
-		loop = update / op.delay 
-		oldstep = step
-		step = ((update - 1) % op.delay) + 1
 
 		### Do not pause when this is the final loop
-		if loop != op.count:
+		if update <= op.delay * op.count or op.count == -1:
 			signal.pause()
 
 		### The last step in a loop is to show the definitive line on a new line
-		if oldstep == op.delay:
+		if step == op.delay:
 			sys.stdout.write('\n' + ansi['clearline'] + ansi['save'])
 		else:
 			sys.stdout.write(ansi['restore'] + ansi['clearline'])
+
+		loop = (update + op.delay - 1) / op.delay 
+		step = ((update - 1) % op.delay) + 1
 
 ### Unbuffered sys.stdout
 sys.stdout = os.fdopen(1, 'w', 0)
@@ -1122,15 +1133,15 @@ if __name__ == '__main__':
 		main()
 	except KeyboardInterrupt, e:
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
-		print
-		print ansi['reset'] + 'Exiting on user request'
-		sys.exit(6)
+		print ansi['reset']
 	except OSError, e:
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
 #		print e.errno
 		print
 		print ansi['reset'] + 'OSError: %s' %e
 		sys.exit(7)
+
+sys.exit(0)
 
 
 # vim:ts=4:sw=4

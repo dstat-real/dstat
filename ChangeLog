@@ -1,5 +1,8 @@
 * 0.5.4
 - Added a python 1.5 version of dstat (Ville Herva)
+- Fixed a problem with count
+- Improved the logic for displaying repetitive headers
+- Now --nocolor implies --noupdate (since it implies no ANSI escape sequences)
 
 * 0.5.3
 - Added -M or --mods option to allow modules
