@@ -19,7 +19,7 @@ import fcntl, struct, termios
 import os, sys, re, getopt, time, string
 import ConfigParser, urlparse, signal, resource
 
-VERSION = "0.5.4"
+VERSION = '0.5.5'
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -132,7 +132,7 @@ class Options:
 		print 'Python %s' % sys.version
 
 	def usage(self):
-		print 'usage: dstat [-av] [-cdgilmnpsty] [-D dev1..] [-I #..] [-N if1..] [delay [count]]'
+		print 'usage: dstat [-afv] [-cdgilmnpsty] [-D..] [-I..] [-N..] [delay [count]]'
 
 	def help(self):
 		print '''Versatile tool for generating system resource statistics
@@ -883,18 +883,20 @@ def conv(max, var, base = 1024):
 		color = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
 	else:
 		color = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'geen')
-		
-	if var < 0: return ' ' * (max-2) + '- '
+
+	if var < 0:
+		return ' ' * (max-2) + '- '
 
 	c = 0
 	while True:
-		if len('%d' % round(long(var))) < max:
+		repr = str(long(round(var)))
+		if len(repr) < max:
 			if not op.integer and len('%1.2f' % var) < max:
 				ret = '%1.2f' % var
 			elif not op.integer and len('%1.1f' % var) < max:
 				ret = '%1.1f' % var
 			else:
-				ret = '%d' % round(long(var))
+				ret = repr
 			break
 		var = var / base
 		c = c + 1

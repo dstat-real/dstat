@@ -1,4 +1,5 @@
 * 0.5.5
+- In fact, round() was not the problem, len() was, use str() instead. (Anton Blanchard)
 - Abandoned the use of round() as it is limited to integers (Juergen Kreileder)
 
 * 0.5.4

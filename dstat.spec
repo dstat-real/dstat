@@ -2,9 +2,14 @@
 # Authority: dag
 # Upstream: Dag Wieers <dag@wieers.com>
 
+%{?dist: %{expand: %%define %dist 1}}
+
+%{?rh7:%define _with_python15 1}
+%{?el2:%define _with_python15 1}
+
 Summary: Versatile vmstat, iostat and ifstat replacement
 Name: dstat
-Version: 0.5.4
+Version: 0.5.5
 Release: 1
 License: GPL
 Group: System Environment/Base
@@ -53,6 +58,8 @@ interprete real-time data as easy as possible.
 %{__rm} -rf %{buildroot}
 %makeinstall
 
+%{?_with_python15:%{__install} -D -m0755 dstat15 %{buildroot}%{_bindir}/dstat}
+
 %clean
 %{__rm} -rf %{buildroot}
 
@@ -65,8 +72,12 @@ interprete real-time data as easy as possible.
 %{_bindir}/dstat
 
 %changelog
+* Thu Dec 02 2004 Dag Wieers <dag@wieers.com> - 0.5.5-1
+- Updated to release 0.5.5.
+
 * Thu Nov 25 2004 Dag Wieers <dag@wieers.com> - 0.5.4-1
 - Updated to release 0.5.4.
+- Use dstat15 if distribution uses python 1.5.
 
 * Sun Nov 21 2004 Dag Wieers <dag@wieers.com> - 0.5.3-1
 - Updated to release 0.5.3.

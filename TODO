@@ -8,6 +8,7 @@
 ### Export/Graph
 + Add -o/--output option to save directly to a file
 + Add --parse option to give parsable output (maybe CSV output ?)
++ Interface with rrdtool
 
 ### Extending statistics (help welcome!)
 + Add all stats to seperate modules and allow people to plugin their own modules
