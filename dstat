@@ -165,7 +165,7 @@ Dstat options:
 
   -f, --full         expand -D, -I and -N disovery lists
   --integer          show integer values
-  --nocolor          disable colors
+  --nocolor          disable colors (implies --noupdate)
   --noheader         disable repetitive headers
   --noupdate         disable intermediate updates when delay > 1
 '''
@@ -1103,7 +1103,7 @@ def main():
 		else:
 			sys.stdout.write(ansi['restore'] + ansi['clearline'])
 
-		loop = (update + op.delay - 1) / op.delay 
+		loop = (update + op.delay - 1) / op.delay
 		step = ((update - 1) % op.delay) + 1
 
 ### Unbuffered sys.stdout

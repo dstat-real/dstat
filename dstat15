@@ -38,7 +38,7 @@ class Options:
 		self.header = True
 
 		try:
-			opts, args = getopt.getopt (args, 'acdghilmnpstvyD:I:M:N:',
+			opts, args = getopt.getopt (args, 'acdfghilmnpstvyD:I:M:N:',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net', 'page',
 				'proc', 'swap', 'sys', 'tcp', 'time', 'udp', 'version', 'vmstat',
 				'full', 'integer', 'mods', 'modules', 'nocolor', 'noheader', 'noupdate'])
@@ -90,12 +90,13 @@ class Options:
 				self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 				self.disklist = ('total',)
 
-			elif opt in ['--full']:
+			elif opt in ['-f', '--full']:
 				self.full = True
 			elif opt in ['--integer']:
 				self.integer = True
 			elif opt in ['--nocolor']:
 				self.color = False
+				self.update = False
 			elif opt in ['--noheader']:
 				self.header = False
 			elif opt in ['--noupdate']:
@@ -162,9 +163,9 @@ Dstat options:
   -a, --all          equals -cdngyl
   -v, --vmstat       equals -pmgdsc -D total
 
-  --full             expand -D, -I and -N disovery lists
+  -f, --full         expand -D, -I and -N disovery lists
   --integer          show integer values
-  --nocolor          disable colors
+  --nocolor          disable colors (implies --noupdate)
   --noheader         disable repetitive headers
   --noupdate         disable intermediate updates when delay > 1
 '''
@@ -1027,6 +1028,9 @@ def main():
 	signal.signal(signal.SIGALRM, signaler)
 	signal.alarm(interval)
 
+	### Always show header the first time
+	showheader = True
+
 	### Let the games begin
 	while update <= op.delay * op.count or op.count == -1:
 
@@ -1040,7 +1044,14 @@ def main():
 				plist.append(o)
 
 		### Check when to display the header
-		if oldplist != plist or (loop == 0 or op.header) and step == op.delay and loop % (rows - 1) == 0:
+		if op.header:
+			if oldplist != plist:
+				showheader = True
+			elif step == 1 and loop % (rows - 1) == 0:
+				showheader = True
+
+		if showheader:
+			showheader = False
 			for o in plist:
 				sys.stdout.write(o.title1)
 				if o != plist[-1]:
@@ -1059,7 +1070,7 @@ def main():
 
 		oldplist = plist
 
-		### Prepare the colors for intermediate updates, last step in a loop is normal
+		### Prepare the colors for intermediate updates, last step in a loop is definitive
 		if step == op.delay:
 			ansi['default'] = ansi['reset']
 		else:
@@ -1092,7 +1103,8 @@ def main():
 		else:
 			sys.stdout.write(ansi['restore'] + ansi['clearline'])
 
-		loop = update / op.delay 
+		loop = (update + op.delay - 1) / op.delay
+#		loop = update / op.delay 
 		step = ((update - 1) % op.delay) + 1
 
 ### Unbuffered sys.stdout
@@ -1122,15 +1134,15 @@ if __name__ == '__main__':
 		main()
 	except KeyboardInterrupt, e:
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
-		print
-		print ansi['reset'] + 'Exiting on user request'
-		sys.exit(6)
+		print ansi['reset']
 	except OSError, e:
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
 #		print e.errno
 		print
 		print ansi['reset'] + 'OSError: %s' %e
 		sys.exit(7)
+
+sys.exit(0)
 
 
 # vim:ts=4:sw=4

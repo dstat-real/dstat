@@ -3,6 +3,7 @@
 - Fixed a problem with count
 - Improved the logic for displaying repetitive headers
 - Now --nocolor implies --noupdate (since it implies no ANSI escape sequences)
+- Removed the 'Exiting on user request' message
 
 * 0.5.3
 - Added -M or --mods option to allow modules

@@ -51,17 +51,27 @@ enable time counter
 \fB\-y\fR, \fB\-\-sys\fR
 enable system stats
 .TP
+\fB\-M\fR stat1,stat2
+enable specific stats
+
+Possible stats are:
+  cpu, disk, page, int, load, mem, net, proc,
+  swap, sys, tcp, time, udp
+.TP
 \fB\-a\fR, \fB\-\-all\fR
 equals \fB\-cdngyl\fR
 .TP
 \fB\-v\fR, \fB\-\-vmstat\fR
 equals \fB\-pmgdsc\fR \fB\-D\fR total
 .TP
+\fB\-f\fR, \fB\-\-full\fR
+expand -D, -I and -N disovery lists
+.TP
 \fB\-\-integer\fR
 show integer values
 .TP
 \fB\-\-nocolor\fR
-disable colors
+disable colors (implies --noupdate)
 .TP
 \fB\-\-noheader\fR
 disable repetitive headers

@@ -1,0 +1,12 @@
+TESTED environments
+"""""""""""""""""""
+Dist			Kernel			Python
+""""			""""""			""""""
+Conectiva 10		2.6.9			2.3.4
+Fedora Core 3		2.6.8-1.521		2.3.4-11
+Fedora Core 2		2.6.7-1.494		2.3.3-6
+Red Hat EL3 U3		2.4.21-20		2.2.3-5
+Debian 3.0		2.4.26			2.1.3
+Red Hat 7.1		2.4.18-17.7.x		1.5.2
+Red Hat 7.1		2.4.12-ac3		1.5.2
+Red Hat 7.1		2.4.9-31		1.5.2
