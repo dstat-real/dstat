@@ -574,9 +574,9 @@ class dstat_int(dstat):
 		if os.path.exists('/proc/interrupts'):
 			for line in open('/proc/interrupts', 'r').readlines():
 				l = line.split()
-				if len(l) < 1: continue
+				if len(l) < procs+1: continue
 				name = l[0].split(':')[0]
-				if name != '0' and name != 'CPU0' and len(l) > 1 and int(l[1]) > 10:
+				if long(l[1]) > 10:
 					ret.append(name)
 		return ret
 
@@ -598,7 +598,7 @@ class dstat_int(dstat):
 	def stats(self):
 		for line in open('/proc/interrupts', 'r').readlines():
 			l = line.split()
-			if len(l) < 2: continue
+			if len(l) < procs+1: continue
 			name = l[0].split(':')[0]
 			if name in self.vars:
 				self.cn2[name] = 0
@@ -1052,10 +1052,9 @@ def getwinsize():
 			return 25, 80
 
 def getcpunr():
-	procs = 0
+	procs = -1
 	for line in open('/proc/stat', 'r').readlines():
-		name = line.split()[0]
-		if len(name) == 4 and name[0:3] == 'cpu':
+		if line[0:3] == 'cpu':
 			procs = procs + 1
 	return procs
 
