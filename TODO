@@ -1,14 +1,16 @@
 ### Usability
 + Add --config option and use /etc/dstat.conf to influence output
-+ Add -o/--output option to save directly to a file
-+ Add --parse option to give parsable output (maybe CSV output ?)
 + Allow to force to given magnitude
 + Look at possibilities to show deviation (on second line ?)
+
+### Export/Graph
++ Add -o/--output option to save directly to a file
++ Add --parse option to give parsable output (maybe CSV output ?)
 
 ### Extensions
 + Add all stats to seperate modules and allow people to plugin their own modules
 
-### Statistics
+### Statistics (help welcome!)
 + Add time counter
 + Add application stats (-a or -A pid,cmd)
 + Add ip stats (icmp, tcp, udp)
@@ -21,4 +23,6 @@
 + Implement better (?) protection against counter rollovers
 + If you have 2 devices with the same name, -I will only work on the first one
 + When using -D hdk, -I 99, -N eth9 dstat should fail when it does not exist 
-+ CPU stats is avg of begin and end snapshot, not avg of intermediate results (better than vmstat though)
++ cpu is avg of begin and end snapshot, not avg of intermediate results (better than vmstat though)
++ proc stat is a snapshot in time, not avg of intermediate results
++ The number of newly created processes in the proc stat easily exceeds the allocated space (2 chars)

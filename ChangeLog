@@ -1,5 +1,8 @@
 * 0.5.3
--
+- Added --ful option to expand the -D, -I and -N discovery lists
+- Re-added the number of new processes (the --vmstat will not not resemble)
+- More intelligent way of ordering stats to fit as much in screen width as possible
+- Fixed a crash when counters overflowed (Francois Postaire)
 
 * 0.5.2
 - Improved disk and net discovery functions (Ville Herva)
