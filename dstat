@@ -1,18 +1,18 @@
 #!/usr/bin/env python
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Library General Public License as published by
-# the Free Software Foundation; version 2 only
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Library General Public License for more details.
-#
-# You should have received a copy of the GNU Library General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-# Copyright 2004 Dag Wieers <dag@wieers.com>
+
+### This program is free software; you can redistribute it and/or modify
+### it under the terms of the GNU Library General Public License as published by
+### the Free Software Foundation; version 2 only
+###
+### This program is distributed in the hope that it will be useful,
+### but WITHOUT ANY WARRANTY; without even the implied warranty of
+### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+### GNU Library General Public License for more details.
+###
+### You should have received a copy of the GNU Library General Public License
+### along with this program; if not, write to the Free Software
+### Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+### Copyright 2004 Dag Wieers <dag@wieers.com>
 
 from __future__ import generators
 import fcntl, struct, types
@@ -27,14 +27,17 @@ disable = ('no', 'off', 'false', '0')
 
 class Options:
 	def __init__(self, args):
+		self.args = args
 		self.count = -1
 		self.cpulist = None
+		self.csv = False
 		self.delay = 1
 		self.disklist = None
 		self.full = False
 		self.integer = False
 		self.intlist = None
 		self.netlist = None
+		self.nolimit = False
 		self.color = True
 		self.update = True
 		self.header = True
@@ -43,7 +46,7 @@ class Options:
 			opts, args = getopt.getopt (args, 'acdfghilmnpstvyC:D:I:M:N:',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net', 'page',
 				'proc', 'swap', 'sys', 'tcp', 'time', 'udp', 'version', 'vmstat',
-				'full', 'integer', 'mods', 'modules', 'nocolor', 'noheader', 'noupdate'])
+				'csv', 'full', 'integer', 'mods', 'modules', 'nocolor', 'noheader', 'noupdate'])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
 			sys.exit(1)
@@ -94,6 +97,8 @@ class Options:
 				self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 				self.disklist = ('total',)
 
+			elif opt in ['--csv']:
+				self.csv = True
 			elif opt in ['-f', '--full']:
 				self.full = True
 			elif opt in ['--integer']:
@@ -128,6 +133,12 @@ class Options:
 			print 'dstat: delay must be an integer, greater than zero'
 			sys.exit(1)
 
+		if self.csv:
+			self.color = False
+			self.header = False
+			self.nolimit = True
+			self.update = False
+
 	def version(self):
 		print 'Dstat %s' % VERSION
 		print 'Written by Dag Wieers <dag@wieers.com>'
@@ -136,6 +147,10 @@ class Options:
 		print 'Platform %s/%s' % (os.name, sys.platform)
 		print 'Kernel %s' % os.uname()[2]
 		print 'Python %s' % sys.version
+		print
+		print 'Processors: %d' % getcpunr()
+		print 'Pagesize: %d' % resource.getpagesize()
+		print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
 
 	def usage(self):
 		print 'usage: dstat [-afv] [-cdgilmnpsty] [-D..] [-I..] [-N..] [delay [count]]'
@@ -169,8 +184,9 @@ Dstat options:
 
   -a, --all          equals -cdngyl
   -v, --vmstat       equals -pmgdsc -D total
-
   -f, --full         expand -D, -I and -N discovery lists
+
+  --csv              output CSV format
   --integer          show integer values
   --nocolor          disable colors (implies --noupdate)
   --noheader         disable repetitive headers
@@ -228,32 +244,58 @@ class dstat:
 			return 0
 
 	def title1(self):
-		if isinstance(self.name, types.StringType):
-			max = self.varwidth()
-			return ansi['darkblue'] + self.name[0:max].center(max).replace(' ', '-') + ansi['default']
+		if op.csv:
+			if isinstance(self.name, types.StringType):
+				return '"' + self.name + '"' + ',' * (len(self.nick) - 1)
+			else:
+				ret = ''
+				for i, name in enumerate(self.name):
+					ret = ret + '"' + name + '"' + ',' * (len(self.nick) - 1)
+					if i + 1 != len(self.name): ret = ret + ','
+				return ret
 		else:
-			ret = ''
-			for i, name in enumerate(self.name):
-				max = self.width()
-				ret = ret + name[0:max].center(max).replace(' ', '-')
-				if i + 1 != len(self.name): ret = ret + '-'
-			return ansi['darkblue'] + ret
+			if isinstance(self.name, types.StringType):
+				max = self.varwidth()
+				return ansi['darkblue'] + self.name[0:max].center(max).replace(' ', '-') + ansi['default']
+			else:
+				ret = ''
+				for i, name in enumerate(self.name):
+					max = self.width()
+					ret = ret + name[0:max].center(max).replace(' ', '-')
+					if i + 1 != len(self.name): ret = ret + '-'
+				return ansi['darkblue'] + ret
 
 	def title2(self):
-		if isinstance(self.name, types.StringType):
-			ret = ''
-			for i, nick in enumerate(self.nick):
-				ret = ret + nick.center(self.len).replace(' ', '_')
-				if i + 1 != len(self.nick): ret = ret + ' '
-			return ansi['blue'] + ret
+		if op.csv:
+			if isinstance(self.name, types.StringType):
+				ret = ''
+				for i, nick in enumerate(self.nick):
+					ret = ret + '"' + nick + '"'
+					if i + 1 != len(self.nick): ret = ret + ','
+				return ret
+			else:
+				ret = ''
+				for i, name in enumerate(self.name):
+					for j, nick in enumerate(self.nick):
+						ret = ret + '"' + nick + '"'
+						if j + 1 != len(self.nick): ret = ret + ','
+					if i + 1 != len(self.name): ret = ret + ','
+				return ret
 		else:
-			ret = ''
-			for i, name in enumerate(self.name):
-				for j, nick in enumerate(self.nick):
-					ret = ret + ansi['blue'] + nick.center(self.len).replace(' ', '_')
-					if j + 1 != len(self.nick): ret = ret + ' '
-				if i + 1 != len(self.name): ret = ret + ' '
-			return ansi['blue'] + ret
+			if isinstance(self.name, types.StringType):
+				ret = ''
+				for i, nick in enumerate(self.nick):
+					ret = ret + nick.center(self.len).replace(' ', '_')
+					if i + 1 != len(self.nick): ret = ret + ' '
+				return ansi['blue'] + ret
+			else:
+				ret = ''
+				for i, name in enumerate(self.name):
+					for j, nick in enumerate(self.nick):
+						ret = ret + ansi['blue'] + nick.center(self.len).replace(' ', '_')
+						if j + 1 != len(self.nick): ret = ret + ' '
+					if i + 1 != len(self.name): ret = ret + ' '
+				return ansi['blue'] + ret
 
 	def check(self):
 		if self.discover() and self.width():
@@ -281,14 +323,33 @@ class dstat:
 				sys.stdout.write('%s' % conv(self.len, self.val[name], 1))
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
 				sys.stdout.write(self.format % convlist(self.len, self.val[name]))
-				sep = ansi['default'] + ':'
+				sep = ansi['default'] + char['colon']
 			elif self.format in ('%s %s %s', '%s %s %s %s %s %s'):
 				sys.stdout.write(self.format % convlist(self.len, self.val[name], 100))
-				sep = ansi['default'] + ':'
+				sep = ansi['default'] + char['colon']
 			else:
 				sys.stdout.write(self.format % self.val[name])
 			if i + 1 != len(self.vars):
 				sys.stdout.write(sep)
+
+	def showcsv(self):
+
+		def printcsv(var):
+			if var != round(var):
+				sys.stdout.write('%.2f' % var)
+			else:
+				sys.stdout.write('%d' % round(var))
+
+		for i, name in enumerate(self.vars):
+			if isinstance(self.val[name], types.ListType) or isinstance(self.val[name], types.TupleType):
+				for j, val in enumerate(self.val[name]):
+					printcsv(val)
+					if j + 1 != len(self.val[name]):
+						sys.stdout.write(',')
+			else:
+				printcsv(self.val[name])
+			if i + 1 != len(self.vars):
+				sys.stdout.write(',')
 
 class dstat_cpu(dstat):
 	def __init__(self):
@@ -411,7 +472,7 @@ class dstat_disk(dstat):
 
 		for name in self.vars: self.cn1[name] = (0, 0); self.cn1['total'] = (0, 0)
 		for name in self.vars: self.cn2[name] = (0, 0); self.cn2['total'] = (0, 0)
-		for name in self.vars: self.val[name] = (0, 0); self.val['total'] = (0, 0)
+		for name in self.vars: self.val[name] = [0, 0]; self.val['total'] = [0, 0]
 
 	def discover(self, *list):
 		ret = []
@@ -454,8 +515,8 @@ class dstat_disk(dstat):
 		if update:
 			for name in self.cn2.keys():
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / step,
-					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / step,
+					(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / step,
+					(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / step,
 				)
 		if step == op.delay:
 			self.cn1.update(self.cn2)
@@ -503,8 +564,8 @@ class dstat_disk24(dstat_disk):
 		if update:
 			for name in self.cn2.keys():
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / step,
-					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / step,
+					(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / step,
+					(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / step,
 				)
 		if step == op.delay:
 			self.cn1.update(self.cn2)
@@ -555,8 +616,8 @@ class dstat_disk24old(dstat_disk24):
 		if update:
 			for name in self.cn2.keys():
 				self.val[name] = (
-					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / step,
-					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / step,
+					(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / step,
+					(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / step,
 				)
 		if step == op.delay:
 			self.cn1.update(self.cn2)
@@ -665,7 +726,7 @@ class dstat_int24(dstat):
 #						self.cn2[mod] = long(l[1])
 		if update:
 			for name in self.cn2.keys():
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / step
+				self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / step
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
@@ -696,8 +757,8 @@ class dstat_mem(dstat):
 		self.name = 'memory usage'
 		self.len = 5
 		self.format = '%s'
-		self.vars = ('MemUsed', 'MemFree', 'Buffers', 'Cached')
-		self.nick = ('used', 'free', 'buff', 'cach')
+		self.vars = ('MemUsed', 'Buffers', 'Cached', 'MemFree')
+		self.nick = ('used', 'buff', 'cach', 'free')
 		self.init()
 
 	def check(self):
@@ -727,7 +788,7 @@ class dstat_net(dstat):
 
 		for name in self.vars: self.cn1[name] = (0, 0); self.cn1['total'] = (0, 0)
 		for name in self.vars: self.cn2[name] = (0, 0); self.cn2['total'] = (0, 0)
-		for name in self.vars: self.val[name] = (0, 0); self.val['total'] = (0, 0)
+		for name in self.vars: self.val[name] = [0, 0]; self.val['total'] = [0, 0]
 
 	def discover(self, *list):
 		ret = []
@@ -756,7 +817,7 @@ class dstat_net(dstat):
 		return ret
 
 	def stats(self):
-		self.cn2['total'] = (0, 0)
+		self.cn2['total'] = [0, 0]
 		for line in open('/proc/net/dev', 'r').readlines():
 			l = line.split()
 			if len(l) < 1: continue
@@ -775,8 +836,8 @@ class dstat_net(dstat):
 		if update:
 			for name in self.cn2.keys():
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) * 1.0 / step,
-					(self.cn2[name][1]-self.cn1[name][1]) * 1.0 / step,
+					(self.cn2[name][0] - self.cn1[name][0]) * 1.0 / step,
+					(self.cn2[name][1] - self.cn1[name][1]) * 1.0 / step,
 				 )
 		if step == op.delay:
 			self.cn1.update(self.cn2)
@@ -804,7 +865,7 @@ class dstat_page(dstat):
 				self.cn2[name] = long(l[1])
 		if update:
 			for name in self.vars:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize * 1.0 / step
+				self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / step
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
@@ -824,7 +885,7 @@ class dstat_page24(dstat_page):
 				self.cn2['pswpout'] = long(l[2])
 		if update:
 			for name in self.vars:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize * 1.0 / step
+				self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / step
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
@@ -911,7 +972,7 @@ class dstat_sys(dstat):
 				self.cn2[name] = long(l[1])
 		if update:
 			for name in self.vars:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / step
+				self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / step
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
@@ -945,8 +1006,8 @@ class dstat_time(dstat):
 		self.format = '%10d'
 		self.len = 10
 		### Nice for debugging timer
-		self.format = '%13.3f'
-		self.len = 14
+#		self.format = '%13.3f'
+#		self.len = 14
 		self.nick = ('epoch',)
 		self.vars = ('epoch',)
 		self.init()
@@ -1020,6 +1081,13 @@ ansi = {
 	'default': '\033[0;0m',
 }
 
+char = {
+	'pipe': '|',
+	'colon': ':',
+	'gt': '>',
+	'space': ' ',
+}
+
 def total(list):
 	ret = 0
 	for i in list:
@@ -1091,6 +1159,8 @@ def die(ret, str):
 	sys.exit(ret)
 
 def getwinsize():
+	if op.nolimit:
+		return 1024, 1024
 #	curses.wrapper(lambda s:curses.setupterm())
 #	return curses.wrapper(lambda s:curses.tigetnum('lines')), curses.wrapper(lambda s:curses.tigetnum('cols'))
 	try:
@@ -1151,18 +1221,6 @@ def main():
 	if not op.update:
 		interval = op.delay
 
-	### Check terminal capabilities
-#	if not sys.stdout.isatty() or not curses.wrapper(lambda s:curses.has_colors()):
-	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm'):
-		op.color = False
-		op.update = False
-
-	### Empty ansi database if no colors are requested
-	if not op.color:
-		op.update = False
-		for key in ansi.keys():
-			ansi[key] = ''
-
 	### Build list of requested modules
 	olist = []
 	for mod in op.modlist:
@@ -1191,7 +1249,24 @@ def main():
 		else:
 			info(1, 'Module \'%s\' does not exist or failed to load.' % mod)
 
-	(rows, cols) = getwinsize()
+	### Check terminal capabilities
+#	if not sys.stdout.isatty() or not curses.wrapper(lambda s:curses.has_colors()):
+	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm'):
+		op.color = False
+		op.nolimit = True
+		op.update = False
+
+	rows, cols = getwinsize()
+
+	### Empty ansi database if no colors are requested
+	if not op.color:
+		op.update = False
+		for key in ansi.keys():
+			ansi[key] = ''
+
+	if op.csv:
+		for key in char.keys():
+			char[key] = ','
 
 	### Remove defect objects and calculate line length
 	linewidth = 0
@@ -1201,8 +1276,17 @@ def main():
 		else:
 			olist.remove(o)
 
-	if linewidth > cols:
-		print 'Screen width too small, trimming output.'
+	if not op.nolimit:
+		if linewidth > cols:
+			print 'Screen width too small, trimming output.'
+
+	if op.csv:
+		import socket
+		print '"Dstat %s CSV output"' % VERSION
+		print '"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"'
+		print '"Host:","%s",,,,"Date:","%s"' % (socket.gethostbyaddr(socket.gethostname())[0], time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime()))
+
+		print '"Cmd:","dstat %s"\n' % ' '.join(op.args)
 
 	oldplist = []
 
@@ -1241,17 +1325,17 @@ def main():
 			for o in plist:
 				sys.stdout.write(o.title1())
 				if o is not plist[-1]:
-					sys.stdout.write(ansi['darkblue'] + ' ')
+					sys.stdout.write(ansi['darkblue'] + char['space'])
 				elif olist != plist:
-					sys.stdout.write(ansi['darkblue'] + '>')
+					sys.stdout.write(ansi['darkblue'] + char['gt'])
 			sys.stdout.write('\n')
 
 			for o in plist:
 				sys.stdout.write(o.title2())
 				if o is not plist[-1]:
-					sys.stdout.write(ansi['silver'] + '|')
+					sys.stdout.write(ansi['silver'] + char['pipe'])
 				elif olist != plist:
-					sys.stdout.write(ansi['darkblue'] + '>')
+					sys.stdout.write(ansi['darkblue'] + char['gt'])
 			sys.stdout.write('\n')
 
 		oldplist = plist
@@ -1270,11 +1354,14 @@ def main():
 		for o in olist:
 			o.stats()
 			if o in plist:
-				o.show()
+				if op.csv:
+					o.showcsv()
+				else:
+					o.show()
 				if o is not plist[-1]:
-					sys.stdout.write(ansi['default'] + '|')
+					sys.stdout.write(ansi['default'] + char['pipe'])
 				elif o is not olist[-1]:
-					sys.stdout.write(ansi['default'] + '>')
+					sys.stdout.write(ansi['default'] + char['gt'])
 
 		### If intermediate results, update increases with 1 sec (=interval)
 		update = update + interval

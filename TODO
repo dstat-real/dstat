@@ -2,23 +2,29 @@
 + Add --config option and use /etc/dstat.conf to influence output
 + Allow to force to given magnitude
 + Look at possibilities to show deviation (on second line ?)
-+ Improve manpage
-+ Detect terminal capabilities (colors, ANSI) using curses (?)
 + Find a way to use curses without the flickering and tty clearing in screen
++ Detect terminal capabilities (colors, ANSI) using curses (?)
 + Re-implement -I eth0,eth1
 
 ### Export/Graph
 + Add -o/--output option to save directly to a file
-+ Add --parse option to give parsable output (maybe CSV output ?)
 + Interface with rrdtool
 
 ### Extending statistics (help welcome!)
 + Add all stats to seperate modules and allow people to plugin their own modules
-+ Add application stats (-a or -A pid,cmd)
 + Add icmp, nfs, ntp stats ?
 + Add user stats (number of users logged on)
++ Add application stats (-a or -A pid,cmd)
 + Look into interfacing with apps (bind, sendmail, postfix, squid, amavisd, laus, samba)
 + Look into interfacing with specific HW counters in /proc
++ Look at /proc/slabinfo, /proc/meminfo, /proc/locks, /proc/mdstat, /proc/vmstat
+
+### Documentation (help welcome!)
++ Improve manpage
++ Create document on general system performance tuning
+  (explaining the different values in /proc, especially the concerning ones)
++ Create document on general system performance tools
+  (explaining the different uses of tools like dstat, iostat, pmap, strace, tcpdump)
 
 ### General bugs
 + Backport all changes to dstat15
@@ -28,3 +34,16 @@
 + tcp stat is very slow and generates lots of softirqs (on some systems)
 + Implement better (?) protection against counter rollovers
 + Fix bug with: ./dstat -tit -I 177
+
+### Redesign (v2.0)
++ Create modules that can contain samples of different units
+
+   CPU: (see mpstat)
+	sys, usr, idl, iow, hiq, siq (percentage)
+      	intr/sec (int)
+	
+   IO: (see iostat -x)
+	tps (int)
+	blk_read/sec, blk_wrtn/sec (kB/sec)
+
++ Design proper object model
