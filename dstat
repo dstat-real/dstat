@@ -19,7 +19,7 @@ import fcntl, struct, types
 import os, sys, re, getopt, time, termios
 import ConfigParser, urlparse, signal, resource
 
-VERSION = '0.5.8'
+VERSION = '0.5.9'
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -405,7 +405,15 @@ class dstat_cpu(dstat):
 		if op.cpulist:
 			list = op.cpulist
 		else:
-			list = ('', )
+			if not op.full:
+				list = ('', )
+			else:
+				list = []
+				cpu = 0
+				while cpu < cpunr:
+					list.append(str(cpu))
+					cpu = cpu + 1
+				if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
@@ -456,7 +464,15 @@ class dstat_cpu24(dstat):
 		if op.cpulist:
 			list = op.cpulist
 		else:
-			list = ('',)
+			if not op.full:
+				list = ('', )
+			else:
+				list = []
+				cpu = 0
+				while cpu < cpunr:
+					list.append(str(cpu))
+					cpu = cpu + 1
+				if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
@@ -513,9 +529,12 @@ class dstat_disk(dstat):
 		if op.disklist:
 			list = op.disklist
 		else:
-			list = self.discover()
-			if not op.full and len(list) > 2: list = list[0:2]
-			list.sort()
+			if not op.full:
+				list = ('total', )
+			else:
+				list = self.discover()
+				if len(list) > 2: list = list[0:2]
+				list.sort()
 		for name in list:
 			if name in self.discover('total') + self.diskset.keys():
 				ret.append(name)
@@ -561,9 +580,12 @@ class dstat_disk24(dstat_disk):
 		if op.disklist:
 			list = op.disklist
 		else:
-			list = self.discover()
-			if not op.full and len(list) > 2: list = list[0:2]
-			list.sort()
+			if not op.full:
+				list = ('total', )
+			else:
+				list = self.discover()
+				if len(list) > 2: list = list[0:2]
+				list.sort()
 		for name in list:
 			if name in self.discover('total') + self.diskset.keys():
 				ret.append(name)
@@ -703,7 +725,7 @@ class dstat_int24(dstat):
 		if os.path.exists('/proc/interrupts'):
 			for line in open('/proc/interrupts', 'r').readlines():
 				l = line.split()
-				if len(l) < procs+1: continue
+				if len(l) < cpunr+1: continue
 				name = l[0].split(':')[0]
 				if long(l[1]) > 10:
 					ret.append(name)
@@ -735,15 +757,15 @@ class dstat_int24(dstat):
 	def stats(self):
 		for line in open('/proc/interrupts', 'r').readlines():
 			l = line.split()
-			if len(l) < procs+1: continue
+			if len(l) < cpunr+1: continue
 			name = l[0].split(':')[0]
 			if name in self.vars:
 				self.cn2[name] = 0
-				for i in l[1:1+procs]:
+				for i in l[1:1+cpunr]:
 					self.cn2[name] = self.cn2[name] + long(i)
-#			elif len(l) > 2 + procs:
+#			elif len(l) > 2 + cpunr:
 #				for hw in self.vars:
-#					for mod in l[2+procs:]:
+#					for mod in l[2+cpunr:]:
 #						self.cn2[mod] = long(l[1])
 		if update:
 			for name in self.cn2.keys():
@@ -830,8 +852,12 @@ class dstat_net(dstat):
 		if op.netlist:
 			list = op.netlist
 		else:
-			list = self.discover()
-			if not op.full and len(list) > 2: list = list[0:2]
+			if not op.full:
+				list = ('total', )
+			else:
+				list = self.discover()
+				if len(list) > 2: list = list[0:2]
+				list.sort()
 		for name in list:
 			if name in self.discover('total'):
 				ret.append(name)
@@ -1122,7 +1148,8 @@ ansi = {
 	'underline': '\033[4m',
 
 	'clear': '\033[2J',
-	'clearline': '\033[K',
+#	'clearline': '\033[K',
+	'clearline': '\033[2K',
 #	'save': '\033[s',
 #	'restore': '\033[u',
 	'save': '\0337',
@@ -1242,11 +1269,11 @@ def getwinsize():
 			return 25, 80
 
 def getcpunr():
-	procs = -1
+	cpunr = -1
 	for line in open('/proc/stat', 'r').readlines():
 		if line[0:3] == 'cpu':
-			procs = procs + 1
-	return procs
+			cpunr = cpunr + 1
+	return cpunr
 
 def scsidev(nr):
 	if nr < 26:
@@ -1277,12 +1304,12 @@ def signaler(signum, frame):
 	signal.alarm(interval)
 
 def main():
-	global update, loop, step, pagesize, procs, ansi, interval, outputfile
+	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile
 
 	loop = update = 0
 	step = op.delay
 	pagesize = resource.getpagesize()
-	procs = getcpunr()
+	cpunr = getcpunr()
 #	hz = os.sysconf('SC_CLK_TCK')
 	interval = 1
 

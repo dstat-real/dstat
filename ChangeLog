@@ -1,3 +1,7 @@
+* 0.5.9
+- Make default list total lists (cpu, disk, net)
+- Fix clearline ANSI to work on older rxvt (0.6.4) (Joshua Rodman)
+
 * 0.5.8
 - Added user stats using python-utmp
 - Bail out if all requested stats fail

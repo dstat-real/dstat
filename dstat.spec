@@ -9,7 +9,7 @@
 
 Summary: Versatile vmstat, iostat and ifstat replacement
 Name: dstat
-Version: 0.5.8
+Version: 0.5.9
 Release: 1
 License: GPL
 Group: System Environment/Base
