@@ -2,7 +2,8 @@
 - Changed some more int()'s into long()'s. (Pasi Pirhonen)
 - Fixed the cpu out of index, /proc instability. (Pasi Pirhonen)
 - Improved the rounding function
-- Added --float, to get more detail
+- Added --abs, to get earlier 'absolute value' behaviour
+- Added --noheader option to only see header at start
 
 * 0.4
 - Added interrupt stats

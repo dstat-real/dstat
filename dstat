@@ -30,13 +30,14 @@ class Options:
 		self.disklist = None
 		self.intlist = None
 		self.netlist = None
-		self.float = False
+		self.abs = False
+		self.noheader = False
 
 		try:
 			opts, args = getopt.getopt (args, 'acdghilmnpsvyD:I:N:',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net',
 				'page', 'proc', 'swap', 'sys', 'version', 'vm', 'vmstat',
-				'float'])
+				'abs', 'noheader'])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
 			sys.exit(1)
@@ -82,8 +83,10 @@ class Options:
 			elif opt in ['--vm', '--vmstat']:
 				self.modlist = [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 				self.disklist = ('total',)
-			elif opt in ['--float']:
-				self.float = True
+			elif opt in ['--abs']:
+				self.abs = True
+			elif opt in ['--noheader']:
+				self.noheader = True
 
 		if not self.modlist:
 			self.modlist = [ 'cpu', 'disk', 'net', 'sys' ]
@@ -124,7 +127,8 @@ Dstat options:
   -s, --swap         enable swap stats
   -y, --sys          enable system stats
 
-  --float            show numbers as floats (more detail)
+  --abs              show numbers as absolute values (less detail)
+  --noheader         show header only the first time
 '''
 
 class Config:
@@ -656,9 +660,9 @@ def conv(max, var, base = 1024):
 	c = 0
 	while True:
 		if len('%d' % round(var)) < max:
-			if op.float and len('%1.2f' % var) < max:
+			if not op.abs and len('%1.2f' % var) < max:
 				ret = '%1.2f' % var
-			elif op.float and len('%1.1f' % var) < max:
+			elif not op.abs and len('%1.1f' % var) < max:
 				ret = '%1.1f' % var
 			else:
 				ret = '%d' % round(var)
@@ -750,9 +754,8 @@ def main():
 	signal.signal(signal.SIGALRM, handler)
 	while count != op.count:
 		signal.alarm(op.sleep)
-
 		rows = getwinsize()[0]
-		if count % (rows-2)  == 0:
+		if count % (rows-2)  == 0 and (not op.noheader or count == 0):
 			for o in olist:
 				sys.stdout.write(o.title1)
 				if o != olist[-1]: sys.stdout.write(' ')
