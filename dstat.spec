@@ -72,7 +72,7 @@ interprete real-time data as easy as possible.
 %{_bindir}/dstat
 
 %changelog
-* Thu Dec 02 2004 Dag Wieers <dag@wieers.com> - 0.5.6-1
+* Wed Dec 08 2004 Dag Wieers <dag@wieers.com> - 0.5.6-1
 - Updated to release 0.5.6.
 
 * Thu Dec 02 2004 Dag Wieers <dag@wieers.com> - 0.5.5-1

@@ -27,6 +27,7 @@ disable = ('no', 'off', 'false', '0')
 class Options:
 	def __init__(self, args):
 		self.count = -1
+		self.cpulist = None
 		self.delay = 1
 		self.disklist = None
 		self.full = False
@@ -38,7 +39,7 @@ class Options:
 		self.header = True
 
 		try:
-			opts, args = getopt.getopt (args, 'acdfghilmnpstvyD:I:M:N:',
+			opts, args = getopt.getopt (args, 'acdfghilmnpstvyC:D:I:M:N:',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net', 'page',
 				'proc', 'swap', 'sys', 'tcp', 'time', 'udp', 'version', 'vmstat',
 				'full', 'integer', 'mods', 'modules', 'nocolor', 'noheader', 'noupdate'])
@@ -51,6 +52,8 @@ class Options:
 		for opt, arg in opts:
 			if opt in ['-c', '--cpu']:
 				self.modlist.append('cpu')
+			elif opt in ['-C']:
+				self.cpulist = arg.split(',')
 			elif opt in ['-d', '--disk']:
 				self.modlist.append('disk')
 			elif opt in ['-D']:
@@ -113,14 +116,16 @@ class Options:
 		if not self.modlist:
 			self.modlist = [ 'cpu', 'disk', 'net', 'sys', 'page' ]
 
-		if len(args) > 0:
-			self.delay = int(args[0])
-
-		if len(args) > 1:
-			self.count = int(args[1])
+		try:
+			if len(args) > 0: self.delay = int(args[0])
+			if len(args) > 1: self.count = int(args[1])
+		except:
+			print 'dstat: incorrect argument, try dstat -h for the correct syntax'
+			sys.exit(1)
 
 		if self.delay == 0:
-				die(6, 'Delay must be an integer, greater than zero')
+			print 'dstat: delay must be an integer, greater than zero'
+			sys.exit(1)
 
 	def version(self):
 		print 'Dstat %s' % VERSION
@@ -139,6 +144,7 @@ class Options:
 
 Dstat options:
   -c, --cpu                enable cpu stats
+     -C 0,3,                  include cpu0, cpu3 and total
   -d, --disk               enable disk stats
      -D total,hda             include hda and total
   -g, --page               enable page stats
@@ -205,15 +211,11 @@ class Config:
 
 class dstat:
 	def init(self):
-#		if not self.check(): return
-
+		### Initialise default variables
 		self.title1 = self.title1()
 		self.title2 = self.title2()
 
-		### Initialise default variables
-		self.val = {}
-		self.cn1 = {}
-		self.cn2 = {}
+		self.val = {}; self.cn1 = {}; self.cn2 = {}
 		for i in self.vars: self.val[i] = self.cn1[i] = self.cn2[i] = 0
 
 	def width(self):
@@ -252,6 +254,9 @@ class dstat:
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
 				sys.stdout.write(self.format % convlist(self.len, self.val[name]))
 				sep = ansi['default'] + '|'
+			elif self.format == '%s %s %s %s %s %s':
+				sys.stdout.write(self.format % convlist(self.len, self.val[name], 100))
+				sep = ansi['default'] + '|'
 			else:
 				sys.stdout.write(self.format % self.val[name])
 			if name != self.vars[-1]:
@@ -260,12 +265,27 @@ class dstat:
 class dstat_cpu(dstat):
 	def __init__(self):
 		self.name = 'cpu usage'
-		self.len = 3
-		self.format = '%ps'
-		self.vars = ('user', 'sys', 'idle', 'wait', 'hardirq', 'softirq')
-		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
+		self.len = 23
+		self.format = '%s %s %s %s %s %s'
+		if op.cpulist:
+			self.vars = op.cpulist
+		else:
+			self.vars = self.discover()
+		self.nick = []
+		for name in self.vars:
+			if name:
+				self.nick.append('us%1d sy%1d id%1d wa%1d hq%1d sq%1d' % (int(name), int(name), int(name), int(name), int(name), int(name)))
+			else:
+				self.nick.append('usr sys idl wai hiq siq')
+#		self.vars = ('user', 'sys', 'idle', 'wait', 'hardirq', 'softirq')
+#		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
 		self.init()
-		self.cn1['total'] = 0
+		for name in self.vars: self.cn1[name] = (0, 0, 0, 0, 0, 0); self.cn1[''] = (0, 0, 0, 0, 0, 0)
+		for name in self.vars: self.cn2[name] = (0, 0, 0, 0, 0, 0); self.cn2[''] = (0, 0, 0, 0, 0, 0)
+		for name in self.vars: self.val[name] = [0, 0, 0, 0, 0, 0]; self.val[''] = [0, 0, 0, 0, 0, 0]
+
+	def discover(self):
+		return ('',)
 
 	def check(self):
 		if os.path.exists('/proc/stat'):
@@ -277,16 +297,12 @@ class dstat_cpu(dstat):
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if len(l) <= 7 or l[0] != 'cpu': continue
-			self.cn2['user'] = long(l[1]) + long(l[2])
-			self.cn2['sys'] = long(l[3])
-			self.cn2['idle'] = long(l[4])
-			self.cn2['wait'] = long(l[5])
-			self.cn2['hardirq'] = long(l[6])
-			self.cn2['softirq'] = long(l[7])
-			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait'] + self.cn2['hardirq'] + self.cn2['softirq']
+			for name in self.vars:
+				if len(l) <= 7 or l[0] != 'cpu'+name: continue
+				self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
 		for name in self.vars:
-			self.val[name] = 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
+			for i in (0, 1, 2, 3, 4, 5):
+				self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (total(self.cn2[name]) - total(self.cn1[name]))
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
@@ -322,7 +338,6 @@ class dstat_cpu24(dstat):
 
 class dstat_disk(dstat):
 	def __init__(self):
-		if not self.check(): return
 		self.format = '%s %s'
 		self.len = 11
 		self.name = 'disk i/o'
@@ -345,6 +360,7 @@ class dstat_disk(dstat):
 
 	def discover(self):
 		retlist = []
+		if not os.path.exists('/proc/diskstats'): return retlist
 		for line in open('/proc/diskstats', 'r').readlines():
 			l = line.split()
 			if len(l) < 13 or l[3] == '0': continue
@@ -356,7 +372,7 @@ class dstat_disk(dstat):
 		return retlist
 
 	def check(self):
-		if os.path.exists('/proc/diskstats'):
+		if os.path.exists('/proc/diskstats') and len(self.vars) > 0:
 			return True
 		return False
 
@@ -384,6 +400,7 @@ class dstat_disk(dstat):
 class dstat_disk24(dstat_disk):
 	def discover(self):
 		retlist = []
+		if not os.path.exists('/proc/partitions'): return retlist
 		for line in open('/proc/partitions', 'r').readlines():
 			l = line.split()
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
@@ -395,10 +412,8 @@ class dstat_disk24(dstat_disk):
 		return retlist
 
 	def check(self):
-		if os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
-			l = open('/proc/partitions', 'r').readline().split()
-			if len(l) > 4:
-				return True
+		if os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats') and len(self.vars) > 0:
+			return True
 		return False
 
 	def stats(self):
@@ -426,6 +441,7 @@ class dstat_disk24(dstat_disk):
 class dstat_disk24old(dstat_disk24):
 	def discover(self):
 		retlist = []
+		if not os.path.exists('/proc/partitions'): return retlist
 		for line in open('/proc/partitions', 'r').readlines():
 			l = line.split()
 			if len(l) != 4 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
@@ -438,12 +454,9 @@ class dstat_disk24old(dstat_disk24):
 
 	def check(self):
 		if os.path.exists('/proc/stat') and \
-			not os.path.exists('/proc/diskstats'):
-			if os.path.exists('/proc/partitions'):
-				l = open('/proc/partitions', 'r').readline().split()
-				if len(l) <= 4:
-					return True
-			else:
+			not os.path.exists('/proc/partitions') and \
+			not os.path.exists('/proc/diskstats') and \
+			len(self.vars) > 0:
 				return True
 		return False
 
@@ -487,6 +500,7 @@ class dstat_int(dstat):
 
 	def discover(self):
 		retlist = []
+		if not os.path.exists('/proc/interrupts'): return retlist
 		for line in open('/proc/interrupts', 'r').readlines():
 			l = line.split()
 			if len(l) < 1: continue
@@ -498,7 +512,7 @@ class dstat_int(dstat):
 		return retlist
 
 	def check(self):
-		if os.path.exists('/proc/interrupts'):
+		if os.path.exists('/proc/interrupts') and len(self.vars) > 0:
 			return True
 		return False
 
@@ -582,6 +596,7 @@ class dstat_net(dstat):
 
 	def discover(self):
 		retlist = []
+		if not os.path.exists('/proc/net/dev'): return retlist
 		for line in open('/proc/net/dev', 'r').readlines():
 			l = line.split()
 			if len(l) < 2: continue
@@ -594,7 +609,7 @@ class dstat_net(dstat):
 		return retlist
 
 	def check(self):
-		if os.path.exists('/proc/net/dev'):
+		if os.path.exists('/proc/net/dev') and len(self.vars) > 0:
 			return True
 		return False
 
@@ -691,11 +706,11 @@ class dstat_proc(dstat):
 			l = line.split()
 			if len(l) < 2: continue
 			name = l[0]
-			if name in self.vars:
-				self.val[name] = long(l[1])
-			if name in ('processes',):
+			if name == 'processes':
 				self.val['processes'] = 0
 				self.cn2[name] = long(l[1])
+			elif name in self.vars:
+				self.val[name] = long(l[1])
 		if self.val['procs_running'] > 0:
 			self.val['procs_running'] = self.val['procs_running'] - 1
 		if update:
@@ -858,11 +873,17 @@ ansi = {
 	'default': '\033[0;0m',
 }
 
-def convlist(max, list):
+def total(list):
+	ret = 0
+	for i in list:
+		ret = ret + i
+	return ret
+
+def convlist(max, list, base = 1024):
 	max = max / len(list)
 	retlist = ()
 	for var in list:
-		retlist = retlist + (conv(max, var), )
+		retlist = retlist + (conv(max, var, base), )
 	return retlist
 
 #def convlist(max, list):
@@ -1154,7 +1175,7 @@ if __name__ == '__main__':
 		print
 		print ansi['reset'] + 'OSError: %s' %e
 		sys.exit(7)
-sys.exit(0)
 
+sys.exit(0)
 
 # vim:ts=4:sw=4
