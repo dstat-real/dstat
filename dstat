@@ -20,7 +20,7 @@ import os, sys, re, getopt, time, termios
 import ConfigParser, urlparse, signal, resource
 #import curses
 
-VERSION = '0.5.6'
+VERSION = '0.5.7'
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -223,8 +223,9 @@ class dstat:
 		if isinstance(self.name, types.StringType):
 			return self.len
 		else:
-			for i in self.cn2: break
-			return len(self.cn2[i]) * self.len + len(self.cn2[i]) - 1
+			for name in self.cn2.keys():
+				return len(self.cn2[name]) * self.len + len(self.cn2[name]) - 1
+			return 0
 
 	def title1(self):
 		if isinstance(self.name, types.StringType):
@@ -255,7 +256,7 @@ class dstat:
 			return ansi['blue'] + ret
 
 	def check(self):
-		if self.discover():
+		if self.discover() and self.width():
 			return True
 		return False
 
@@ -766,6 +767,7 @@ class dstat_net(dstat):
 				l = l2[1:] + l[1:]
 			else:
 				l = l[1:]
+			if len(l) < 9: continue
 			if name in (self.vars) :
 				self.cn2[name] = ( long(l[0]), long(l[8]) )
 			if not re.match('^(Inter-\||face|lo)$', name):
@@ -851,7 +853,7 @@ class dstat_proc(dstat):
 				self.val['processes'] = 0
 				self.cn2[name] = long(l[1])
 			elif name == 'procs_running':
-				self.cn2[name] = self.cn2[name] + long(l[1]) - 1
+				self.cn2[name] = self.cn2[name] + long(l[1]) - 2
 			elif name == 'procs_blocked':
 				self.cn2[name] = self.cn2[name] + long(l[1])
 		if update:
@@ -1281,7 +1283,7 @@ def main():
 		if update <= op.delay * op.count or op.count == -1:
 			signal.pause()
 
-		### The last step in a loop is to show the definitive line on a new line
+		### The last step in a loop is to show the definitive line on its own line
 		if step == op.delay:
 			sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
 		else:

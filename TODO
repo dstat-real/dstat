@@ -21,9 +21,10 @@
 + Look into interfacing with specific HW counters in /proc
 
 ### General bugs
++ Backport all changes to dstat15
 + Timer is not accurate on 2.6 kernel, every second there's a 1ms deviation (every 17mins -> 1sec)
 
 ### Stat bugs
 + tcp stat is very slow and generates lots of softirqs (on some systems)
-+ proc stat seems to be off by one, no clue why
 + Implement better (?) protection against counter rollovers
++ Fix bug with: ./dstat -tit -I 177
