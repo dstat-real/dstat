@@ -60,6 +60,7 @@ interprete real-time data as easy as possible.
 %defattr(-, root, root, 0755)
 %doc AUTHORS ChangeLog COPYING README TODO 
 #%doc *.conf
+%doc %{_datadir}/man1/dstat.1*
 #%config(noreplace) %{_sysconfdir}/dstat.conf
 %{_bindir}/dstat
 

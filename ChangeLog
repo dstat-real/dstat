@@ -1,8 +1,13 @@
 * 0.5.3
-- Added --ful option to expand the -D, -I and -N discovery lists
-- Re-added the number of new processes (the --vmstat will not not resemble)
+- Added -M or --mods option to allow modules
+- Added --full option to expand the -D, -I and -N discovery lists
+- Re-added the number of new processes (the --vmstat will no longer resemble vmstat)
 - More intelligent way of ordering stats to fit as much in screen width as possible
-- Fixed a crash when counters overflowed (Francois Postaire)
+- Fixed a crash when counters overflow (Francois Postaire)
+- Added manpage, kindly donated by Andrew Pollock
+- Added --tcp and --udp stats (may be improved later ?)
+- Fixes to disk24old and new cpu24 (for Debian 2.4.26 kernel)
+- Signal handling cleanup
 
 * 0.5.2
 - Improved disk and net discovery functions (Ville Herva)

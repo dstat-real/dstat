@@ -38,10 +38,10 @@ class Options:
 		self.header = True
 
 		try:
-			opts, args = getopt.getopt (args, 'acdghilmnpstvyD:I:N:',
-				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net',
-				'page', 'proc', 'swap', 'sys', 'time', 'version', 'vmstat',
-				'full', 'integer', 'nocolor', 'noheader', 'noupdate'])
+			opts, args = getopt.getopt (args, 'acdghilmnpstvyD:I:M:N:',
+				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net', 'page',
+				'proc', 'swap', 'sys', 'tcp', 'time', 'udp', 'version', 'vmstat',
+				'full', 'integer', 'mods', 'modules', 'nocolor', 'noheader', 'noupdate'])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
 			sys.exit(1)
@@ -63,6 +63,8 @@ class Options:
 				self.intlist = arg.split(',')
 			elif opt in ['-m', '--mem']:
 				self.modlist.append('mem')
+			elif opt in ['-M', '--mods', '--modules']:
+				self.modlist = self.modlist + arg.split(',')
 			elif opt in ['-l', '--load']:
 				self.modlist.append('load')
 			elif opt in ['-n', '--net']:
@@ -73,8 +75,12 @@ class Options:
 				self.modlist.append('proc')
 			elif opt in ['-s', '--swap']:
 				self.modlist.append('swap')
+			elif opt in ['--tcp']:
+				self.modlist.append('tcp')
 			elif opt in ['-t', '--time']:
 				self.modlist.append('time')
+			elif opt in ['--udp']:
+				self.modlist.append('udp')
 			elif opt in ['-y', '--sys']:
 				self.modlist.append('sys')
 
@@ -112,6 +118,9 @@ class Options:
 		if len(args) > 1:
 			self.count = int(args[1])
 
+		if self.delay == 0:
+				die(6, 'Delay must be an integer, greater than zero')
+
 	def version(self):
 		print 'Dstat %s' % VERSION
 		print 'Written by Dag Wieers <dag@wieers.com>'
@@ -122,26 +131,33 @@ class Options:
 		print 'Python %s' % sys.version
 
 	def usage(self):
-		print 'usage: dstat [-acdgilmnpsy] [-D dev1..] [-I #..] [-N if1..] [delay [count]]'
+		print 'usage: dstat [-av] [-cdgilmnpsty] [-D dev1..] [-I #..] [-N if1..] [delay [count]]'
 
 	def help(self):
 		print '''Versatile tool for generating system resource statistics
 
 Dstat options:
-  -c, --cpu          enable cpu stats
-  -d, --disk         enable disk stats
-     -D total,hda       include hda and total
-  -g, --page         enable page stats
-  -i, --int          enable interrupt stats
-     -I 5,eth2          include int5 and interrupt used by eth2
-  -l, --load         enable load stats
-  -m, --mem          enable memory stats
-  -n, --net          enable network stats
-     -N eth1,total      include eth1 and total
-  -p, --proc         enable process stats
-  -s, --swap         enable swap stats
-  -t, --time         enable time counter
-  -y, --sys          enable system stats
+  -c, --cpu                enable cpu stats
+  -d, --disk               enable disk stats
+     -D total,hda             include hda and total
+  -g, --page               enable page stats
+  -i, --int                enable interrupt stats
+     -I 5,eth2                include int5 and interrupt used by eth2
+  -l, --load               enable load stats
+  -m, --mem                enable memory stats
+  -n, --net                enable network stats
+     -N eth1,total            include eth1 and total
+  -p, --proc               enable process stats
+  -s, --swap               enable swap stats
+  -t, --time               enable time counter
+  -y, --sys                enable system stats
+
+  -M stat1,stat2           enable specific stats
+     --mods stat1,stat2
+
+    Possible stats are:
+      cpu, disk, page, int, load, mem, net, proc,
+      swap, sys, tcp, time, udp
 
   -a, --all          equals -cdngyl
   -v, --vmstat       equals -pmgdsc -D total
@@ -188,7 +204,7 @@ class Config:
 
 class dstat:
 	def init(self):
-		if not self.check(): return
+#		if not self.check(): return
 
 		self.title1 = self.title1()
 		self.title2 = self.title2()
@@ -240,24 +256,55 @@ class dstat_cpu(dstat):
 		self.format = '%3d'
 		self.nick = ( 'usr', 'sys', 'idl', 'wai' )
 		self.init()
-		self.cn1['sum'] = 0
+		self.cn1['total'] = 0
 
 	def check(self):
 		if os.path.exists('/proc/stat'):
-			return True
+			l = open('/proc/stat', 'r').readline().split()
+			if len(l) > 5:
+				return True
 		return False
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if len(l) < 1 or l[0] != 'cpu' or len(l) < 6: continue
+			if len(l) <= 5 or l[0] != 'cpu': continue
 			self.cn2['user'] = long(l[1]) + long(l[2])
 			self.cn2['sys'] = long(l[3])
 			self.cn2['idle'] = long(l[4])
 			self.cn2['wait'] = long(l[5])
-			self.cn2['sum'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait']
+			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait']
 		for name in self.vars:
-			self.val[name] = (100.0 * (self.cn2[name]-self.cn1[name]) + (self.cn2['sum']-self.cn1['sum']) / 2) / (self.cn2['sum']-self.cn1['sum'])
+			self.val[name] = (100.0 * (self.cn2[name] - self.cn1[name]) + (self.cn2['total'] - self.cn1['total']) / 2) / (self.cn2['total'] - self.cn1['total'])
+		self.cn1.update(self.cn2)
+
+class dstat_cpu24(dstat):
+	def __init__(self):
+		self.name = 'cpu usage'
+		self.vars = ('user', 'sys', 'idle')
+		self.len = 3
+		self.format = '%3d'
+		self.nick = ( 'usr', 'sys', 'idl')
+		self.init()
+		self.cn1['total'] = 0
+
+	def check(self):
+		if os.path.exists('/proc/stat'):
+			l = open('/proc/stat', 'r').readline().split()
+			if len(l) == 5:
+				return True
+		return False
+
+	def stats(self):
+		for line in open('/proc/stat', 'r').readlines():
+			l = line.split()
+			if len(l) < 4 or l[0] != 'cpu': continue
+			self.cn2['user'] = long(l[1]) + long(l[2])
+			self.cn2['sys'] = long(l[3])
+			self.cn2['idle'] = long(l[4])
+			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle']
+		for name in self.vars:
+			self.val[name] = (100.0 * (self.cn2[name] - self.cn1[name]) + (self.cn2['total'] - self.cn1['total']) / 2) / (self.cn2['total'] - self.cn1['total'])
 		self.cn1.update(self.cn2)
 
 class dstat_disk(dstat):
@@ -313,7 +360,7 @@ class dstat_disk(dstat):
 					self.cn2[set] = ( self.cn2[set][0] + long(l[5]), self.cn2[set][1] + long(l[9]) )
 			self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
 		if update:
-			for name in self.cn2:
+			for name in self.cn2.keys():
 				self.val[name] = ( 
 					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / step,
 					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / step,
@@ -336,7 +383,9 @@ class dstat_disk24(dstat_disk):
 
 	def check(self):
 		if os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
-			return True
+			l = open('/proc/partitions', 'r').readline().split()
+			if len(l) > 4:
+				return True
 		return False
 
 	def stats(self):
@@ -353,7 +402,7 @@ class dstat_disk24(dstat_disk):
 					self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
 			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]))
 		if update:
-			for name in self.cn2:
+			for name in self.cn2.keys():
 				self.val[name] = ( 
 					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / step,
 					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / step,
@@ -362,32 +411,48 @@ class dstat_disk24(dstat_disk):
 			self.cn1.update(self.cn2)
 
 class dstat_disk24old(dstat_disk24):
+	def discover(self):
+		retlist = []
+		for line in open('/proc/partitions', 'r').readlines():
+			l = line.split()
+			if len(l) != 4 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
+			name = l[3]
+			if not re.match('^(ram[0-9]+|loop[0-9]+|name)$', name):
+				retlist.append(name)
+		if not op.full and len(retlist) > 2: retlist = retlist[0:2]
+		retlist.sort()
+		return retlist
+
 	def check(self):
 		if os.path.exists('/proc/stat') and \
-			not os.path.exists('/proc/partitions') and \
 			not os.path.exists('/proc/diskstats'):
-			return True
+			if os.path.exists('/proc/partitions'):
+				l = open('/proc/partitions', 'r').readline().split()
+				if len(l) <= 4:
+					return True
+			else:
+				return True
 		return False
 
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split(':');
-			if len(l) < 4: continue
+			if len(l) < 3: continue
 			name = l[0]
 			if name == 'disk_io':
 				for pair in line.split()[1:]:
 					m = re.match('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$', pair)
 					if m:
 						l = m.groups()
-						name = dev(long(l[0]), long(l[1]))
+						name = dev(int(l[0]), int(l[1]))
 						self.cn2[name] = ( long(l[2]), long(l[3]) )
 						for set in self.vars:
-							if set in self.diskset and name in self.diskset[set]:
+							if set in self.diskset.keys() and name in self.diskset[set]:
 								self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
 						self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
 		if update:
-			for name in self.cn2:
+			for name in self.cn2.keys():
 				self.val[name] = (
 					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / step,
 					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / step,
@@ -436,15 +501,15 @@ class dstat_int(dstat):
 					for mod in l[2+procs:]:
 						self.cn2[mod] = long(l[1])
 		if update:
-			for name in self.cn2:
+			for name in self.cn2.keys():
 				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / step
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
 class dstat_load(dstat):
 	def __init__(self):
-		self.len = 4
-		self.format = '%4.2f'
+		self.len = 5
+		self.format = '%5.2f'
 		self.name = 'load avg'
 		self.nick = ('_1m', '_5m', '_15m')
 		self.vars = ('load1', 'load5', 'load15')
@@ -537,7 +602,7 @@ class dstat_net(dstat):
 			if not re.match('^(Inter-\||face|lo)$', name):
 				self.cn2['total'] = ( self.cn2['total'][0] + long(l[0]), self.cn2['total'][1] + long(l[8]))
 		if update:
-			for name in self.cn2:
+			for name in self.cn2.keys():
 				self.val[name] = ( 
 					(self.cn2[name][0]-self.cn1[name][0]) * 1.0 / step,
 					(self.cn2[name][1]-self.cn1[name][1]) * 1.0 / step,
@@ -619,7 +684,8 @@ class dstat_proc(dstat):
 			if name in ('processes',):
 				self.val['processes'] = 0
 				self.cn2[name] = long(l[1])
-		self.val['procs_running'] = self.val['procs_running'] - 1
+		if self.val['procs_running'] > 0:
+			self.val['procs_running'] = self.val['procs_running'] - 1
 		if update:
 			self.val['processes'] = (self.cn2['processes'] - self.cn1['processes']) / step
 		if step == op.delay:
@@ -682,11 +748,44 @@ class dstat_sys(dstat):
 			if name != self.vars[-1]:
 				sys.stdout.write(' ')
 
+class dstat_tcp(dstat):
+	def __init__(self):
+		self.name = 'tcp'
+		self.format = '%3d'
+		self.len = 3
+		self.nick = ('lis', 'act', 'syn', 'tim')
+		self.vars = ('listen', 'established', 'syn_sent', 'time_wait')
+		self.init()
+
+	def check(self):
+		if os.path.exists('/proc/net/tcp'):
+			return True
+		return False
+
+	def stats(self):
+		self.val['listen'] = self.val['established'] = self.val['syn_sent'] = self.val['time_wait'] = 0
+		for line in open('/proc/net/tcp', 'r').readlines():
+			l = line.split();
+			if len(l) < 12: continue
+			if l[3] == '0A': self.val['listen'] = self.val['listen'] + 1
+			elif l[3] == '01': self.val['established'] = self.val['established'] + 1
+			elif l[3] == '02': self.val['syn_sent'] = self.val['syn_sent'] + 1
+			elif l[3] == '06': self.val['time_wait'] = self.val['time_wait'] + 1
+
+	def show(self):
+		for name in self.vars:
+			sys.stdout.write(self.format % self.val[name])
+			if name != self.vars[-1]:
+				sys.stdout.write(' ')
+
 class dstat_time(dstat):
 	def __init__(self):
 		self.name = 'time'
 		self.format = '%10d'
 		self.len = 10
+		### Nice for debugging timer
+#		self.format = '%13.3f'
+#		self.len = 14
 		self.nick = ('epoch',)
 		self.vars = ('epoch',)
 		self.init()
@@ -696,6 +795,32 @@ class dstat_time(dstat):
 
 	def show(self):
 		sys.stdout.write(self.format % self.val['epoch'])
+
+class dstat_udp(dstat):
+	def __init__(self):
+		self.name = 'udp'
+		self.format = '%3d'
+		self.len = 3
+		self.nick = ('con', )
+		self.vars = ('connections', )
+		self.init()
+
+	def check(self):
+		if os.path.exists('/proc/net/udp'):
+			return True
+		return False
+
+	def stats(self):
+		self.val['connections'] = 0
+		for line in open('/proc/net/udp', 'r').readlines():
+			l = line.split();
+			if l[3] == '07': self.val['connections'] = self.val['connections'] + 1
+
+	def show(self):
+		for name in self.vars:
+			sys.stdout.write(self.format % self.val[name])
+			if name != self.vars[-1]:
+				sys.stdout.write(' ')
 
 ansi = {
 	'black': '\033[0;30m',
@@ -777,6 +902,16 @@ def conv(max, var, base = 1024):
 	else:
 		return ' ' * (max-2) + '0 '
 
+def info(level, str):
+	"Output info message"
+#	if level <= op.verbose:
+	print str
+
+def die(ret, str):
+	"Print error and exit with errorcode"
+	info(0, str)
+	sys.exit(ret)
+
 def getwinsize():
 	try:
 		s = struct.pack("HHHH", 0, 0, 0, 0)
@@ -818,17 +953,21 @@ def dev(maj, min):
 #			if dev == list[0]:
 #				return list[1]
 
-def handler(signum, frame):
-	pass
+def signaler(signum, frame):
+	signal.alarm(interval)
 
 def main():
-	global update, loop, step, pagesize, procs, ansi
+	global update, loop, step, pagesize, procs, ansi, interval
 
 	loop = update = 0
 	step = op.delay
 	pagesize = resource.getpagesize()
 	procs = getcpunr()
 #	hz = os.sysconf('SC_CLK_TCK')
+	interval = 1
+
+	if not op.update:
+		interval = op.delay
 
 	### Empty ansi database if no colors are requested
 	if not op.color:
@@ -839,7 +978,9 @@ def main():
 	### Build list of requested modules
 	olist = []
 	for mod in op.modlist:
-		if mod == 'cpu':	olist.append(dstat_cpu())
+		if mod == 'cpu':
+			olist.append(dstat_cpu())
+			olist.append(dstat_cpu24())
 		elif mod == 'disk':
 			olist.append(dstat_disk())
 			olist.append(dstat_disk24())
@@ -854,7 +995,11 @@ def main():
 		elif mod == 'proc':	olist.append(dstat_proc())
 		elif mod == 'swap':	olist.append(dstat_swap())
 		elif mod == 'sys':	olist.append(dstat_sys())
+		elif mod == 'tcp':	olist.append(dstat_tcp())
 		elif mod == 'time':	olist.append(dstat_time())
+		elif mod == 'udp':	olist.append(dstat_udp())
+		else:
+			info(1, 'Module \'%s\' does not exist or failed to load.' % mod)
 
 	(rows, cols) = getwinsize()
 
@@ -869,23 +1014,18 @@ def main():
 	if linewidth > cols:
 		print 'Screen width too small, trimming output.'
 
-	### Increase precision if we're root
-	if os.geteuid() == 0:
-		os.nice(-10)
-
-#	sys.setcheckinterval(op.delay * 1.5 * 100)
-	signal.signal(signal.SIGALRM, handler)
-
 	oldplist = []
+
+	### Increase precision if we're root (does not have effect)
+#	if os.geteuid() == 0:
+#		os.nice(-20)
+#	sys.setcheckinterval(op.delay / 10000)
+
+	signal.signal(signal.SIGALRM, signaler)
+	signal.alarm(interval)
 
 	### Let the games begin
 	while loop != op.count:
-
-		### When intermediate updates are enabled, signal each second
-		if op.update:
-			signal.alarm(1)
-		else:
-			signal.alarm(op.delay)
 
 		### Trim object list to what is visible on screen
 		(rows, cols) = getwinsize()
@@ -953,7 +1093,6 @@ def main():
 		if oldstep == op.delay:
 			sys.stdout.write('\n' + ansi['clearline'] + ansi['save'])
 		else:
-#			sys.stdout.write('\n')
 			sys.stdout.write(ansi['restore'] + ansi['clearline'])
 
 ### Unbuffered sys.stdout
