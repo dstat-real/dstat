@@ -310,7 +310,7 @@ class dstat_disk24(dstat_disk):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if len(l) > 1 and l[0] == 'cpu0' or l[0] == 'cpu':
+			if len(l) > 1 and ( l[0] == 'cpu0' or l[0] == 'cpu' ):
 				self.uptime2 = int(l[1]) + int(l[2]) + int(l[3]) + int(l[4]) + int(l[5]) + int(l[6]) + int(l[7])
 #				self.uptime2 = sum(map(int, l[1-7]))
 
@@ -388,7 +388,7 @@ class dstat_int(dstat):
 		retlist = ()
 		for line in open('/proc/interrupts', 'r').readlines():
 			l = line.split(); name = l[0].split(':')[0]
-			if name in ('0', '1', '2', '8', 'NMI', 'LOC'):
+			if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
 				continue
 			if len(l) > 1 and l[1] != '0':
 				retlist = retlist + (name,)
@@ -646,12 +646,11 @@ def conv(max, var, base = 1024):
 	### lowercase (b) is better for the eyes than uppercase
 	units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	c = 0
-	var = round(var)
-#	while len(str(int(var))) > max-1:
+	var = int(var * 1.0)
 	while len(str(var)) > max-1:
 		var = int(var / base * 1.0)
 		c = c + 1
-	return str(int(var)).rjust(max-1) + units[c]
+	return str(int(round(var))).rjust(max-1) + units[c]
 
 def getwinsize():
 	s = struct.pack("HHHH", 0, 0, 0, 0)
