@@ -333,12 +333,12 @@ class dstat_disk24(dstat_disk):
 				if set in self.diskset and name in self.diskset[set]:
 					self.cn2[set] = ( self.cn2[set][0] + int(l[6]), self.cn2[set][1] + int(l[10]) )
 			if len(l) > 10:
-				self.cn2['total'] = ( self.cn2['total'][0] + int(l[6]) / op.sleep, self.cn2['total'][1] + int(l[10]))
+				self.cn2['total'] = ( self.cn2['total'][0] + int(l[6]), self.cn2['total'][1] + int(l[10]))
 		if count != 0:
 			for name in self.cn2:
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) * 1024 / itv * hz / 2 / op.sleep,
-					(self.cn2[name][1]-self.cn1[name][1]) * 1024 / itv * hz / 2 / op.sleep,
+					(self.cn2[name][0]-self.cn1[name][0]) * 1024 / itv * hz / 2,
+					(self.cn2[name][1]-self.cn1[name][1]) * 1024 / itv * hz / 2,
 				)
 #		print '[rd=', self.cn2[name][0]-self.cn1[name][0], 'wr=', self.cn2[name][1]-self.cn1[name][1] , ']',
 		self.cn1.update(self.cn2)
