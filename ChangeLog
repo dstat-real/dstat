@@ -4,6 +4,7 @@
 - Improved the rounding function
 - Added --abs, to get earlier 'absolute value' behaviour
 - Added --noheader option to only see header at start
+- Added --nocolor to disable newly introduced colors
 
 * 0.4
 - Added interrupt stats
