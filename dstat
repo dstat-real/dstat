@@ -373,7 +373,7 @@ class dstat_disk24(dstat_disk):
 		retlist = []
 		for line in open('/proc/partitions', 'r').readlines():
 			l = line.split()
-			if len(l) < 15: continue
+			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
 			if not re.match('^(ram[0-9]+|loop[0-9]+|name)$', name):
 				retlist.append(name)
@@ -511,7 +511,7 @@ class dstat_load(dstat):
 		self.len = 5
 		self.format = '%5.2f'
 		self.name = 'load avg'
-		self.nick = ('_1m', '_5m', '_15m')
+		self.nick = ('1m', '5m', '15m')
 		self.vars = ('load1', 'load5', 'load15')
 		self.init()
 
@@ -1041,7 +1041,7 @@ def main():
 			for o in plist:
 				sys.stdout.write(o.title1)
 				if o != plist[-1]:
-					sys.stdout.write(ansi['darkblue'] + 'X' + ansi['default'])
+					sys.stdout.write(ansi['darkblue'] + ' ' + ansi['default'])
 				elif olist != plist:
 					sys.stdout.write(ansi['darkblue'] + '>' + ansi['default'])
 			sys.stdout.write('\n')
@@ -1076,14 +1076,11 @@ def main():
 				elif o != olist[-1]:
 					sys.stdout.write(ansi['default'] + '>' + ansi['default'])
 
-		### If intermediate results, update increases with 1 sec
-		if op.update:
-			update = update + 1
-		else:
-			update = update + op.delay
+		### If intermediate results, update increases with 1 sec (=interval)
+		update = update + interval
+		loop = update / op.delay 
 		oldstep = step
 		step = ((update - 1) % op.delay) + 1
-		loop = update / op.delay 
 
 		### Do not pause when this is the final loop
 		if loop != op.count:
@@ -1121,13 +1118,16 @@ if __name__ == '__main__':
 	try:
 		main()
 	except KeyboardInterrupt, e:
+		signal.signal(signal.SIGALRM, signal.SIG_DFL)
 		print
 		print ansi['reset'] + 'Exiting on user request'
 		sys.exit(6)
 	except OSError, e:
+		signal.signal(signal.SIGALRM, signal.SIG_DFL)
 #		print e.errno
 		print
 		print ansi['reset'] + 'OSError: %s' %e
 		sys.exit(7)
+
 
 # vim:ts=4:sw=4

@@ -60,12 +60,12 @@ interprete real-time data as easy as possible.
 %defattr(-, root, root, 0755)
 %doc AUTHORS ChangeLog COPYING README TODO 
 #%doc *.conf
-%doc %{_datadir}/man1/dstat.1*
+%doc %{_mandir}/man1/dstat.1*
 #%config(noreplace) %{_sysconfdir}/dstat.conf
 %{_bindir}/dstat
 
 %changelog
-* Sun Nov 14 2004 Dag Wieers <dag@wieers.com> - 0.5.3-1
+* Sun Nov 21 2004 Dag Wieers <dag@wieers.com> - 0.5.3-1
 - Updated to release 0.5.3.
 
 * Sat Nov 13 2004 Dag Wieers <dag@wieers.com> - 0.5.2-1
