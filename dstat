@@ -1123,8 +1123,10 @@ ansi = {
 
 	'clear': '\033[2J',
 	'clearline': '\033[K',
-	'save': '\033[s',
-	'restore': '\033[u',
+#	'save': '\033[s',
+#	'restore': '\033[u',
+	'save': '\0337',
+	'restore': '\0338',
 
 	'up': '\033[1A',
 
@@ -1322,7 +1324,7 @@ def main():
 	### Check terminal capabilities
 #	import curses
 #	if not sys.stdout.isatty() or not curses.wrapper(lambda s:curses.has_colors()):
-	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm'):
+	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'gnome', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm'):
 		op.color = False
 		op.nolimit = True
 		op.update = False

@@ -1,11 +1,13 @@
 * 0.5.8
 - Added user stats using python-utmp
 - Bail out if all requested stats fail
-- Replaced --noheader option --noheaders (like vmstat)
+- Replaced --noheader option by --noheaders option (like vmstat)
 - Added -V as short for --version
 - Improved help output
 - Allow CSV output and human output concurrently
-- Removed --csv option (now use --output file)
+- Removed --csv option (now use --output option)
+- Added gnome to known ANSI capable terminal emulation
+- Replaced save and restore ANSI to save and restore VT100 (Olav Vitters)
 
 * 0.5.7
 - Change Makefile to not install when run without target (Kurt Roeckx)
