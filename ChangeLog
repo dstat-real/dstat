@@ -4,6 +4,8 @@
 - Replaced --noheader option --noheaders (like vmstat)
 - Added -V as short for --version
 - Improved help output
+- Allow CSV output and human output concurrently
+- Removed --csv option (now use --output file)
 
 * 0.5.7
 - Change Makefile to not install when run without target (Kurt Roeckx)

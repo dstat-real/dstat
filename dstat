@@ -18,7 +18,6 @@ from __future__ import generators
 import fcntl, struct, types
 import os, sys, re, getopt, time, termios
 import ConfigParser, urlparse, signal, resource
-#import curses
 
 VERSION = '0.5.8'
 
@@ -30,7 +29,6 @@ class Options:
 		self.args = args
 		self.count = -1
 		self.cpulist = None
-		self.csv = False
 		self.delay = 1
 		self.disklist = None
 		self.full = False
@@ -41,12 +39,13 @@ class Options:
 		self.color = True
 		self.update = True
 		self.header = True
+		self.output = False
 
 		try:
-			opts, args = getopt.getopt (args, 'acdfghilmnpstuvyC:D:I:M:N:V',
+			opts, args = getopt.getopt (args, 'acdfghilmnopstuvyC:D:I:M:N:V',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net', 'page', 'proc',
 				'swap', 'sys', 'tcp', 'time', 'udp', 'user', 'version', 'vmstat',
-				'csv', 'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate'])
+				'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate', 'output='])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
 			sys.exit(1)
@@ -99,8 +98,6 @@ class Options:
 				self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 				self.disklist = ('total',)
 
-			elif opt in ['--csv']:
-				self.csv = True
 			elif opt in ['-f', '--full']:
 				self.full = True
 			elif opt in ['--integer']:
@@ -112,7 +109,8 @@ class Options:
 				self.header = False
 			elif opt in ['--noupdate']:
 				self.update = False
-
+			elif opt in ['-o', '--output']:
+				self.output = arg
 			elif opt in ['-h', '--help']:
 				self.usage()
 				self.help()
@@ -134,12 +132,6 @@ class Options:
 		if self.delay == 0:
 			print 'dstat: delay must be an integer, greater than zero'
 			sys.exit(1)
-
-		if self.csv:
-			self.color = False
-			self.header = False
-			self.nolimit = True
-			self.update = False
 
 	def version(self):
 		print 'Dstat %s' % VERSION
@@ -189,11 +181,11 @@ Dstat options:
   -v, --vmstat       equals -pmgdsc -D total
   -f, --full         expand -D, -I and -N discovery lists
 
-  --csv              output CSV format
   --integer          show integer values
   --nocolor          disable colors (implies --noupdate)
   --noheaders        disable repetitive headers
   --noupdate         disable intermediate updates when delay > 1
+  --output file      write CSV output to file
 
   delay is the delay in seconds between each update
   count is the number of updates to display before exiting
@@ -250,59 +242,70 @@ class dstat:
 				return len(self.cn2[name]) * self.len + len(self.cn2[name]) - 1
 			return 0
 
-	def title1(self):
-		if op.csv:
-			if isinstance(self.name, types.StringType):
-				return '"' + self.name + '"' + ',' * (len(self.nick) - 1)
-			else:
-				ret = ''
-				for i, name in enumerate(self.name):
-					ret = ret + '"' + name + '"' + ',' * (len(self.nick) - 1)
-					if i + 1 != len(self.name): ret = ret + ','
-				return ret
+	def title(self, nr):
+		if nr == 1:
+			return self.title1()
 		else:
-			if isinstance(self.name, types.StringType):
-				max = self.varwidth()
-				return ansi['darkblue'] + self.name[0:max].center(max).replace(' ', '-') + ansi['default']
-			else:
-				ret = ''
-				for i, name in enumerate(self.name):
-					max = self.width()
-					ret = ret + name[0:max].center(max).replace(' ', '-')
-					if i + 1 != len(self.name): ret = ret + '-'
-				return ansi['darkblue'] + ret
+			return self.title2()
+
+	def title1(self):
+		if isinstance(self.name, types.StringType):
+			max = self.varwidth()
+			return ansi['darkblue'] + self.name[0:max].center(max).replace(' ', '-') + ansi['default']
+		ret = ''
+		for i, name in enumerate(self.name):
+			max = self.width()
+			ret = ret + name[0:max].center(max).replace(' ', '-')
+			if i + 1 != len(self.name): ret = ret + '-'
+		return ansi['darkblue'] + ret
 
 	def title2(self):
-		if op.csv:
-			if isinstance(self.name, types.StringType):
-				ret = ''
-				for i, nick in enumerate(self.nick):
-					ret = ret + '"' + nick + '"'
-					if i + 1 != len(self.nick): ret = ret + ','
-				return ret
-			else:
-				ret = ''
-				for i, name in enumerate(self.name):
-					for j, nick in enumerate(self.nick):
-						ret = ret + '"' + nick + '"'
-						if j + 1 != len(self.nick): ret = ret + ','
-					if i + 1 != len(self.name): ret = ret + ','
-				return ret
+		if isinstance(self.name, types.StringType):
+			ret = ''
+			for i, nick in enumerate(self.nick):
+				ret = ret + nick.center(self.len).replace(' ', '_')
+				if i + 1 != len(self.nick): ret = ret + ' '
+			return ansi['blue'] + ret
 		else:
-			if isinstance(self.name, types.StringType):
-				ret = ''
-				for i, nick in enumerate(self.nick):
-					ret = ret + nick.center(self.len).replace(' ', '_')
-					if i + 1 != len(self.nick): ret = ret + ' '
-				return ansi['blue'] + ret
-			else:
-				ret = ''
-				for i, name in enumerate(self.name):
-					for j, nick in enumerate(self.nick):
-						ret = ret + ansi['blue'] + nick.center(self.len).replace(' ', '_')
-						if j + 1 != len(self.nick): ret = ret + ' '
-					if i + 1 != len(self.name): ret = ret + ' '
-				return ansi['blue'] + ret
+			ret = ''
+			for i, name in enumerate(self.name):
+				for j, nick in enumerate(self.nick):
+					ret = ret + ansi['blue'] + nick.center(self.len).replace(' ', '_')
+					if j + 1 != len(self.nick): ret = ret + ' '
+				if i + 1 != len(self.name): ret = ret + ' '
+			return ansi['blue'] + ret
+
+	def titlecsv(self, nr):
+		if nr == 1:
+			return self.titlecsv1()
+		else:
+			return self.titlecsv2()
+
+	def titlecsv1(self):
+		if isinstance(self.name, types.StringType):
+			return '"' + self.name + '"' + ',' * (len(self.nick) - 1)
+		else:
+			ret = ''
+			for i, name in enumerate(self.name):
+				ret = ret + '"' + name + '"' + ',' * (len(self.nick) - 1)
+				if i + 1 != len(self.name): ret = ret + ','
+			return ret
+
+	def titlecsv2(self):
+		if isinstance(self.name, types.StringType):
+			ret = ''
+			for i, nick in enumerate(self.nick):
+				ret = ret + '"' + nick + '"'
+				if i + 1 != len(self.nick): ret = ret + ','
+			return ret
+		else:
+			ret = ''
+			for i, name in enumerate(self.name):
+				for j, nick in enumerate(self.nick):
+					ret = ret + '"' + nick + '"'
+					if j + 1 != len(self.nick): ret = ret + ','
+				if i + 1 != len(self.name): ret = ret + ','
+			return ret
 
 	def check(self):
 		if self.discover() and self.width():
@@ -339,24 +342,35 @@ class dstat:
 			if i + 1 != len(self.vars):
 				sys.stdout.write(sep)
 
-	def showcsv(self):
+	def showend(self, totlist, vislist):
+		if self is not vislist[-1]:
+			sys.stdout.write(ansi['default'] + char['pipe'])
+		elif self is not totlist[-1]:
+			sys.stdout.write(ansi['default'] + char['gt'])
 
+	def showcsv(self):
 		def printcsv(var):
 			if var != round(var):
-				sys.stdout.write('%.2f' % var)
+				outputfile.write('%.2f' % var)
 			else:
-				sys.stdout.write('%d' % round(var))
+				outputfile.write('%d' % round(var))
 
 		for i, name in enumerate(self.vars):
 			if isinstance(self.val[name], types.ListType) or isinstance(self.val[name], types.TupleType):
 				for j, val in enumerate(self.val[name]):
 					printcsv(val)
 					if j + 1 != len(self.val[name]):
-						sys.stdout.write(',')
+						outputfile.write(',')
 			else:
 				printcsv(self.val[name])
 			if i + 1 != len(self.vars):
-				sys.stdout.write(',')
+				outputfile.write(',')
+
+	def showcsvend(self, totlist, vislist):
+		if self is not vislist[-1]:
+			outputfile.write(',')
+		elif self is not totlist[-1]:
+			outputfile.write(',')
 
 class dstat_cpu(dstat):
 	def __init__(self):
@@ -1184,6 +1198,22 @@ def conv(max, var, base = 1024):
 		return ansi['default'] + ('0' + ' ' * len(unit[0])).rjust(max)
 	return ansi[color[c]] + repr.rjust(max)
 
+def showtitle(nr, totlist, vislist, midchar, endchar):
+	for o in vislist:
+		sys.stdout.write(o.title(nr))
+		if o is not vislist[-1]:
+			sys.stdout.write(midchar)
+		elif totlist != vislist:
+			sys.stdout.write(endchar)
+	sys.stdout.write('\n')
+
+def showcsvtitle(nr, totlist):
+	for o in totlist:
+		outputfile.write(o.titlecsv(nr))
+		if o is not totlist[-1]:
+			outputfile.write(',')
+	outputfile.write('\n')
+
 def info(level, str):
 	"Output info message"
 #	if level <= op.verbose:
@@ -1245,7 +1275,7 @@ def signaler(signum, frame):
 	signal.alarm(interval)
 
 def main():
-	global update, loop, step, pagesize, procs, ansi, interval
+	global update, loop, step, pagesize, procs, ansi, interval, outputfile
 
 	loop = update = 0
 	step = op.delay
@@ -1257,36 +1287,40 @@ def main():
 	if not op.update:
 		interval = op.delay
 
+	if op.output:
+		outputfile = open(op.output, 'a', 0)
+
 	### Build list of requested modules
-	olist = []
+	totlist = []
 	for mod in op.modlist:
 		if mod == 'cpu':
-			olist.append(dstat_cpu())
-			olist.append(dstat_cpu24())
+			totlist.append(dstat_cpu())
+			totlist.append(dstat_cpu24())
 		elif mod == 'disk':
-			olist.append(dstat_disk())
-			olist.append(dstat_disk24())
-			olist.append(dstat_disk24old())
+			totlist.append(dstat_disk())
+			totlist.append(dstat_disk24())
+			totlist.append(dstat_disk24old())
 		elif mod == 'int':
-			olist.append(dstat_int())
-			olist.append(dstat_int24())
-		elif mod == 'load':	olist.append(dstat_load())
-		elif mod == 'mem':	olist.append(dstat_mem())
-		elif mod == 'net':	olist.append(dstat_net())
+			totlist.append(dstat_int())
+			totlist.append(dstat_int24())
+		elif mod == 'load':	totlist.append(dstat_load())
+		elif mod == 'mem':	totlist.append(dstat_mem())
+		elif mod == 'net':	totlist.append(dstat_net())
 		elif mod == 'page':
-			olist.append(dstat_page())
-			olist.append(dstat_page24())
-		elif mod == 'proc':	olist.append(dstat_proc())
-		elif mod == 'swap':	olist.append(dstat_swap())
-		elif mod == 'sys':	olist.append(dstat_sys())
-		elif mod == 'tcp':	olist.append(dstat_tcp())
-		elif mod == 'time':	olist.append(dstat_time())
-		elif mod == 'udp':	olist.append(dstat_udp())
-		elif mod == 'user':	olist.append(dstat_user())
+			totlist.append(dstat_page())
+			totlist.append(dstat_page24())
+		elif mod == 'proc':	totlist.append(dstat_proc())
+		elif mod == 'swap':	totlist.append(dstat_swap())
+		elif mod == 'sys':	totlist.append(dstat_sys())
+		elif mod == 'tcp':	totlist.append(dstat_tcp())
+		elif mod == 'time':	totlist.append(dstat_time())
+		elif mod == 'udp':	totlist.append(dstat_udp())
+		elif mod == 'user':	totlist.append(dstat_user())
 		else:
 			info(1, 'Module \'%s\' does not exist or failed to load.' % mod)
 
 	### Check terminal capabilities
+#	import curses
 #	if not sys.stdout.isatty() or not curses.wrapper(lambda s:curses.has_colors()):
 	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm'):
 		op.color = False
@@ -1301,36 +1335,35 @@ def main():
 		for key in ansi.keys():
 			ansi[key] = ''
 
-	if op.csv:
-		for key in char.keys():
-			char[key] = ','
-
 	### Remove defect objects and calculate line length
 	linewidth = 0
-	for o in olist + []:
+	for o in totlist + []:
 		if o.check():
 			linewidth = linewidth + o.varwidth() + 1
 		else:
-			olist.remove(o)
+			totlist.remove(o)
 
-	if not olist:
+	if not totlist:
 		die(8, 'None of the stats you selected are available.')
 
 	if not op.nolimit:
 		if linewidth > cols:
 			print 'Screen width too small, trimming output.'
 
-	if op.csv:
+	### FIXME: Get rid of socket()
+	if op.output:
 		import socket
-		print '"Dstat %s CSV output"' % VERSION
-		print '"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"'
-		print '"Host:","%s",,,,"Date:","%s"' % (socket.gethostbyaddr(socket.gethostname())[0], time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime()))
+		outputfile.write('"Dstat %s CSV output"\n' % VERSION)
+		outputfile.write('"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"\n')
+		outputfile.write('"Host:","%s",,,,"Date:","%s"\n' % (socket.gethostbyaddr(socket.gethostname())[0], time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
+		outputfile.write('"Cmd:","dstat %s"\n\n' % ' '.join(op.args))
 
-		print '"Cmd:","dstat %s"\n' % ' '.join(op.args)
+		if op.output:
+			showcsvtitle(1, totlist)
+			showcsvtitle(2, totlist)
+	oldvislist = []
 
-	oldplist = []
-
-	### Increase precision if we're root (does not have effect)
+	### Increase precision if we're root (does not seem to have effect)
 #	if os.geteuid() == 0:
 #		os.nice(-20)
 #	sys.setcheckinterval(op.delay / 10000)
@@ -1346,39 +1379,26 @@ def main():
 
 		### Trim object list to what is visible on screen
 		(rows, cols) = getwinsize()
-		plist = []
+		vislist = []
 		curwidth = 0
-		for o in olist:
+		for o in totlist:
 			if curwidth + o.varwidth() + 1 <= cols:
-				plist.append(o)
+				vislist.append(o)
 				curwidth = curwidth + o.varwidth() + 1
 
 		### Check when to display the header
 		if op.header:
-			if oldplist != plist:
+			if oldvislist != vislist:
 				showheader = True
 			elif step == 1 and loop % (rows - 1) == 0:
 				showheader = True
 
 		if showheader:
 			showheader = False
-			for o in plist:
-				sys.stdout.write(o.title1())
-				if o is not plist[-1]:
-					sys.stdout.write(ansi['darkblue'] + char['space'])
-				elif olist != plist:
-					sys.stdout.write(ansi['darkblue'] + char['gt'])
-			sys.stdout.write('\n')
+			showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
+			showtitle(2, totlist, vislist, ansi['silver'] + char['pipe'], ansi['darkblue'] + char['gt'])
 
-			for o in plist:
-				sys.stdout.write(o.title2())
-				if o is not plist[-1]:
-					sys.stdout.write(ansi['silver'] + char['pipe'])
-				elif olist != plist:
-					sys.stdout.write(ansi['darkblue'] + char['gt'])
-			sys.stdout.write('\n')
-
-		oldplist = plist
+		oldvislist = vislist
 
 		### Prepare the colors for intermediate updates, last step in a loop is definitive
 		if step == op.delay:
@@ -1391,18 +1411,17 @@ def main():
 #		sys.stdout.write('[%d:%d:%d]' % (loop, step, update))
 
 		### Show the stats, calculate all objects (visible, invisible)
-		for o in olist:
+		for o in totlist:
 			o.stats()
-			if o in plist:
-				if op.csv:
+			if o in vislist:
+				o.show()
+				o.showend(totlist, vislist)
+				if op.output and step == op.delay:
 					o.showcsv()
-				else:
-					o.show()
-				if o is not plist[-1]:
-					sys.stdout.write(ansi['default'] + char['pipe'])
-				elif o is not olist[-1]:
-					sys.stdout.write(ansi['default'] + char['gt'])
+					o.showcsvend(totlist, vislist)
 		sys.stdout.write(ansi['default'])
+		if op.output and step == op.delay:
+			outputfile.write('\n')
 
 		### If intermediate results, update increases with 1 sec (=interval)
 		update = update + interval

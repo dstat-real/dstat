@@ -7,8 +7,8 @@
 + Re-implement -I eth0,eth1
 
 ### Export/Graph
-+ Add -o/--output option to save directly to a file
 + Interface with rrdtool
++ Allow for different types of export modules (only CSV now)
 
 ### Extending statistics (help welcome!)
 + Add all stats to seperate modules and allow people to plugin their own modules
