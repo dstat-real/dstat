@@ -59,10 +59,13 @@ interprete real-time data as easy as possible.
 %files
 %defattr(-, root, root, 0755)
 %doc AUTHORS ChangeLog COPYING README TODO 
-%doc *.conf
-%config(noreplace) %{_sysconfdir}/dstat.conf
+#%doc *.conf
+#%config(noreplace) %{_sysconfdir}/dstat.conf
 %{_bindir}/dstat
 
 %changelog
+* Thu Nov 11 2004 Dag Wieers <dag@wieers.com> - 0.5-1
+- Updated to release 0.5.
+
 * Tue Oct 26 2004 Dag Wieers <dag@wieers.com> - 0.4-1
-- Updated to release 0.4.
+- Initial package. (using DAR)

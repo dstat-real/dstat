@@ -26,19 +26,20 @@ disable = ('no', 'off', 'false', '0')
 class Options:
 	def __init__(self, args):
 		self.count = -1
-		self.sleep = 1
+		self.delay = 1
 		self.disklist = None
 		self.intlist = None
 		self.netlist = None
-		self.abs = False
+		self.integer = False
 		self.color = True
+		self.update = True
 		self.header = True
 
 		try:
 			opts, args = getopt.getopt (args, 'acdghilmnpsvyD:I:N:',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net',
 				'page', 'proc', 'swap', 'sys', 'version', 'vm', 'vmstat',
-				'abs', 'nocolor', 'noheader'])
+				'integer', 'nocolor', 'noheader', 'noupdate'])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
 			sys.exit(1)
@@ -84,18 +85,20 @@ class Options:
 			elif opt in ['--vm', '--vmstat']:
 				self.modlist = [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 				self.disklist = ('total',)
-			elif opt in ['--abs']:
-				self.abs = True
+			elif opt in ['--integer']:
+				self.integer = True
 			elif opt in ['--nocolor']:
 				self.color = False
 			elif opt in ['--noheader']:
 				self.header = False
+			elif opt in ['--noupdate']:
+				self.update = False
 
 		if not self.modlist:
 			self.modlist = [ 'cpu', 'disk', 'net', 'sys' ]
 
 		if len(args) > 0:
-			self.sleep = int(args[0])
+			self.delay = int(args[0])
 
 		if len(args) > 1:
 			self.count = int(args[1])
@@ -133,6 +136,7 @@ Dstat options:
   --integer          show integer values
   --nocolor          disable colors
   --noheader         disable repetitive headers
+  --noupdate         disable intermediates updates when delay > 1
 '''
 
 class Config:
@@ -183,20 +187,14 @@ class dstat:
 
 	def set_title1(self):
 		max = len(self.vars) * self.len + len(self.vars) - 1
-		if op.color:
-			return '[01;34m%s[0m' % self.name[0:max-2].center(max).replace(' ', '-')
-		else:
-			return self.name[0:max-2].center(max).replace(' ', '-')
+		return ansi['blue'] + self.name[0:max-2].center(max).replace(' ', '-') + ansi['default']
 
 	def set_title2(self):
 		ret = ''
 		for str in self.nick:
 			ret = ret + str[0:self.len].center(self.len).replace(' ', '_')
 			if str != self.nick[-1]: ret = ret + ' '
-		if op.color:
-			return '[01;34m%s[0m' % ret
-		else:
-			return ret
+		return ansi['blue'] + ret + ansi['default']
 
 	def check(self):
 		return True
@@ -300,13 +298,14 @@ class dstat_disk(dstat):
 					self.cn2[set] = ( self.cn2[set][0] + long(l[5]), self.cn2[set][1] + long(l[9]) )
 			if len(l) > 10:
 				self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
-		if count != 0:
+		if update:
 			for name in self.cn2:
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / op.sleep,
-					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / op.sleep,
+					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / step,
+					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / step,
 				)
-		self.cn1.update(self.cn2)
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 class dstat_disk24(dstat_disk):
 	def discover(self):
@@ -354,14 +353,15 @@ class dstat_disk24(dstat_disk):
 					self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
 			if len(l) > 10:
 				self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]))
-		if count != 0:
+		if update:
 			for name in self.cn2:
 				self.val[name] = ( 
 					(self.cn2[name][0]-self.cn1[name][0]) * 1024.0 / itv * hz / 2.0,
 					(self.cn2[name][1]-self.cn1[name][1]) * 1024.0 / itv * hz / 2.0,
 				)
 #		print '[rd=', self.cn2[name][0]-self.cn1[name][0], 'wr=', self.cn2[name][1]-self.cn1[name][1] , ']',
-		self.cn1.update(self.cn2)
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 class dstat_disk24old(dstat_disk24):
 	def check(self):
@@ -384,13 +384,14 @@ class dstat_disk24old(dstat_disk24):
 							if set in self.diskset and name in self.diskset[set]:
 								self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
 						self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
-		if count != 0:
+		if update:
 			for name in self.cn2:
 				self.val[name] = (
-					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / op.sleep,
-					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / op.sleep,
+					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / step,
+					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / step,
 				)
-		self.cn1.update(self.cn2)
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 class dstat_int(dstat):
 	def __init__(self):
@@ -428,10 +429,11 @@ class dstat_int(dstat):
 				for hw in self.vars:
 					for mod in l[2+procs:]:
 						self.cn2[mod] = long(l[1])
-		if count != 0:
+		if update:
 			for name in self.cn2:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / op.sleep
-		self.cn1.update(self.cn2)
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / step
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 class dstat_load(dstat):
 	def __init__(self):
@@ -524,13 +526,14 @@ class dstat_net(dstat):
 				self.cn2[iface] = ( long(l[0]), long(l[8]) )
 			if re.match('^(bond\d|eth\d|wifi\d)$', iface):
 				self.cn2['total'] = ( self.cn2['total'][0] + long(l[0]), self.cn2['total'][1] + long(l[8]))
-		if count != 0:
+		if update:
 			for name in self.cn2:
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) * 1.0 / op.sleep,
-					(self.cn2[name][1]-self.cn1[name][1]) * 1.0 / op.sleep
+					(self.cn2[name][0]-self.cn1[name][0]) * 1.0 / step,
+					(self.cn2[name][1]-self.cn1[name][1]) * 1.0 / step
 				 )
-		self.cn1.update(self.cn2)
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 class dstat_page(dstat):
 	def __init__(self):
@@ -551,10 +554,11 @@ class dstat_page(dstat):
 			l = line.split(); name = l[0]
 			if name in self.vars:
 				self.cn2[name] = long(l[1])
-		if count != 0:
+		if update:
 			for name in self.vars:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize * 1.0 / op.sleep
-		self.cn1.update(self.cn2)
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize * 1.0 / step
+		if step == 1:
+			self.cn1.update(self.cn2)
 
 class dstat_page24(dstat_page):
 	def check(self):
@@ -568,10 +572,11 @@ class dstat_page24(dstat_page):
 			if name == 'swap':
 				self.cn2['pswpin'] = long(l[1])
 				self.cn2['pswpout'] = long(l[2])
-		if count != 0:
+		if update:
 			for name in self.vars:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize * 1.0 / op.sleep
-		self.cn1.update(self.cn2)
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize * 1.0 / step
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 class dstat_proc(dstat):
 	def __init__(self):
@@ -598,9 +603,10 @@ class dstat_proc(dstat):
 #			if name in ('processess',):
 #				self.cn2[name] = long(l[1])
 		self.val['procs_running'] = self.val['procs_running'] - 1
-#		if count != 0:
+#		if update:
 #			self.val['processes'] = self.cn2['processes']-self.cn1['processes']
-		self.cn1.update(self.cn2)
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 class dstat_swap(dstat):
 	def __init__(self):
@@ -646,16 +652,57 @@ class dstat_sys(dstat):
 			name = l[0]
 			if name in self.vars:
 				self.cn2[name] = long(l[1])
-		if count != 0:
+		if update:
 			for name in self.vars:
-				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / op.sleep
-		self.cn1.update(self.cn2)
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / step
+		if step == op.delay:
+			self.cn1.update(self.cn2)
 
 	def show(self):
 		for name in self.vars:
 			sys.stdout.write('%5d' % self.val[name])
 			if name != self.vars[-1]:
 				sys.stdout.write(' ')
+
+ansi = {
+	'black': '\033[0;30m',
+	'darkred': '\033[0;31m',
+	'darkgreen': '\033[0;32m',
+	'brown': '\033[0;33m',
+	'darkblue': '\033[0;34m',
+	'darkmagenta': '\033[0;35m',
+	'darkcyan': '\033[0;36m',
+	'silver': '\033[0;37m',
+
+	'gray': '\033[1;30m',
+	'red': '\033[1;31m',
+	'green': '\033[1;32m',
+	'yellow': '\033[1;33m',
+	'blue': '\033[1;34m',
+	'magenta': '\033[1;35m',
+	'cyan': '\033[1;36m',
+	'white': '\033[1;37m',
+
+	'blackbg': '\033[40m',
+	'redbg': '\033[41m',
+	'greenbg': '\033[42m',
+	'yellowbg': '\033[43m',
+	'bluebg': '\033[44m',
+	'magentabg': '\033[45m',
+	'cyanbg': '\033[46m',
+	'whitebg': '\033[47m',
+
+	'reset': '\033[0;0m',
+	'bold': '\033[1m',
+	'reverse': '\033[2m',
+	'underline': '\033[4m',
+
+	'clear': '\033[2J',
+	'save': '\033[s',
+	'restore': '\033[u',
+
+	'default': '\033[0;0m',
+}
 
 def convlist(max, list):
 	max = max / len(list)
@@ -670,13 +717,18 @@ def convlist(max, list):
 def conv(max, var, base = 1024):
 	### lowercase (b) is better for the eyes than uppercase
 	unit = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
-	color = ('01;31', '01;33', '01;32', '01;34', '01;35', '01;36', '01;37', '01:38', '01:39')
+	if step == op.delay:
+		color = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
+	else:
+		color = ('darkred', 'brown', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'darkred', 'darkgreen')
+		
 	c = 0
+#	var = var / step
 	while True:
 		if len('%d' % round(long(var))) < max:
-			if not op.abs and len('%1.2f' % var) < max:
+			if not op.integer and len('%1.2f' % var) < max:
 				ret = '%1.2f' % var
-			elif not op.abs and len('%1.1f' % var) < max:
+			elif not op.integer and len('%1.1f' % var) < max:
 				ret = '%1.1f' % var
 			else:
 				ret = '%d' % round(var)
@@ -684,10 +736,9 @@ def conv(max, var, base = 1024):
 		var = var / base
 		c = c + 1
 	if var != 0:
-		if op.color:
-	 		return '[%sm' % color[c] + ret.rjust(max-1) + unit[c] + '[00m'
-		else:
-			return ret.rjust(max-1) + units[c]
+	 	return ansi[color[c]] + ret.rjust(max-1) + unit[c] + ansi['default']
+	elif var < 0:
+		return ' ' * (max-2) + '- '
 	else:
 		return ' ' * (max-2) + '0 '
 
@@ -703,7 +754,7 @@ def getcpunr():
 	procs = 0
 	for line in open('/proc/stat', 'r').readlines():
 		name = line.split()[0]
-		if len(name) == 4 and name[0:3] == 'cpu':
+		if len(name) == 4and name[0:3] == 'cpu':
 			procs = procs + 1
 	return procs
 
@@ -736,11 +787,19 @@ def handler(signum, frame):
 	pass
 
 def main():
-	global count, pagesize, procs, hz
-	count = 0
+	global update, count, step, pagesize, procs, hz, ansi
+
+	count = update = 0
+	step = op.delay
 	pagesize = resource.getpagesize()
 	procs = getcpunr()
 	hz = os.sysconf('SC_CLK_TCK')
+
+	### Empty ansi database if no colors are requested
+	if not op.color:
+		op.update = False
+		for key in ansi.keys():
+			ansi[key] = ''
 
 	olist = []
 	for mod in op.modlist:
@@ -765,14 +824,20 @@ def main():
 		if not o.check():
 			olist.remove(o)
 
-	if os.geteuid() == 0:
-		os.nice(-10)
-#	sys.setcheckinterval(op.sleep * 1.5 * 100)
+#	if os.geteuid() == 0:
+#		os.nice(-10)
+#	sys.setcheckinterval(op.delay * 1.5 * 100)
 	signal.signal(signal.SIGALRM, handler)
 	while count != op.count:
-		signal.alarm(op.sleep)
+
+		if op.update:
+			signal.alarm(1)
+		else:
+			signal.alarm(op.delay)
+
 		rows = getwinsize()[0]
-		if count % (rows-2)  == 0 and (op.header or count == 0):
+
+		if step == op.delay and count % (rows-2) == 0 and (op.header or count == 0):
 			for o in olist:
 				sys.stdout.write(o.title1)
 				if o != olist[-1]: sys.stdout.write(' ')
@@ -780,21 +845,42 @@ def main():
 
 			for o in olist:
 				sys.stdout.write(o.title2)
-#				if o != olist[-1]: sys.stdout.write('[01;30m|[0m')
-				if o != olist[-1]: sys.stdout.write('|')
+				if o != olist[-1]: sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
 			sys.stdout.write('\n')
 
+
+		if step == op.delay:
+			ansi['default'] = ansi['reset']
+		else:
+			ansi['default'] = ansi['gray']
+
+		sys.stdout.write(ansi['default'])
+
+#		sys.stdout.write('[%d:%d:%d]' % (count,step,update))
 		for o in olist:
 			o.stats()
 			o.show()
-#			if o != olist[-1]: sys.stdout.write('[01;30m|[0m')
-			if o != olist[-1]: sys.stdout.write('|')
-		sys.stdout.write('\n')
+			if o != olist[-1]: sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
 
-		count = count + 1
+		if step == op.delay:
+			sys.stdout.write('\n')
+			sys.stdout.write(ansi['save'])
+		else:
+#			sys.stdout.write('\n')
+			sys.stdout.write(ansi['restore'])
+
+		if op.update:
+			update = update + 1
+		else:
+			update = update + op.delay
+		step = ((update+3) % op.delay)+1
+		count = update / op.delay 
 
 		if count != op.count:
 			signal.pause()
+
+### Unbuffered sys.stdout
+sys.stdout = os.fdopen(1, 'w', 0)
 
 ### Workaround for python <= 2.2.1
 try:
@@ -819,10 +905,12 @@ if __name__ == '__main__':
 	try:
 		main()
 	except KeyboardInterrupt, e:
+		print
 		print 'Exiting on user request'
 		sys.exit(6)
 	except OSError, e:
 #		print e.errno
+		print
 		print 'OSError: %s' %e
 		sys.exit(7)
 

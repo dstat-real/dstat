@@ -1,10 +1,14 @@
 * 0.5
-- Changed some more int()'s into long()'s. (Pasi Pirhonen)
-- Fixed the cpu out of index, /proc instability. (Pasi Pirhonen)
+- Changed some more int()'s into long()'s (Pasi Pirhonen)
+- Fixed the cpu out of index, /proc instability (Pasi Pirhonen)
 - Improved the rounding function
-- Added --abs, to get earlier 'absolute value' behaviour
+- Added --integer, to get earlier 'integer value' behaviour
 - Added --noheader option to only see header at start
+- Unbuffered sys.stdout and added ANSI colors
 - Added --nocolor to disable newly introduced colors
+- Added --noupdate to disable intermediate updates when delay > 1
+- When counters roll over, show dash
+- Fixed 2 crash bugs caused by /proc instability
 
 * 0.4
 - Added interrupt stats

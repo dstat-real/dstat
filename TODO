@@ -1,7 +1,6 @@
 ### Usability
 + Add --config option and use /etc/dstat.conf to influence output
 + Add -o/--output option and parsable output options
-+ Add colors to indicate units better (may become ugly)
 + Allow to force to given magnitude
 + Look at possibilities to show deviation (on second line ?)
 
@@ -13,9 +12,8 @@
 + Add ip stats (icmp, tcp, udp)
 + Add ntp stats
 + Add user stats (number of users logged on)
-+ Add --diff option to print intermediate results (ie. when delay = 5, you see 1sec updates in other color)
 + Look into interfacing with bind, sendmail, postfix, squid, amavisd, laus, gpfs, hw ?
 
 ### Bugs
-+ Implement protection against counter rollovers
++ Implement better (?) protection against counter rollovers
 + If you have 2 devices with the same name, -I will only work on the first one
