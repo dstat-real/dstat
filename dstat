@@ -222,10 +222,8 @@ class dstat_cpu(dstat):
 				self.cn2['idle'] = int(l[4])
 				self.cn2['wait'] = int(l[5])
 				self.cn2['sum'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait']
-
 		for name in self.vars:
-			self.val[name] = round((self.cn2[name]-self.cn1[name])*100.0/(self.cn2['sum']-self.cn1['sum']))
-
+			self.val[name] = (self.cn2[name]-self.cn1[name])*100.0/(self.cn2['sum']-self.cn1['sum'])
 		self.cn1.update(self.cn2)
 
 class dstat_disk(dstat):
@@ -277,17 +275,18 @@ class dstat_disk(dstat):
 			if name in self.vars:
 #				print mountpoint('/dev/' + name)
 #				bsize = os.statvfs(mountpoint('/dev/' + name))[0]
-				self.cn2[name] = ( self.cn2[name][0] + int(l[5]) * 512 / op.sleep, self.cn2[name][1] + int(l[9]) * 512 / op.sleep)
+				self.cn2[name] = ( self.cn2[name][0] + int(l[5]), self.cn2[name][1] + int(l[9]) )
 			for set in self.vars:
 				if set in self.diskset and name in self.diskset[set]:
-					self.cn2[set] = ( self.cn2[set][0] + int(l[5]) * 512 / op.sleep, self.cn2[set][1] + int(l[9]) * 512 / op.sleep)
+					self.cn2[set] = ( self.cn2[set][0] + int(l[5]), self.cn2[set][1] + int(l[9]) )
 			if len(l) > 10:
-				self.cn2['total'] = ( self.cn2['total'][0] + int(l[5]) * 512 / op.sleep, self.cn2['total'][1] + int(l[9]) * 512 / op.sleep)
-
+				self.cn2['total'] = ( self.cn2['total'][0] + int(l[5]), self.cn2['total'][1] + int(l[9]) )
 		if count != 0:
 			for name in self.cn2:
-				self.val[name] = ( self.cn2[name][0]-self.cn1[name][0], self.cn2[name][1]-self.cn1[name][1] )
-
+				self.val[name] = ( 
+					(self.cn2[name][0]-self.cn1[name][0]) * 512 / op.sleep,
+					(self.cn2[name][1]-self.cn1[name][1]) * 512 / op.sleep,
+				)
 		self.cn1.update(self.cn2)
 
 class dstat_disk24(dstat_disk):
@@ -312,7 +311,7 @@ class dstat_disk24(dstat_disk):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if l[0] == 'cpu0' or l[0] == 'cpu':
+			if len(l) > 1 and l[0] == 'cpu0' or l[0] == 'cpu':
 				self.uptime2 = int(l[1]) + int(l[2]) + int(l[3]) + int(l[4]) + int(l[5]) + int(l[6]) + int(l[7])
 #				self.uptime2 = sum(map(int, l[1-7]))
 
@@ -330,21 +329,22 @@ class dstat_disk24(dstat_disk):
 			name = l[3]
 			if name == 'name': continue
 			if name in self.vars:
-				self.cn2[name] = ( self.cn2[name][0] + int(l[6]) / op.sleep, self.cn2[name][1] + int(l[10]))
+				self.cn2[name] = ( self.cn2[name][0] + int(l[6]), self.cn2[name][1] + int(l[10]) )
 			for set in self.vars:
 				if set in self.diskset and name in self.diskset[set]:
-					self.cn2[set] = ( self.cn2[set][0] + int(l[6]) / op.sleep, self.cn2[set][1] + int(l[10]))
+					self.cn2[set] = ( self.cn2[set][0] + int(l[6]), self.cn2[set][1] + int(l[10]) )
 			if len(l) > 10:
 				self.cn2['total'] = ( self.cn2['total'][0] + int(l[6]) / op.sleep, self.cn2['total'][1] + int(l[10]))
-
 		if count != 0:
 			for name in self.cn2:
-				self.val[name] = ( (self.cn2[name][0]-self.cn1[name][0]) * 1024 / itv * hz / 2, (self.cn2[name][1]-self.cn1[name][1]) * 1024 / itv * hz / 2)
+				self.val[name] = ( 
+					(self.cn2[name][0]-self.cn1[name][0]) * 1024 / itv * hz / 2 / op.sleep,
+					(self.cn2[name][1]-self.cn1[name][1]) * 1024 / itv * hz / 2 / op.sleep,
+				)
 #		print '[rd=', self.cn2[name][0]-self.cn1[name][0], 'wr=', self.cn2[name][1]-self.cn1[name][1] , ']',
-
 		self.cn1.update(self.cn2)
 
-class dstat_disk24old(dstat_disk_disk24):
+class dstat_disk24old(dstat_disk24):
 	def check(self):
 		if os.path.exists('/proc/stat') and os.uname()[2] < '2.4.22':
 			return True
@@ -360,16 +360,17 @@ class dstat_disk24old(dstat_disk_disk24):
 					if m:
 						l = m.groups()
 						name = dev(int(l[0]), int(l[1]))
-						self.cn2[name] = ( int(l[2]) * 512 / op.sleep, int(l[3]) * 512 / op.sleep)
+						self.cn2[name] = ( int(l[2]), int(l[3]) )
 						for set in self.vars:
 							if set in self.diskset and name in self.diskset[set]:
-								self.cn2[set] = ( self.cn2[set][0] + int(l[2]) * 512 / op.sleep, self.cn2[set][1] + int(l[3]) * 512 / op.sleep)
-						self.cn2['total'] = ( self.cn2['total'][0] + int(l[2]) * 512 / op.sleep, self.cn2['total'][1] + int(l[3]) * 512 / op.sleep)
-
+								self.cn2[set] = ( self.cn2[set][0] + int(l[2]), self.cn2[set][1] + int(l[3]) )
+						self.cn2['total'] = ( self.cn2['total'][0] + int(l[2]), self.cn2['total'][1] + int(l[3]) )
 		if count != 0:
 			for name in self.cn2:
-				self.val[name] = ( self.cn2[name][0]-self.cn1[name][0], self.cn2[name][1]-self.cn1[name][1] )
-
+				self.val[name] = (
+					(self.cn2[name][0]-self.cn1[name][0]) * 512 / op.sleep,
+					(self.cn2[name][1]-self.cn1[name][1]) * 512 / op.sleep,
+				)
 		self.cn1.update(self.cn2)
 
 class dstat_int(dstat):
@@ -408,11 +409,9 @@ class dstat_int(dstat):
 				for hw in self.vars:
 					for mod in l[2+procs:]:
 						self.cn2[mod] = int(l[1])
-
 		if count != 0:
 			for name in self.cn2:
-				self.val[name] = self.cn2[name]-self.cn1[name]
-
+				self.val[name] = (self.cn2[name]-self.cn1[name]) / op.sleep
 		self.cn1.update(self.cn2)
 
 class dstat_load(dstat):
@@ -503,14 +502,15 @@ class dstat_net(dstat):
 			else:
 				l = l[1:]
 			if iface in (self.vars) :
-				self.cn2[iface] = ( round(float(l[0]) /op.sleep), round(float(l[8]) /op.sleep) )
+				self.cn2[iface] = ( float(l[0]), float(l[8]) )
 			if re.match('^(bond\d|eth\d|wifi\d)$', iface):
-				self.cn2['total'] = ( self.cn2['total'][0] + round(float(l[0]) /op.sleep), self.cn2['total'][1] + round(float(l[8]) /op.sleep))
-
+				self.cn2['total'] = ( self.cn2['total'][0] + float(l[0]), self.cn2['total'][1] + float(l[8]))
 		if count != 0:
 			for name in self.cn2:
-				self.val[name] = ( self.cn2[name][0]-self.cn1[name][0], self.cn2[name][1]-self.cn1[name][1] )
-
+				self.val[name] = ( 
+					(self.cn2[name][0]-self.cn1[name][0]) / op.sleep,
+					(self.cn2[name][1]-self.cn1[name][1]) / op.sleep
+				 )
 		self.cn1.update(self.cn2)
 
 class dstat_page(dstat):
@@ -531,10 +531,10 @@ class dstat_page(dstat):
 		for line in open('/proc/vmstat', 'r').readlines():
 			l = line.split(); name = l[0]
 			if name in self.vars:
-				self.cn2[name] = int(l[1]) * pagesize / op.sleep
+				self.cn2[name] = int(l[1])
 		if count != 0:
 			for name in self.vars:
-				self.val[name] = self.cn2[name]-self.cn1[name]
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize / op.sleep
 		self.cn1.update(self.cn2)
 
 class dstat_page24(dstat_page):
@@ -547,11 +547,11 @@ class dstat_page24(dstat_page):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split(); name = l[0]
 			if name == 'swap':
-				self.cn2['pswpin'] = int(l[1]) * pagesize / op.sleep
-				self.cn2['pswpout'] = int(l[2]) * pagesize / op.sleep
+				self.cn2['pswpin'] = int(l[1])
+				self.cn2['pswpout'] = int(l[2])
 		if count != 0:
 			for name in self.vars:
-				self.val[name] = self.cn2[name]-self.cn1[name]
+				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize / op.sleep
 		self.cn1.update(self.cn2)
 
 class dstat_proc(dstat):
@@ -625,7 +625,6 @@ class dstat_sys(dstat):
 			l = line.split(); name = l[0]
 			if l[0] in self.vars:
 				self.cn2[l[0]] = int(l[1]) /op.sleep
-
 		if count != 0:
 			for name in self.vars:
 				self.val[name] = self.cn2[name]-self.cn1[name]
@@ -735,26 +734,21 @@ def main():
 		signal.alarm(op.sleep)
 
 		rows = getwinsize()[0]
-#		if count % (rows-2)  == 0:
-		if count == 0 or count >= (rows-2):
-			count = 0
+		if count % (rows-2)  == 0:
 			for o in olist:
 				sys.stdout.write(o.title1)
-				if o != olist[-1]:
-					sys.stdout.write(' ')
+				if o != olist[-1]: sys.stdout.write(' ')
 			sys.stdout.write('\n')
 
 			for o in olist:
 				sys.stdout.write(o.title2)
-				if o != olist[-1]:
-					sys.stdout.write('|')
+				if o != olist[-1]: sys.stdout.write('|')
 			sys.stdout.write('\n')
 
 		for o in olist:
 			o.stats()
 			o.show()
-			if o != olist[-1]:
-				sys.stdout.write('|')
+			if o != olist[-1]: sys.stdout.write('|')
 		sys.stdout.write('\n')
 
 		count = count + 1
