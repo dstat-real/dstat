@@ -19,7 +19,7 @@ import fcntl, struct, termios
 import os, sys, re, getopt, time
 import ConfigParser, urlparse, signal, resource
 
-VERSION = '0.5.5'
+VERSION = '0.5.6'
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -239,11 +239,17 @@ class dstat:
 	def show(self):
 		sep = ' '
 		for name in self.vars:
-			if self.format == '%s':
-					sys.stdout.write(self.format % conv(self.len, self.val[name]))
+			if self.format in ('%s', '%bs'):
+					sys.stdout.write('%s' % conv(self.len, self.val[name], 1024))
+			elif self.format == '%ds':
+					sys.stdout.write('%s' % conv(self.len, self.val[name], 1000))
+			elif self.format == '%ps':
+					sys.stdout.write('%s' % conv(self.len, self.val[name], 100))
+			elif self.format == '%is':
+					sys.stdout.write('%s' % conv(self.len, self.val[name], 0))
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
 					sys.stdout.write(self.format % convlist(self.len, self.val[name]))
-					sep = '|'
+					sep = ansi['default'] + '|'
 			else:
 					sys.stdout.write(self.format % self.val[name])
 			if name != self.vars[-1]:
@@ -252,31 +258,37 @@ class dstat:
 class dstat_cpu(dstat):
 	def __init__(self):
 		self.name = 'cpu usage'
-		self.vars = ('user', 'sys', 'idle', 'wait')
-		self.len = 3
-		self.format = '%3d'
-		self.nick = ( 'usr', 'sys', 'idl', 'wai' )
+		self.vars = ('user', 'sys', 'idle', 'wait', 'hardirq', 'softirq')
+#		self.vars = ('user', 'sys', 'idle', 'wait')
+		self.len = 2
+		self.format = '%ps'
+#		self.format = '%ds'
+		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
+#		self.nick = ( 'usr', 'sys', 'idl', 'wai' )
 		self.init()
 		self.cn1['total'] = 0
 
 	def check(self):
 		if os.path.exists('/proc/stat'):
 			l = open('/proc/stat', 'r').readline().split()
-			if len(l) > 5:
+			if len(l) > 7:
 				return True
 		return False
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if len(l) <= 5 or l[0] != 'cpu': continue
+			if len(l) <= 7 or l[0] != 'cpu': continue
 			self.cn2['user'] = long(l[1]) + long(l[2])
+#			self.cn2['sys'] = long(l[3]) + long(l[6]) + long(l[7])
 			self.cn2['sys'] = long(l[3])
 			self.cn2['idle'] = long(l[4])
 			self.cn2['wait'] = long(l[5])
-			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait']
+			self.cn2['hardirq'] = long(l[6])
+			self.cn2['softirq'] = long(l[7])
+			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait'] + self.cn2['hardirq'] + self.cn2['softirq']
 		for name in self.vars:
-			self.val[name] = (100.0 * (self.cn2[name] - self.cn1[name]) + (self.cn2['total'] - self.cn1['total']) / 2) / (self.cn2['total'] - self.cn1['total'])
+			self.val[name] = 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
 		self.cn1.update(self.cn2)
 
 class dstat_cpu24(dstat):
@@ -284,7 +296,7 @@ class dstat_cpu24(dstat):
 		self.name = 'cpu usage'
 		self.vars = ('user', 'sys', 'idle')
 		self.len = 3
-		self.format = '%3d'
+		self.format = '%ps'
 		self.nick = ( 'usr', 'sys', 'idl')
 		self.init()
 		self.cn1['total'] = 0
@@ -305,7 +317,7 @@ class dstat_cpu24(dstat):
 			self.cn2['idle'] = long(l[4])
 			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle']
 		for name in self.vars:
-			self.val[name] = (100.0 * (self.cn2[name] - self.cn1[name]) + (self.cn2['total'] - self.cn1['total']) / 2) / (self.cn2['total'] - self.cn1['total'])
+			self.val[name] = 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
 		self.cn1.update(self.cn2)
 
 class dstat_disk(dstat):
@@ -464,7 +476,7 @@ class dstat_disk24old(dstat_disk24):
 class dstat_int(dstat):
 	def __init__(self):
 		self.len = 5
-		self.format = '%5d'
+		self.format = '%ds'
 		self.name = 'interrupts'
 		if op.intlist:
 			self.vars = op.intlist
@@ -662,7 +674,7 @@ class dstat_proc(dstat):
 	def __init__(self):
 #		self.name = 'procs'
 		self.name = 'procs'
-		self.format = '%2d'
+		self.format = '%is'
 		self.len = 2
 		self.vars = ('procs_running', 'procs_blocked', 'processes')
 #		self.vars = ('procs_running', 'procs_blocked')
@@ -718,7 +730,7 @@ class dstat_swap(dstat):
 class dstat_sys(dstat):
 	def __init__(self):
 		self.name = 'system'
-		self.format = '%5d'
+		self.format = '%ds'
 		self.len = 5
 		self.nick = ('int', 'csw')
 		self.vars = ('intr', 'ctxt')
@@ -743,16 +755,10 @@ class dstat_sys(dstat):
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
-	def show(self):
-		for name in self.vars:
-			sys.stdout.write(self.format % self.val[name])
-			if name != self.vars[-1]:
-				sys.stdout.write(' ')
-
 class dstat_tcp(dstat):
 	def __init__(self):
 		self.name = 'tcp'
-		self.format = '%3d'
+		self.format = '%is'
 		self.len = 3
 		self.nick = ('lis', 'act', 'syn', 'tim')
 		self.vars = ('listen', 'established', 'syn_sent', 'time_wait')
@@ -772,12 +778,6 @@ class dstat_tcp(dstat):
 			elif l[3] == '01': self.val['established'] = self.val['established'] + 1
 			elif l[3] == '02': self.val['syn_sent'] = self.val['syn_sent'] + 1
 			elif l[3] == '06': self.val['time_wait'] = self.val['time_wait'] + 1
-
-	def show(self):
-		for name in self.vars:
-			sys.stdout.write(self.format % self.val[name])
-			if name != self.vars[-1]:
-				sys.stdout.write(' ')
 
 class dstat_time(dstat):
 	def __init__(self):
@@ -800,7 +800,7 @@ class dstat_time(dstat):
 class dstat_udp(dstat):
 	def __init__(self):
 		self.name = 'udp'
-		self.format = '%3d'
+		self.format = '%is'
 		self.len = 3
 		self.nick = ('con', )
 		self.vars = ('connections', )
@@ -816,12 +816,6 @@ class dstat_udp(dstat):
 		for line in open('/proc/net/udp', 'r').readlines():
 			l = line.split()
 			if l[3] == '07': self.val['connections'] = self.val['connections'] + 1
-
-	def show(self):
-		for name in self.vars:
-			sys.stdout.write(self.format % self.val[name])
-			if name != self.vars[-1]:
-				sys.stdout.write(' ')
 
 ansi = {
 	'black': '\033[0;30m',
@@ -878,32 +872,46 @@ def convlist(max, list):
 
 def conv(max, var, base = 1024):
 	### lowercase (b) is better for the eyes than uppercase
-	unit = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+	if var < 0:
+		return ansi['default'] + '- '.rjust(max)
+
 	if step == op.delay:
 		color = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
 	else:
 		color = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'geen')
 
-	if var < 0:
-		return ' ' * (max-2) + '- '
+	if base == 0:
+		if round(var) == 0:
+			return ansi['default'] + '0'.rjust(max)
+		else:
+			return ansi[color[int(round(var/1000))]] + str(long(round(var))).rjust(max)
+	elif base == 100:
+		if round(var) == 0:
+			return ansi['default'] + '0'.rjust(max)
+		else:
+			return ansi[color[int(round(var/38))]] + str(long(round(var))).rjust(max)
+	elif base == 1000:
+		unit = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+	else:
+		unit = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 
 	c = 0
 	while True:
-		repr = str(long(round(var)))
-		if len(repr) < max:
-			if not op.integer and len('%1.2f' % var) < max:
-				ret = '%1.2f' % var
-			elif not op.integer and len('%1.1f' % var) < max:
-				ret = '%1.1f' % var
-			else:
-				ret = repr
+		repr = str(long(round(var))) + unit[c]
+		if len(repr) <= max:
+			if not op.integer and ( base == 1024 or c > 0):
+				if len('%1.2f' % var) < max:
+					repr = '%1.2f' % var + unit[c]
+				elif len('%1.1f' % var) < max:
+					repr = '%1.1f' % var + unit[c]
 			break
 		var = var / base
 		c = c + 1
+
 	if var != 0:
-	 	return ansi[color[c]] + ret.rjust(max-1) + unit[c] + ansi['default']
+	 	return ansi[color[c]] + repr.rjust(max)
 	else:
-		return ' ' * (max-2) + '0 '
+		return ansi['default'] + '0 '.rjust(max)
 
 def info(level, str):
 	"Output info message"

@@ -1,5 +1,12 @@
+* 0.5.6
+- Made sys and int stats unit-aware (so 10000 int/sec -> 10.0k) (Anton Blanchard)
+- Improve conv() function and stat show() functions.
+- Improved the calculation of the cpu usage.
+- cpu stats will now show hardirq and softirq by default if possible. (Anton Blanchard)
+- Color cpu and proc stats too.
+
 * 0.5.5
-- In fact, round() was not the problem, len() was, use str() instead. (Anton Blanchard)
+- In fact, round() was not the problem, use str() instead. (Anton Blanchard)
 - Abandoned the use of round() as it is limited to integers (Juergen Kreileder)
 
 * 0.5.4
