@@ -258,11 +258,10 @@ class dstat:
 class dstat_cpu(dstat):
 	def __init__(self):
 		self.name = 'cpu usage'
+		self.len = 3
+		self.format = '%ps'
 		self.vars = ('user', 'sys', 'idle', 'wait', 'hardirq', 'softirq')
 #		self.vars = ('user', 'sys', 'idle', 'wait')
-		self.len = 2
-		self.format = '%ps'
-#		self.format = '%ds'
 		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
 #		self.nick = ( 'usr', 'sys', 'idl', 'wai' )
 		self.init()
@@ -294,9 +293,9 @@ class dstat_cpu(dstat):
 class dstat_cpu24(dstat):
 	def __init__(self):
 		self.name = 'cpu usage'
-		self.vars = ('user', 'sys', 'idle')
 		self.len = 3
 		self.format = '%ps'
+		self.vars = ('user', 'sys', 'idle')
 		self.nick = ( 'usr', 'sys', 'idl')
 		self.init()
 		self.cn1['total'] = 0
@@ -524,8 +523,8 @@ class dstat_load(dstat):
 		self.len = 5
 		self.format = '%5.2f'
 		self.name = 'load avg'
-		self.nick = ('1m', '5m', '15m')
 		self.vars = ('load1', 'load5', 'load15')
+		self.nick = ('1m', '5m', '15m')
 		self.init()
 
 	def check(self):
@@ -546,8 +545,8 @@ class dstat_mem(dstat):
 		self.name = 'memory usage'
 		self.len = 5
 		self.format = '%s'
-		self.nick = ('used', 'free', 'buff', 'cach')
 		self.vars = ('MemUsed', 'MemFree', 'Buffers', 'Cached')
+		self.nick = ('used', 'free', 'buff', 'cach')
 		self.init()
 
 	def check(self):
@@ -709,8 +708,8 @@ class dstat_swap(dstat):
 		self.name = 'swap'
 		self.len = 5
 		self.format = '%s'
-		self.nick = ('used', 'free')
 		self.vars = ('SwapUsed', 'SwapFree')
+		self.nick = ('used', 'free')
 		self.init()
 
 	def check(self):
@@ -732,9 +731,8 @@ class dstat_sys(dstat):
 		self.name = 'system'
 		self.format = '%ds'
 		self.len = 5
-		self.nick = ('int', 'csw')
 		self.vars = ('intr', 'ctxt')
-		self.names = { 'intr': 'int', 'ctxt': 'csw' }
+		self.nick = ('int', 'csw')
 		self.init()
 
 	def check(self):
@@ -760,8 +758,8 @@ class dstat_tcp(dstat):
 		self.name = 'tcp'
 		self.format = '%is'
 		self.len = 3
-		self.nick = ('lis', 'act', 'syn', 'tim')
 		self.vars = ('listen', 'established', 'syn_sent', 'time_wait')
+		self.nick = ('lis', 'act', 'syn', 'tim')
 		self.init()
 
 	def check(self):
@@ -884,12 +882,12 @@ def conv(max, var, base = 1024):
 		if round(var) == 0:
 			return ansi['default'] + '0'.rjust(max)
 		else:
-			return ansi[color[int(round(var/1000))]] + str(long(round(var))).rjust(max)
+			return ansi[color[long(round(var)/1000)]] + str(long(round(var))).rjust(max)
 	elif base == 100:
 		if round(var) == 0:
 			return ansi['default'] + '0'.rjust(max)
 		else:
-			return ansi[color[int(round(var/38))]] + str(long(round(var))).rjust(max)
+			return ansi[color[long(round(var)/34)]] + str(long(round(var))).rjust(max)
 	elif base == 1000:
 		unit = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	else:
