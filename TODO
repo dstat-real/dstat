@@ -16,6 +16,7 @@
 + Add mpstat information (-C 0,1,2)
 + Add icmp stats ?
 + Add ntp stats
++ Add nfs stats
 + Add user stats (number of users logged on)
 + Look into interfacing with apps (bind, sendmail, postfix, squid, amavisd, laus, samba)
 + Look into interfacing with specific HW counters in /proc
@@ -24,8 +25,5 @@
 + Implement better (?) protection against counter rollovers
 + If you have 2 devices with the same name, -I will only work on the first one
 + When using -D foo, -I 99, -N eth9 dstat should fail when it does not exist 
-+ cpu is avg of begin and end snapshot, not avg of intermediate results (already better than vmstat though)
 + proc stat is a snapshot in time, not avg of intermediate results
-+ The number of newly created processes in the proc stat easily exceeds the allocated space (2 chars)
-+ OverflowError: float too large to convert (in conv()) still not fixed in all cases
 + Timer is not accurate on 2.6, every second there's a 1ms deviation (every 17mins -> 1sec)

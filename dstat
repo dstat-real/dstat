@@ -244,7 +244,7 @@ class dstat:
 			elif self.format == '%ds':
 					sys.stdout.write('%s' % conv(self.len, self.val[name], 1000))
 			elif self.format == '%ps':
-					sys.stdout.write('%s' % conv(self.len, self.val[name], 100))
+					sys.stdout.write('%s' % conv(self.len, self.val[name] / step, 100))
 			elif self.format == '%f':
 					sys.stdout.write('%s' % conv(self.len, self.val[name], 1))
 			elif self.format == '%is':
@@ -277,6 +277,8 @@ class dstat_cpu(dstat):
 		return False
 
 	def stats(self):
+		if step == 1:
+			for name in self.vars: self.val[name] = 0
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
 			if len(l) <= 7 or l[0] != 'cpu': continue
@@ -289,7 +291,7 @@ class dstat_cpu(dstat):
 			self.cn2['softirq'] = long(l[7])
 			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait'] + self.cn2['hardirq'] + self.cn2['softirq']
 		for name in self.vars:
-			self.val[name] = 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
+			self.val[name] = self.val[name] + 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
 		self.cn1.update(self.cn2)
 
 class dstat_cpu24(dstat):
@@ -310,6 +312,8 @@ class dstat_cpu24(dstat):
 		return False
 
 	def stats(self):
+		if step == 1:
+			for name in self.vars: self.val[name] = 0
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
 			if len(l) < 4 or l[0] != 'cpu': continue
@@ -318,7 +322,7 @@ class dstat_cpu24(dstat):
 			self.cn2['idle'] = long(l[4])
 			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle']
 		for name in self.vars:
-			self.val[name] = 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
+			self.val[name] = self.val[name] + 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
 		self.cn1.update(self.cn2)
 
 class dstat_disk(dstat):
@@ -877,7 +881,7 @@ def conv(max, var, base = 1024):
 	if step == op.delay:
 		color = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
 	else:
-		color = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'geen')
+		color = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'green')
 
 	if base == 0:
 		if round(var) == 0:
