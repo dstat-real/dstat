@@ -215,7 +215,7 @@ class dstat_cpu(dstat):
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if l[0] == 'cpu':
+			if len(l) > 6 and l[0] == 'cpu':
 				self.cn2['user'] = int(l[1]) + int(l[2])
 				self.cn2['sys'] = int(l[3])
 				self.cn2['idle'] = int(l[4])
@@ -309,7 +309,7 @@ class dstat_disk24(dstat_disk):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if len(l) > 1 and ( l[0] == 'cpu0' or l[0] == 'cpu' ):
+			if len(l) > 8 and ( l[0] == 'cpu0' or l[0] == 'cpu' ):
 				self.uptime2 = int(l[1]) + int(l[2]) + int(l[3]) + int(l[4]) + int(l[5]) + int(l[6]) + int(l[7])
 #				self.uptime2 = sum(map(int, l[1-7]))
 

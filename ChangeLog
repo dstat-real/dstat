@@ -1,5 +1,6 @@
 * 0.5
 - Changed some more int()'s into float()'s. (Pasi Pirhonen)
+- Fixed the cpu out of index, /proc instability. (Pasi Pirhonen)
 
 * 0.4
 - Added interrupt stats
