@@ -43,9 +43,9 @@ class Options:
 		self.header = True
 
 		try:
-			opts, args = getopt.getopt (args, 'acdfghilmnpstvyC:D:I:M:N:',
-				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net', 'page',
-				'proc', 'swap', 'sys', 'tcp', 'time', 'udp', 'version', 'vmstat',
+			opts, args = getopt.getopt (args, 'acdfghilmnpstuvyC:D:I:M:N:',
+				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net', 'page', 'proc',
+				'swap', 'sys', 'tcp', 'time', 'udp', 'user', 'version', 'vmstat',
 				'csv', 'full', 'integer', 'mods', 'modules', 'nocolor', 'noheader', 'noupdate'])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
@@ -86,6 +86,8 @@ class Options:
 				self.modlist.append('tcp')
 			elif opt in ['-t', '--time']:
 				self.modlist.append('time')
+			elif opt in ['-u', '--user']:
+				self.modlist.append('user')
 			elif opt in ['--udp']:
 				self.modlist.append('udp')
 			elif opt in ['-y', '--sys']:
@@ -914,7 +916,7 @@ class dstat_proc(dstat):
 				self.val['processes'] = 0
 				self.cn2[name] = long(l[1])
 			elif name == 'procs_running':
-				self.cn2[name] = self.cn2[name] + long(l[1]) - 2
+				self.cn2[name] = self.cn2[name] + long(l[1]) - 1
 			elif name == 'procs_blocked':
 				self.cn2[name] = self.cn2[name] + long(l[1])
 		if update:
@@ -1037,6 +1039,35 @@ class dstat_udp(dstat):
 		for line in open('/proc/net/udp', 'r').readlines():
 			l = line.split()
 			if l[3] == '07': self.val['connections'] = self.val['connections'] + 1
+
+class dstat_user(dstat):
+	def __init__(self):
+		self.name = 'users'
+		self.format = '%is'
+		self.len = 3
+		self.nick = ('usr', 'adm' )
+		self.vars = ('users', 'root')
+		self.init()
+
+	def check(self):
+		try:
+			import utmp
+			return True
+		except:
+			print 'The user stat needs the python-utmp module.'
+			return False
+
+	def stats(self):
+		import utmp
+		u = utmp.UtmpRecord()
+		self.val['users'] = 0
+		self.val['root'] = 0
+		for i in u:
+			if i.ut_type == utmp.USER_PROCESS:
+				self.val['users'] = self.val['users'] + 1
+				if i.ut_user == 'root':
+					self.val['root'] = self.val['root'] + 1
+			
 
 ansi = {
 	'black': '\033[0;30m',
@@ -1246,6 +1277,7 @@ def main():
 		elif mod == 'tcp':	olist.append(dstat_tcp())
 		elif mod == 'time':	olist.append(dstat_time())
 		elif mod == 'udp':	olist.append(dstat_udp())
+		elif mod == 'user':	olist.append(dstat_user())
 		else:
 			info(1, 'Module \'%s\' does not exist or failed to load.' % mod)
 
@@ -1275,6 +1307,9 @@ def main():
 			linewidth = linewidth + o.varwidth() + 1
 		else:
 			olist.remove(o)
+
+	if not olist:
+		die(8, 'None of the stats you selected are available.')
 
 	if not op.nolimit:
 		if linewidth > cols:
