@@ -14,8 +14,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 # Copyright 2004 Dag Wieers <dag@wieers.com>
 
-#from __future__ import generators
-import fcntl, struct, termios
+from __future__ import generators
+import fcntl, struct, termios, types
 import os, sys, re, getopt, time
 import ConfigParser, urlparse, signal, resource
 
@@ -114,7 +114,7 @@ class Options:
 				sys.exit(0)
 
 		if not self.modlist:
-			self.modlist = [ 'cpu', 'disk', 'net', 'sys', 'page' ]
+			self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
 
 		try:
 			if len(args) > 0: self.delay = int(args[0])
@@ -212,29 +212,53 @@ class Config:
 class dstat:
 	def init(self):
 		### Initialise default variables
-		self.title1 = self.title1()
-		self.title2 = self.title2()
-
 		self.val = {}; self.cn1 = {}; self.cn2 = {}
 		for i in self.vars: self.val[i] = self.cn1[i] = self.cn2[i] = 0
 
+	def varwidth(self):
+		return len(self.vars) * self.width() + len(self.vars) - 1
+
 	def width(self):
-		return len(self.vars) * self.len + len(self.vars) - 1
+		if isinstance(self.name, types.StringType):
+			return self.len
+		else:
+			for i in self.cn2: break
+			return len(self.cn2[i]) * self.len + len(self.cn2[i]) - 1
 
 	def title1(self):
-		max = self.width()
-		return ansi['darkblue'] + self.name[0:max-2].center(max).replace(' ', '-') + ansi['default']
+		if isinstance(self.name, types.StringType):
+			max = self.varwidth()
+			return ansi['darkblue'] + self.name[0:max].center(max).replace(' ', '-') + ansi['default']
+		else:
+			ret = ''
+			for i, name in enumerate(self.name):
+				max = self.width()
+				ret = ret + name[0:max].center(max).replace(' ', '-')
+				if i + 1 != len(self.name): ret = ret + '-'
+			return ansi['darkblue'] + ret
 
 	def title2(self):
-		ret = ''
-		i = 0
-		for str in self.nick:
-			ret = ret + str[0:self.len].center(self.len).replace(' ', '_')
-			if i != len(self.nick): ret = ret + ' '
-			i = i + 1
-		return ansi['blue'] + ret + ansi['default']
+		if isinstance(self.name, types.StringType):
+			ret = ''
+			for i, nick in enumerate(self.nick):
+				ret = ret + nick.center(self.len).replace(' ', '_')
+				if i + 1 != len(self.nick): ret = ret + ' '
+			return ansi['blue'] + ret
+		else:
+			ret = ''
+			for i, name in enumerate(self.name):
+				for j, nick in enumerate(self.nick):
+					ret = ret + ansi['blue'] + nick.center(self.len).replace(' ', '_')
+					if j + 1 != len(self.nick): ret = ret + ' '
+				if i + 1 != len(self.name): ret = ret + ' '
+			return ansi['blue'] + ret
 
 	def check(self):
+		if self.discover():
+			return True
+		return False
+
+	def discover(self):
 		return True
 
 	def stats(self):
@@ -242,8 +266,7 @@ class dstat:
 
 	def show(self):
 		sep = ' '
-		i = 0
-		for name in self.vars:
+		for i, name in enumerate(self.vars):
 			if self.format in ('%s', '%bs'):
 				sys.stdout.write('%s' % conv(self.len, self.val[name], 1024))
 			elif self.format == '%ds':
@@ -256,53 +279,59 @@ class dstat:
 				sys.stdout.write('%s' % conv(self.len, self.val[name], 0))
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
 				sys.stdout.write(self.format % convlist(self.len, self.val[name]))
-				sep = ansi['default'] + '|'
-			elif self.format == '%s %s %s %s %s %s':
+				sep = ansi['default'] + ':'
+			elif self.format in ('%s %s %s', '%s %s %s %s %s %s'):
 				sys.stdout.write(self.format % convlist(self.len, self.val[name], 100))
-				sep = ansi['default'] + '|'
+				sep = ansi['default'] + ':'
 			else:
 				sys.stdout.write(self.format % self.val[name])
-			if i != len(self.vars):
+			if i + 1 != len(self.vars):
 				sys.stdout.write(sep)
-			i = i + 1
 
 class dstat_cpu(dstat):
 	def __init__(self):
-		self.name = 'cpu usage'
-		self.len = 23
+		self.len = 3
 		self.format = '%s %s %s %s %s %s'
-		if op.cpulist:
-			self.vars = op.cpulist
-		else:
-			self.vars = self.discover()
-		self.nick = []
+		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
+		self.vars = self.vars()
+		self.name = []
 		for name in self.vars:
 			if name:
-				self.nick.append('us%1d sy%1d id%1d wa%1d hq%1d sq%1d' % (int(name), int(name), int(name), int(name), int(name), int(name)))
+				self.name.append('cpu' + name + ' usage')
 			else:
-				self.nick.append('usr sys idl wai hiq siq')
-#		self.vars = ('user', 'sys', 'idle', 'wait', 'hardirq', 'softirq')
-#		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
+				self.name.append('total cpu usage')
 		self.init()
 		for name in self.vars: self.cn1[name] = (0, 0, 0, 0, 0, 0); self.cn1[''] = (0, 0, 0, 0, 0, 0)
 		for name in self.vars: self.cn2[name] = (0, 0, 0, 0, 0, 0); self.cn2[''] = (0, 0, 0, 0, 0, 0)
 		for name in self.vars: self.val[name] = [0, 0, 0, 0, 0, 0]; self.val[''] = [0, 0, 0, 0, 0, 0]
 
-	def discover(self):
-		return ('',)
-
-	def check(self):
+	def discover(self, *list):
+		ret = []
 		if os.path.exists('/proc/stat'):
-			l = open('/proc/stat', 'r').readline().split()
-			if len(l) > 7:
-				return True
-		return False
+			for line in open('/proc/stat', 'r').readlines():
+				l = line.split()
+				if len(l) < 8 or l[0][0:3] != 'cpu': continue
+				ret.append(l[0][3:])
+			ret.sort()
+			for item in list: ret.append(item)
+		return ret
+
+	def vars(self):
+		ret = []
+		if op.cpulist:
+			list = op.cpulist
+		else:
+			list = ('', )
+		for name in list:
+			if name in self.discover(''):
+				ret.append(name)
+		return ret
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
 			for name in self.vars:
-				if len(l) <= 7 or l[0] != 'cpu'+name: continue
+				if len(l) < 8 or l[0] != 'cpu' + name: continue
 				self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
 		for name in self.vars:
 			for i in (0, 1, 2, 3, 4, 5):
@@ -312,73 +341,100 @@ class dstat_cpu(dstat):
 
 class dstat_cpu24(dstat):
 	def __init__(self):
-		self.name = 'cpu usage'
 		self.len = 3
-		self.format = '%ps'
-		self.vars = ('user', 'sys', 'idle')
+		self.format = '%s %s %s'
 		self.nick = ( 'usr', 'sys', 'idl')
+		self.vars = self.vars()
+		self.name = []
+		for name in self.vars:
+			if name:
+				self.name.append('cpu' + name)
+			else:
+				self.name.append('cpu total')
 		self.init()
-		self.cn1['total'] = 0
+		for name in self.vars: self.cn1[name] = (0, 0, 0); self.cn1[''] = (0, 0, 0)
+		for name in self.vars: self.cn2[name] = (0, 0, 0); self.cn2[''] = (0, 0, 0)
+		for name in self.vars: self.val[name] = [0, 0, 0]; self.val[''] = [0, 0, 0]
 
-	def check(self):
+	def discover(self, *list):
+		ret = []
 		if os.path.exists('/proc/stat'):
-			l = open('/proc/stat', 'r').readline().split()
-			if len(l) == 5:
-				return True
-		return False
+			for line in open('/proc/stat', 'r').readlines():
+				l = line.split()
+				if len(l) != 5 or l[0][0:3] != 'cpu': continue
+				ret.append(l[0][3:])
+			ret.sort()
+			for item in list: ret.append(item)
+		return ret
+
+	def vars(self):
+		ret = []
+		if op.cpulist:
+			list = op.cpulist
+		else:
+			list = ('',)
+		for name in list:
+			if name in self.discover(''):
+				ret.append(name)
+		return ret
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if len(l) < 4 or l[0] != 'cpu': continue
-			self.cn2['user'] = long(l[1]) + long(l[2])
-			self.cn2['sys'] = long(l[3])
-			self.cn2['idle'] = long(l[4])
-			self.cn2['total'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle']
+			for name in self.vars:
+				if len(l) < 5 or l[0] != 'cpu' + name: continue
+				self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]) )
 		for name in self.vars:
-			self.val[name] = 100.0 * (self.cn2[name] - self.cn1[name]) / (self.cn2['total'] - self.cn1['total'])
+			for i in (0, 1, 2):
+				self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (total(self.cn2[name]) - total(self.cn1[name]))
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
 class dstat_disk(dstat):
 	def __init__(self):
 		self.format = '%s %s'
-		self.len = 11
-		self.name = 'disk i/o'
-		if op.disklist:
-			self.vars = op.disklist
-		else:
-			self.vars = self.discover()
+		self.len = 5
+		self.nick = ('read', 'write')
 		### Temporary hardcoded for my own project
 		self.diskset = {
-			'local': ('sda', 'hda', 'hdc'),
-			'lores': ('sdb', 'sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh', 'sdi', 'sdj', 'sdk', 'sdl', 'sdm', 'sdn', 'sdo', 'sdp', 'sdq', 'sdr', 'sds', 'sdt'),
-			'hires': ('sdu', 'sdv', 'sdw', 'sdx', 'sdy', 'sdz', 'sdaa', 'sdab', 'sdac', 'sdad' ),
+			'local': ('sda', 'hda', 'hdc'), 
+			'lores': ('sdb', 'sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh', 'sdi', 'sdj', 'sdk', 'sdv', 'sdw', 'sdx', 'sdy', 'sdz', 'sdaa', 'sdab', 'sdac', 'sdad', 'sdae'),
+			'hires': ('sdl', 'sdm', 'sdn', 'sdo', 'sdp', 'sdq', 'sdr', 'sds', 'sdt', 'sdu', 'sdaf', 'sdag', 'sdah', 'sdai', 'sdaj', 'sdak', 'sdal', 'sdam', 'sdan', 'sdao'),
 		}
-		self.nick = self.vars
+		self.vars = self.vars()
+		self.name = []
+		for name in self.vars:
+			self.name.append('disk/' + name)
 		self.init()
 
 		for name in self.vars: self.cn1[name] = (0, 0); self.cn1['total'] = (0, 0)
 		for name in self.vars: self.cn2[name] = (0, 0); self.cn2['total'] = (0, 0)
 		for name in self.vars: self.val[name] = (0, 0); self.val['total'] = (0, 0)
 
-	def discover(self):
-		retlist = []
-		if not os.path.exists('/proc/diskstats'): return retlist
-		for line in open('/proc/diskstats', 'r').readlines():
-			l = line.split()
-			if len(l) < 13 or l[3] == '0': continue
-			name = l[2]
-			if not re.match('^(ram\d+|loop\d+)$', name):
-				retlist.append(name)
-		if not op.full and len(retlist) > 2: retlist = retlist[0:2]
-		retlist.sort()
-		return retlist
+	def discover(self, *list):
+		ret = []
+		if os.path.exists('/proc/diskstats'):
+			for line in open('/proc/diskstats', 'r').readlines():
+				l = line.split()
+				if len(l) < 13 or l[3] == '0': continue
+				name = l[2]
+				if not re.match('^(ram\d+|loop\d+)$', name):
+					ret.append(name)
+			ret.sort()
+			for item in list: ret.append(item)
+		return ret
 
-	def check(self):
-		if os.path.exists('/proc/diskstats') and len(self.vars) > 0:
-			return True
-		return False
+	def vars(self):
+		ret = []
+		if op.disklist:
+			list = op.disklist
+		else:
+			list = self.discover()
+			if not op.full and len(list) > 2: list = list[0:2]
+		for name in list:
+			if name in self.discover('total') + self.diskset.keys():
+				ret.append(name)
+		return ret
 
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
@@ -402,23 +458,30 @@ class dstat_disk(dstat):
 			self.cn1.update(self.cn2)
 
 class dstat_disk24(dstat_disk):
-	def discover(self):
-		retlist = []
-		if not os.path.exists('/proc/partitions'): return retlist
-		for line in open('/proc/partitions', 'r').readlines():
-			l = line.split()
-			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
-			name = l[3]
-			if not re.match('^(ram\d+|loop\d+|name)$', name):
-				retlist.append(name)
-		if not op.full and len(retlist) > 2: retlist = retlist[0:2]
-		retlist.sort()
-		return retlist
+	def discover(self, *list):
+		ret = []
+		if os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
+			for line in open('/proc/partitions', 'r').readlines():
+				l = line.split()
+				if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
+				name = l[3]
+				if not re.match('^(ram\d+|loop\d+|name)$', name):
+					ret.append(name)	
+			ret.sort()
+			for item in list: ret.append(item)
+		return ret
 
-	def check(self):
-		if os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats') and len(self.vars) > 0:
-			return True
-		return False
+	def vars(self):
+		ret = []
+		if op.disklist:
+			list = op.disklist
+		else:
+			list = self.discover()
+			if not op.full and len(list) > 2: list = list[0:2]
+		for name in list:
+			if name in self.discover('total') + self.diskset.keys():
+				ret.append(name)
+		return ret
 
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
@@ -442,27 +505,30 @@ class dstat_disk24(dstat_disk):
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
+### FIXME: Needs rework, does anyone care ?
 class dstat_disk24old(dstat_disk24):
-	def discover(self):
-		retlist = []
-		if not os.path.exists('/proc/partitions'): return retlist
-		for line in open('/proc/partitions', 'r').readlines():
-			l = line.split()
-			if len(l) != 4 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
-			name = l[3]
-			if not re.match('^(ram\d+|loop\d+|name)$', name):
-				retlist.append(name)
-		if not op.full and len(retlist) > 2: retlist = retlist[0:2]
-		retlist.sort()
-		return retlist
+	def discover(self, *list):
+		ret = []
+		if os.path.exists('/proc/stat') and not os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
+			for line in open('/proc/stat', 'r').readlines():
+				l = line.split()
+				if len(l) < 15: continue
+				ret.append(l[3])
+			ret.sort()
+			for item in list: ret.append(item)
+		return ret
 
-	def check(self):
-		if os.path.exists('/proc/stat') and \
-			not os.path.exists('/proc/partitions') and \
-			not os.path.exists('/proc/diskstats') and \
-			len(self.vars) > 0:
-				return True
-		return False
+	def vars(self):
+		ret = []
+		if op.disklist:
+			list = op.disklist
+		else:
+			list = self.discover()
+			if not op.full and len(list) > 2: list = list[0:2]
+		for name in list:
+			if name in self.discover('total') + self.diskset.keys():
+				ret.append(name)
+		return ret
 
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
@@ -495,30 +561,35 @@ class dstat_int(dstat):
 		self.len = 5
 		self.format = '%ds'
 		self.name = 'interrupts'
-		if op.intlist:
-			self.vars = op.intlist
-		else:
-			self.vars = self.discover()
+		self.vars = self.vars()
 		self.nick = self.vars
 		self.init()
 
 	def discover(self):
-		retlist = []
-		if not os.path.exists('/proc/interrupts'): return retlist
-		for line in open('/proc/interrupts', 'r').readlines():
-			l = line.split()
-			if len(l) < 1: continue
-			name = l[0].split(':')[0]
-			if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'): continue
-			if len(l) > 1 and l[1] != '0':
-				retlist.append(name)
-		if not op.full and len(retlist) > 3: retlist = retlist[-4:-1]
-		return retlist
+		ret = []
+		if os.path.exists('/proc/interrupts'):
+			for line in open('/proc/interrupts', 'r').readlines():
+				l = line.split()
+				if len(l) < 1: continue
+				name = l[0].split(':')[0]
+				if len(l) > 1 and l[1] != '0':
+					ret.append(name)
+		return ret
 
-	def check(self):
-		if os.path.exists('/proc/interrupts') and len(self.vars) > 0:
-			return True
-		return False
+	def vars(self):
+		ret = []
+		if op.intlist:
+			list = op.intlist
+		else:
+			list = self.discover()
+#			for name in list:
+#				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
+#					list.delete(name)
+			if not op.full and len(list) > 3: list = list[-4:-1]
+		for name in list:
+			if name in self.discover():
+				ret.append(name)
+		return ret
 
 	def stats(self):
 		for line in open('/proc/interrupts', 'r').readlines():
@@ -584,38 +655,44 @@ class dstat_mem(dstat):
 
 class dstat_net(dstat):
 	def __init__(self):
-		self.name = 'network'
-		self.len = 11
+		self.len = 5
 		self.format = '%s %s'
-		if op.netlist:
-			self.vars = op.netlist
-		else:
-			self.vars = self.discover()
-		self.nick = self.vars
+		self.vars = self.vars()
+		self.name = []
+		for name in self.vars:
+			self.name.append('net/' + name)
+		self.nick = ('recv', 'send')
 		self.init()
 
 		for name in self.vars: self.cn1[name] = (0, 0); self.cn1['total'] = (0, 0)
 		for name in self.vars: self.cn2[name] = (0, 0); self.cn2['total'] = (0, 0)
 		for name in self.vars: self.val[name] = (0, 0); self.val['total'] = (0, 0)
 
-	def discover(self):
-		retlist = []
-		if not os.path.exists('/proc/net/dev'): return retlist
-		for line in open('/proc/net/dev', 'r').readlines():
-			l = line.split()
-			if len(l) < 2: continue
-			name = l[0].split(':')[0]
-			if l[1] == '0': continue
-			if not re.match('^(Inter-\||face|lo)$', name):
-				retlist.append(name)
-		if not op.full and len(retlist) > 2: retlist = retlist[0:2]
-		retlist.sort()
-		return retlist
+	def discover(self, *list):
+		ret = []
+		if os.path.exists('/proc/net/dev'):
+			for line in open('/proc/net/dev', 'r').readlines():
+				l = line.split()
+				if len(l) < 2: continue
+				name = l[0].split(':')[0]
+				if l[1] == '0': continue
+				if not re.match('^(Inter-\||face|lo)$', name):
+					ret.append(name)
+			ret.sort()
+			for item in list: ret.append(item)
+		return ret
 
-	def check(self):
-		if os.path.exists('/proc/net/dev') and len(self.vars) > 0:
-			return True
-		return False
+	def vars(self):
+		ret = []
+		if op.netlist:
+			list = op.netlist
+		else:
+			list = self.discover()
+			if not op.full and len(list) > 2: list = list[0:2]
+		for name in list:
+			if name in self.discover('total'):
+				ret.append(name)
+		return ret
 
 	def stats(self):
 		self.cn2['total'] = (0, 0)
@@ -713,14 +790,17 @@ class dstat_proc(dstat):
 			if name == 'processes':
 				self.val['processes'] = 0
 				self.cn2[name] = long(l[1])
-			elif name in self.vars:
-				self.val[name] = long(l[1])
-		if self.val['procs_running'] > 0:
-			self.val['procs_running'] = self.val['procs_running'] - 1
+			elif name in ('procs_running', 'procs_blocked'):
+				self.cn2[name] = self.cn2[name] + long(l[1])
+		self.cn2['procs_running'] = self.cn2['procs_running'] - 1
 		if update:
 			self.val['processes'] = (self.cn2['processes'] - self.cn1['processes']) / step
+			for name in ('procs_running', 'procs_blocked'):
+				self.val[name] = self.cn2[name] / step
 		if step == op.delay:
 			self.cn1.update(self.cn2)
+			for name in ('procs_running', 'procs_blocked'):
+				self.cn2[name] = 0
 
 class dstat_swap(dstat):
 	def __init__(self):
@@ -884,7 +964,7 @@ def total(list):
 	return ret
 
 def convlist(max, list, base = 1024):
-	max = max / len(list)
+#	max = max / len(list)
 	retlist = ()
 	for var in list:
 		retlist = retlist + (conv(max, var, base), )
@@ -1049,10 +1129,10 @@ def main():
 	### Remove defect objects and calculate line length
 	linewidth = 0
 	for o in olist + []:
-		if not o.check():
-			olist.remove(o)
+		if o.check():
+			linewidth = linewidth + o.varwidth() + 1
 		else:
-			linewidth = linewidth + o.width() + 1
+			olist.remove(o)
 
 	if linewidth > cols:
 		print 'Screen width too small, trimming output.'
@@ -1078,9 +1158,9 @@ def main():
 		plist = []
 		curwidth = 0
 		for o in olist:
-			if curwidth + o.width() + 1 <= cols:
-				curwidth = curwidth + o.width() + 1
+			if curwidth + o.varwidth() + 1 <= cols:
 				plist.append(o)
+				curwidth = curwidth + o.varwidth() + 1
 
 		### Check when to display the header
 		if op.header:
@@ -1092,19 +1172,19 @@ def main():
 		if showheader:
 			showheader = False
 			for o in plist:
-				sys.stdout.write(o.title1)
+				sys.stdout.write(o.title1())
 				if o is not plist[-1]:
-					sys.stdout.write(ansi['darkblue'] + ' ' + ansi['default'])
+					sys.stdout.write(ansi['darkblue'] + ' ')
 				elif olist != plist:
-					sys.stdout.write(ansi['darkblue'] + '>' + ansi['default'])
+					sys.stdout.write(ansi['darkblue'] + '>')
 			sys.stdout.write('\n')
 
 			for o in plist:
-				sys.stdout.write(o.title2)
+				sys.stdout.write(o.title2())
 				if o is not plist[-1]:
-					sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
+					sys.stdout.write(ansi['silver'] + '|')
 				elif olist != plist:
-					sys.stdout.write(ansi['darkblue'] + '>' + ansi['default'])
+					sys.stdout.write(ansi['darkblue'] + '>')
 			sys.stdout.write('\n')
 
 		oldplist = plist
@@ -1125,9 +1205,9 @@ def main():
 			if o in plist:
 				o.show()
 				if o is not plist[-1]:
-					sys.stdout.write(ansi['default'] + '|' + ansi['default'])
+					sys.stdout.write(ansi['default'] + '|')
 				elif o is not olist[-1]:
-					sys.stdout.write(ansi['default'] + '>' + ansi['default'])
+					sys.stdout.write(ansi['default'] + '>')
 
 		### If intermediate results, update increases with 1 sec (=interval)
 		update = update + interval
@@ -1158,11 +1238,11 @@ Yes = yes = On = on = True
 No = no = Off = off = False
 
 ### Workaround for python < 2.3
-#def enumerate(sequence):
-#    index = 0
-#    for item in sequence:
-#        yield index, item
-#        index = index + 1
+def enumerate(sequence):
+    index = 0
+    for item in sequence:
+        yield index, item
+        index = index + 1
 
 ### Main entrance
 if __name__ == '__main__':

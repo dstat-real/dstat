@@ -7,9 +7,11 @@
 - Don't clear the line after restoring the cursor at the start (disable flickering)
 - Better formatting for load and proc stats
 - cpu stats are not longer snapshots but average over delay
-- Fix for diskless systems. (Werner Augustin)
+- Fix for diskless systems (Werner Augustin)
 - Gracefully handle incorrect arguments
+- Important changes to header-model
 - Added smp support (Bert de Bruijn)
+- proc stats now show averages
 
 * 0.5.5
 - In fact, round() was not the problem, use str() instead. (Anton Blanchard)
