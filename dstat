@@ -18,7 +18,7 @@ from __future__ import generators
 import os, sys, re, getopt, fcntl, termios, struct
 import ConfigParser, urlparse, signal, resource
 
-VERSION = "0.4"
+VERSION = "0.5"
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -108,14 +108,14 @@ Dstat options:
   -a, --all          enable cpu, disk, mem, net, page and sys (eq. -cdmngy)
   -c, --cpu          enable cpu stats
   -d, --disk         enable disk stats
-     -D total,dev1      include dev1 and total number
+     -D total,hda       include hda and total
   -g, --page         enable page stats
   -i, --int          enable interrupt stats
-     -I 5,9             include int5 and int9
+     -I 5,eth2          include int5 and interrupt used by eth2
   -l, --load         enable load stats
   -m, --mem          enable memory stats
   -n, --net          enable network stats
-     -N if2,total       include if2 and total
+     -N eth1,total      include eth1 and total
   -p, --proc         enable process stats
   -s, --swap         enable swap stats
   -y, --sys          enable system stats
@@ -327,12 +327,12 @@ class dstat_disk24(dstat_disk):
 			name = l[3]
 			if name == 'name': continue
 			if name in self.vars:
-				self.cn2[name] = ( self.cn2[name][0] + int(l[6]), self.cn2[name][1] + int(l[10]) )
+				self.cn2[name] = ( self.cn2[name][0] + float(l[6]), self.cn2[name][1] + float(l[10]) )
 			for set in self.vars:
 				if set in self.diskset and name in self.diskset[set]:
-					self.cn2[set] = ( self.cn2[set][0] + int(l[6]), self.cn2[set][1] + int(l[10]) )
+					self.cn2[set] = ( self.cn2[set][0] + float(l[6]), self.cn2[set][1] + float(l[10]) )
 			if len(l) > 10:
-				self.cn2['total'] = ( self.cn2['total'][0] + int(l[6]), self.cn2['total'][1] + int(l[10]))
+				self.cn2['total'] = ( self.cn2['total'][0] + float(l[6]), self.cn2['total'][1] + float(l[10]))
 		if count != 0:
 			for name in self.cn2:
 				self.val[name] = ( 
@@ -640,6 +640,9 @@ def convlist(max, list):
 	for var in list:
 		retlist = retlist + (conv(max, var), )
 	return retlist
+
+#def convlist(max, list):
+#	return map(conv, list)
 
 def conv(max, var, base = 1024):
 	### lowercase (b) is better for the eyes than uppercase

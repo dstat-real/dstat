@@ -4,7 +4,7 @@
 
 Summary: Versatile vmstat, iostat and ifstat replacement
 Name: dstat
-Version: 0.4
+Version: 0.5
 Release: 1
 License: GPL
 Group: System Environment/Base
@@ -16,6 +16,7 @@ Vendor: Dag Apt Repository, http://dag.wieers.com/apt/
 Source: http://dag.wieers.com/home-made/dstat/dstat-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
+BuildArch: noarch
 Requires: python
 
 %description
@@ -58,8 +59,8 @@ interprete real-time data as easy as possible.
 %files
 %defattr(-, root, root, 0755)
 %doc AUTHORS ChangeLog COPYING README TODO 
-#%doc *.conf
-#%config(noreplace) %{_sysconfdir}/dstat.conf
+%doc *.conf
+%config(noreplace) %{_sysconfdir}/dstat.conf
 %{_bindir}/dstat
 
 %changelog

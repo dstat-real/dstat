@@ -1,3 +1,6 @@
+* 0.5
+- Changed some more int()'s into float()'s. (Pasi Pirhonen)
+
 * 0.4
 - Added interrupt stats
 - Order of the stats adhere the order of the options
