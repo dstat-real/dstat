@@ -1,6 +1,8 @@
 * 0.5.2
-- Improved disk and net discovery functions
+- Improved disk and net discovery functions (Ville Herva)
 - Fixed a bug with values when using --noupdate (Pasi Pirhonen)
+- Documented the internals a bit more, hoping people will contribute
+- Implemented a fix for when the output exceeds terminal columns
 
 * 0.5.1
 - Fixed bug that caused counters to not be averages when delay > 1

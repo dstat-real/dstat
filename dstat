@@ -112,9 +112,10 @@ class Options:
 	def version(self):
 		print 'Dstat %s' % VERSION
 		print 'Written by Dag Wieers <dag@wieers.com>'
-		print 'Homepage at http://dag.wieers.com/home-made/dstat/>'
+		print 'Homepage at http://dag.wieers.com/home-made/dstat/'
 		print
 		print 'Platform %s/%s' % (os.name, sys.platform)
+		print 'Kernel %s' % os.uname()[2]
 		print 'Python %s' % sys.version
 
 	def usage(self):
@@ -185,8 +186,8 @@ class dstat:
 	def init(self):
 		if not self.check(): return
 
-		self.title1 = self.set_title1()
-		self.title2 = self.set_title2()
+		self.title1 = self.title1()
+		self.title2 = self.title2()
 
 		### Initialise default variables
 		self.val = {}
@@ -194,11 +195,14 @@ class dstat:
 		self.cn2 = {}
 		for i in self.vars: self.val[i] = self.cn1[i] = self.cn2[i] = 0
 
-	def set_title1(self):
-		max = len(self.vars) * self.len + len(self.vars) - 1
+	def width(self):
+		return len(self.vars) * self.len + len(self.vars) - 1
+
+	def title1(self):
+		max = self.width()
 		return ansi['blue'] + self.name[0:max-2].center(max).replace(' ', '-') + ansi['default']
 
-	def set_title2(self):
+	def title2(self):
 		ret = ''
 		for str in self.nick:
 			ret = ret + str[0:self.len].center(self.len).replace(' ', '_')
@@ -259,7 +263,6 @@ class dstat_disk(dstat):
 		self.format = '%s %s'
 		self.len = 11
 		self.name = 'disk i/o'
-		self.uptime = 0 ### Needed for dstat_disk24
 		if op.disklist:
 			self.vars = op.disklist
 		else:
@@ -272,12 +275,9 @@ class dstat_disk(dstat):
 		self.nick = self.vars
 		self.init()
 
-		for name in self.vars: self.cn1[name] = (0, 0)
-		self.cn1['total'] = (0, 0)
-		for name in self.vars: self.cn2[name] = (0, 0)
-		self.cn2['total'] = (0, 0)
-		for name in self.vars: self.val[name] = (0, 0)
-		self.val['total'] = (0, 0)
+		for name in self.vars: self.cn1[name] = (0, 0); self.cn1['total'] = (0, 0)
+		for name in self.vars: self.cn2[name] = (0, 0); self.cn2['total'] = (0, 0)
+		for name in self.vars: self.val[name] = (0, 0); self.val['total'] = (0, 0)
 
 	def discover(self):
 		retlist = []
@@ -303,8 +303,6 @@ class dstat_disk(dstat):
 			if len(l) < 13: continue
 			name = l[2]
 			if name in self.vars:
-#				print mountpoint('/dev/' + name)
-#				bsize = os.statvfs(mountpoint('/dev/' + name))[0]
 				self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
 			for set in self.vars:
 				if set in self.diskset and name in self.diskset[set]:
@@ -332,7 +330,6 @@ class dstat_disk24(dstat_disk):
 		if len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
 		return retlist
-#		return ('local', 'lores', 'hires', 'total')
 
 	def check(self):
 		if os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
@@ -374,7 +371,7 @@ class dstat_disk24old(dstat_disk24):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split(':');
-			if len(l) < 1: continue
+			if len(l) < 4: continue
 			name = l[0]
 			if name == 'disk_io':
 				for pair in line.split()[1:]:
@@ -427,7 +424,9 @@ class dstat_int(dstat):
 
 	def stats(self):
 		for line in open('/proc/interrupts', 'r').readlines():
-			l = line.split(); name = l[0].split(':')[0]
+			l = line.split();
+			if len(l) < 2: continue
+			name = l[0].split(':')[0]
 			if name in self.vars:
 				self.cn2[name] = long(l[1])
 			elif len(l) > 2 + procs:
@@ -457,7 +456,7 @@ class dstat_load(dstat):
 	def stats(self):
 		for line in open('/proc/loadavg', 'r').readlines():
 			l = line.split()
-			if len(l) < 1: continue
+			if len(l) < 3: continue
 			self.val['load1'] = float(l[0])
 			self.val['load5'] = float(l[1])
 			self.val['load15'] = float(l[2])
@@ -479,7 +478,7 @@ class dstat_mem(dstat):
 	def stats(self):
 		for line in open('/proc/meminfo', 'r').readlines():
 			l = line.split()
-			if len(l) < 1: continue
+			if len(l) < 2: continue
 			name = l[0].split(':')[0]
 			if name in self.vars + ('MemTotal',):
 				self.val[name] = long(l[1]) * 1024.0
@@ -497,17 +496,15 @@ class dstat_net(dstat):
 		self.nick = self.vars
 		self.init()
 
-		for name in self.vars: self.cn1[name] = (0, 0)
-		self.cn1['total'] = (0, 0)
-		for name in self.vars: self.cn2[name] = (0, 0)
-		self.cn2['total'] = (0, 0)
-		for name in self.vars: self.val[name] = (0, 0)
-		self.val['total'] = (0, 0)
+		for name in self.vars: self.cn1[name] = (0, 0); self.cn1['total'] = (0, 0)
+		for name in self.vars: self.cn2[name] = (0, 0); self.cn2['total'] = (0, 0)
+		for name in self.vars: self.val[name] = (0, 0); self.val['total'] = (0, 0)
 
 	def discover(self):
 		retlist = []
 		for line in open('/proc/net/dev', 'r').readlines():
 			l = line.split()
+			if len(l) < 2: continue
 			name = l[0].split(':')[0]
 			if l[1] == '0': continue
 			if not re.match('^(Inter-\||face|lo|wifi\d+)$', name):
@@ -525,7 +522,9 @@ class dstat_net(dstat):
 		self.cn2['total'] = (0, 0)
 		for line in open('/proc/net/dev', 'r').readlines():
 			l = line.split()
+			if len(l) < 1: continue
 			l2 = l[0].split(':')
+			if len(l2) < 1: continue
 			name = l2[0]
 			if len(l2) > 1 and l2[1].strip():
 				l = l2[1:] + l[1:]
@@ -560,7 +559,9 @@ class dstat_page(dstat):
 
 	def stats(self):
 		for line in open('/proc/vmstat', 'r').readlines():
-			l = line.split(); name = l[0]
+			l = line.split();
+			if len(l) < 2: continue
+			name = l[0]
 			if name in self.vars:
 				self.cn2[name] = long(l[1])
 		if update:
@@ -577,7 +578,9 @@ class dstat_page24(dstat_page):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split(); name = l[0]
+			l = line.split();
+			if len(l) < 3: continue
+			name = l[0]
 			if name == 'swap':
 				self.cn2['pswpin'] = long(l[1])
 				self.cn2['pswpout'] = long(l[2])
@@ -606,7 +609,9 @@ class dstat_proc(dstat):
 
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split(); name = l[0]
+			l = line.split();
+			if len(l) < 2: continue
+			name = l[0]
 			if name in self.vars:
 				self.val[name] = long(l[1])
 #			if name in ('processes',):
@@ -635,6 +640,7 @@ class dstat_swap(dstat):
 	def stats(self):
 		for line in open('/proc/meminfo', 'r').readlines():
 			l = line.split()
+			if len(l) < 2: continue
 			name = l[0].split(':')[0]
 			if name in self.vars + ('SwapTotal',):
 				self.val[name] = long(l[1]) * 1024.0
@@ -725,6 +731,8 @@ ansi = {
 	'clear': '\033[2J',
 	'save': '\033[s',
 	'restore': '\033[u',
+
+	'up': '\033[1A',
 
 	'default': '\033[0;0m',
 }
@@ -827,6 +835,7 @@ def main():
 		for key in ansi.keys():
 			ansi[key] = ''
 
+	### Build list of requested modules
 	olist = []
 	for mod in op.modlist:
 		if mod == 'cpu':	olist.append(dstat_cpu())
@@ -846,15 +855,27 @@ def main():
 		elif mod == 'sys':	olist.append(dstat_sys())
 		elif mod == 'time':	olist.append(dstat_time())
 
-	### Remove defect objects
+	(rows, cols) = getwinsize()
+
+	### Remove defect objects and calculate line length
+	linewidth = 0
 	for o in olist + []:
 		if not o.check():
 			olist.remove(o)
+		else:
+			linewidth = linewidth + o.width() + 1
 
+	if linewidth > cols:
+		print 'Screen width too small, trimming output.'
+
+	### Increase precision if we're root
 	if os.geteuid() == 0:
 		os.nice(-10)
+
 #	sys.setcheckinterval(op.delay * 1.5 * 100)
 	signal.signal(signal.SIGALRM, handler)
+
+	### Let the games begin
 	while loop != op.count:
 
 		### When intermediate updates are enabled, signal each second
@@ -863,16 +884,23 @@ def main():
 		else:
 			signal.alarm(op.delay)
 
-		rows = getwinsize()[0]
+		### Trim object list to what is visible on screen
+		(rows, cols) = getwinsize()
+		plist = []
+		curwidth = 0
+		for o in olist:
+			curwidth = curwidth + o.width() + 1
+			if curwidth < cols:
+				plist.append(o)
 
-		### Check when to display a header
-		if step == op.delay and loop % (rows-2) == 0 and (op.header or loop == 0):
-			for o in olist:
+		### Check when to display the header
+		if (loop == 0 or op.header) and step == op.delay and loop % (rows-2) == 0:
+			for o in plist:
 				sys.stdout.write(o.title1)
 				if o != olist[-1]: sys.stdout.write(' ')
 			sys.stdout.write('\n')
 
-			for o in olist:
+			for o in plist:
 				sys.stdout.write(o.title2)
 				if o != olist[-1]: sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
 			sys.stdout.write('\n')
@@ -887,29 +915,32 @@ def main():
 		### Debugging info
 #		sys.stdout.write('[%d:%d:%d]' % (loop,step,update))
 
-		### Show the stats
+		### Show the stats, calculate all objects (visible, invisible)
 		for o in olist:
 			o.stats()
-			o.show()
-			if o != olist[-1]: sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
-
-		### The last step in a loop is to show the definitive line on a new line
-		if step == op.delay:
-			sys.stdout.write('\n' + ansi['save'])
-		else:
-#			sys.stdout.write('\n')
-			sys.stdout.write(ansi['restore'])
+			if o in plist:
+				o.show()
+				if o != olist[-1]: sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
 
 		### If intermediate results, update increases with 1 sec
 		if op.update:
 			update = update + 1
 		else:
 			update = update + op.delay
+		oldstep = step
 		step = ((update - 1) % op.delay) + 1
 		loop = update / op.delay 
 
+		### Do not pause when this is the final loop
 		if loop != op.count:
 			signal.pause()
+
+		### The last step in a loop is to show the definitive line on a new line
+		if oldstep == op.delay:
+			sys.stdout.write('\n' + ansi['save'])
+		else:
+#			sys.stdout.write('\n')
+			sys.stdout.write(ansi['restore'])
 
 ### Unbuffered sys.stdout
 sys.stdout = os.fdopen(1, 'w', 0)
@@ -939,13 +970,13 @@ if __name__ == '__main__':
 	except KeyboardInterrupt, e:
 		if step != op.delay:
 			print
-		print 'Exiting on user request'
+		print ansi['reset'] + 'Exiting on user request'
 		sys.exit(6)
 	except OSError, e:
 #		print e.errno
 		if step != op.delay:
 			print
-		print 'OSError: %s' %e
+		print ansi['reset'] + 'OSError: %s' %e
 		sys.exit(7)
 
 # vim:ts=4:sw=4
