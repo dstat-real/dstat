@@ -12,6 +12,7 @@
 - Important changes to header-model
 - Added smp support (Bert de Bruijn)
 - proc stats now show averages
+- Check if output is a tty, else disable colors and updates
 
 * 0.5.5
 - In fact, round() was not the problem, use str() instead. (Anton Blanchard)

@@ -25,6 +25,7 @@
 + If you have 2 devices with the same name, -I will only work on the first one
 + When using -D foo, -I 99, -N eth9 dstat should fail when it does not exist 
 + Timer is not accurate on 2.6 kernel, every second there's a 1ms deviation (every 17mins -> 1sec)
++ Find a way to use curses without the flickering and clearing tty in screen
 
 ### Stat bugs
 + tcp stat is very slow and generates lots of siq (on some systems)

@@ -15,9 +15,10 @@
 # Copyright 2004 Dag Wieers <dag@wieers.com>
 
 from __future__ import generators
-import fcntl, struct, termios, types
-import os, sys, re, getopt, time
+import fcntl, struct, types
+import os, sys, re, getopt, time, termios
 import ConfigParser, urlparse, signal, resource
+#import curses
 
 VERSION = '0.5.6'
 
@@ -420,7 +421,7 @@ class dstat_disk(dstat):
 				name = l[2]
 				if not re.match('^(ram\d+|loop\d+)$', name):
 					ret.append(name)
-			ret.sort()
+#			ret.sort()
 			for item in list: ret.append(item)
 		return ret
 
@@ -431,6 +432,7 @@ class dstat_disk(dstat):
 		else:
 			list = self.discover()
 			if not op.full and len(list) > 2: list = list[0:2]
+			list.sort()
 		for name in list:
 			if name in self.discover('total') + self.diskset.keys():
 				ret.append(name)
@@ -572,7 +574,7 @@ class dstat_int(dstat):
 				l = line.split()
 				if len(l) < 1: continue
 				name = l[0].split(':')[0]
-				if len(l) > 1 and l[1] != '0':
+				if name != '0' and len(l) > 1 and int(l[1]) > 10:
 					ret.append(name)
 		return ret
 
@@ -882,8 +884,8 @@ class dstat_time(dstat):
 		self.format = '%10d'
 		self.len = 10
 		### Nice for debugging timer
-#		self.format = '%13.3f'
-#		self.len = 14
+		self.format = '%13.3f'
+		self.len = 14
 		self.nick = ('epoch',)
 		self.vars = ('epoch',)
 		self.init()
@@ -1033,15 +1035,17 @@ def die(ret, str):
 	sys.exit(ret)
 
 def getwinsize():
+#	curses.wrapper(lambda s:curses.setupterm())
+#	return curses.wrapper(lambda s:curses.tigetnum('lines')), curses.wrapper(lambda s:curses.tigetnum('cols'))
 	try:
-		s = struct.pack("HHHH", 0, 0, 0, 0)
+		s = struct.pack('HHHH', 0, 0, 0, 0)
 		x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
-		return struct.unpack("HHHH", x)[:2]
+		return struct.unpack('HHHH', x)[:2]
 	except:
 		try:
-			return (int(os.environ['LINES']), int(os.environ['COLUMNS']))
+			return int(os.environ['LINES']), int(os.environ['COLUMNS'])
 		except:
-			return (25, 80)
+			return 25, 80
 
 def getcpunr():
 	procs = 0
@@ -1091,6 +1095,12 @@ def main():
 
 	if not op.update:
 		interval = op.delay
+
+	### Check terminal capabilities
+#	if not sys.stdout.isatty() or not curses.wrapper(lambda s:curses.has_colors()):
+	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'linux', 'rxvt', 'screen', 'xterm'):
+		op.color = False
+		op.update = False
 
 	### Empty ansi database if no colors are requested
 	if not op.color:
