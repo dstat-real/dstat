@@ -260,7 +260,6 @@ class dstat_disk(dstat):
 				retlist.append(dev)
 		if len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
-		print retlist
 		return retlist
 
 	def check(self):
