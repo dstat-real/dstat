@@ -4,7 +4,7 @@
 
 Summary: Versatile vmstat, iostat and ifstat replacement
 Name: dstat
-Version: 0.5.1
+Version: 0.5.3
 Release: 1
 License: GPL
 Group: System Environment/Base
@@ -64,6 +64,12 @@ interprete real-time data as easy as possible.
 %{_bindir}/dstat
 
 %changelog
+* Sun Nov 14 2004 Dag Wieers <dag@wieers.com> - 0.5.3-1
+- Updated to release 0.5.3.
+
+* Sat Nov 13 2004 Dag Wieers <dag@wieers.com> - 0.5.2-1
+- Updated to release 0.5.2.
+
 * Thu Nov 11 2004 Dag Wieers <dag@wieers.com> - 0.5.1-1
 - Updated to release 0.5.1.
 

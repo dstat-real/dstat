@@ -15,10 +15,11 @@
 # Copyright 2004 Dag Wieers <dag@wieers.com>
 
 #from __future__ import generators
+import fcntl, struct, termios
 import os, sys, re, getopt, time
 import ConfigParser, urlparse, signal, resource
 
-VERSION = "0.5.2"
+VERSION = "0.5.3"
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -99,9 +100,8 @@ class Options:
 				self.version()
 				sys.exit(0)
 
-
 		if not self.modlist:
-			self.modlist = [ 'cpu', 'disk', 'net', 'sys' ]
+			self.modlist = [ 'cpu', 'disk', 'net', 'sys', 'page' ]
 
 		if len(args) > 0:
 			self.delay = int(args[0])
@@ -200,7 +200,7 @@ class dstat:
 
 	def title1(self):
 		max = self.width()
-		return ansi['blue'] + self.name[0:max-2].center(max).replace(' ', '-') + ansi['default']
+		return ansi['darkblue'] + self.name[0:max-2].center(max).replace(' ', '-') + ansi['default']
 
 	def title2(self):
 		ret = ''
@@ -222,8 +222,7 @@ class dstat:
 					sys.stdout.write(self.format % conv(self.len, self.val[name]))
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
 					sys.stdout.write(self.format % convlist(self.len, self.val[name]))
-#					sep = ansi['gray'] + ':' + ansi['default']
-					sep = ':'
+					sep = '|'
 			else:
 					sys.stdout.write(self.format % self.val[name])
 			if name != self.vars[-1]:
@@ -729,6 +728,7 @@ ansi = {
 	'underline': '\033[4m',
 
 	'clear': '\033[2J',
+	'clearline': '\033[K',
 	'save': '\033[s',
 	'restore': '\033[u',
 
@@ -776,13 +776,11 @@ def conv(max, var, base = 1024):
 
 def getwinsize():
 	try:
-		import fcntl, struct, termios
 		s = struct.pack("HHHH", 0, 0, 0, 0)
 		x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
-		ret = struct.unpack("HHHH", x)[:2]
+		return struct.unpack("HHHH", x)[:2]
 	except IOError:
 		return (25, 80)
-	return ret
 
 def getcpunr():
 	procs = 0
@@ -890,19 +888,25 @@ def main():
 		curwidth = 0
 		for o in olist:
 			curwidth = curwidth + o.width() + 1
-			if curwidth < cols:
+			if curwidth <= cols:
 				plist.append(o)
 
 		### Check when to display the header
 		if (loop == 0 or op.header) and step == op.delay and loop % (rows-2) == 0:
 			for o in plist:
 				sys.stdout.write(o.title1)
-				if o != olist[-1]: sys.stdout.write(' ')
+				if o != plist[-1]:
+					sys.stdout.write(' ')
+				elif o != olist[-1]:
+					sys.stdout.write(ansi['darkblue'] + '>' + ansi['default'])
 			sys.stdout.write('\n')
 
 			for o in plist:
 				sys.stdout.write(o.title2)
-				if o != olist[-1]: sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
+				if o != plist[-1]:
+					sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
+				elif o != olist[-1]:
+					sys.stdout.write(ansi['darkblue'] + '>' + ansi['default'])
 			sys.stdout.write('\n')
 
 		### Prepare the colors for intermediate updates, last step in a loop is normal
@@ -920,7 +924,10 @@ def main():
 			o.stats()
 			if o in plist:
 				o.show()
-				if o != olist[-1]: sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
+				if o != plist[-1]:
+					sys.stdout.write(ansi['default'] + '|' + ansi['default'])
+				elif o != olist[-1]:
+					sys.stdout.write(ansi['default'] + '>' + ansi['default'])
 
 		### If intermediate results, update increases with 1 sec
 		if op.update:
@@ -937,10 +944,10 @@ def main():
 
 		### The last step in a loop is to show the definitive line on a new line
 		if oldstep == op.delay:
-			sys.stdout.write('\n' + ansi['save'])
+			sys.stdout.write('\n' + ansi['clearline'] + ansi['save'])
 		else:
 #			sys.stdout.write('\n')
-			sys.stdout.write(ansi['restore'])
+			sys.stdout.write(ansi['restore'] + ansi['clearline'])
 
 ### Unbuffered sys.stdout
 sys.stdout = os.fdopen(1, 'w', 0)
@@ -968,14 +975,12 @@ if __name__ == '__main__':
 	try:
 		main()
 	except KeyboardInterrupt, e:
-		if step != op.delay:
-			print
+		print
 		print ansi['reset'] + 'Exiting on user request'
 		sys.exit(6)
 	except OSError, e:
 #		print e.errno
-		if step != op.delay:
-			print
+		print
 		print ansi['reset'] + 'OSError: %s' %e
 		sys.exit(7)
 

@@ -1,3 +1,6 @@
+* 0.5.3
+-
+
 * 0.5.2
 - Improved disk and net discovery functions (Ville Herva)
 - Fixed a bug with values when using --noupdate (Pasi Pirhonen)
