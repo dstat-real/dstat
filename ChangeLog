@@ -1,8 +1,11 @@
 * 0.5.9
 - Make default list total lists (cpu, disk, net)
-- Fix clearline ANSI to work on (Debian?) rxvt (Joshua Rodman)
+- Fix clearline ANSI to work on older (Debian?) rxvt (Joshua Rodman)
 - Improved color/vt100 terminal capabilities logic (Charles Lepple)
+- Finally use curses for some of the terminal capabilities logic
 - Improvement to non-tty handling for intermediate updates
+- Small fix to handle the edge of the counters better
+- Prevent keyboard input/echo when running
 
 * 0.5.8
 - Added user stats using python-utmp

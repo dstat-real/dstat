@@ -14,10 +14,15 @@
 ### Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 ### Copyright 2004 Dag Wieers <dag@wieers.com>
 
+import sys
+
+#if sys.version_info < (1, 5):
+#	sys.exit('error: Python 1.5 or later required')
+
 #from __future__ import generators
-import fcntl, struct, types, string
-import os, sys, re, getopt, time, termios
+import os, re, getopt, time, types, string
 import ConfigParser, urlparse, signal, resource
+import curses, termios
 
 VERSION = '0.5.9'
 
@@ -1256,17 +1261,20 @@ def die(ret, str):
 def getwinsize():
 	if op.nolimit:
 		return 1024, 1024
-#	curses.wrapper(lambda s:curses.setupterm())
-#	return curses.wrapper(lambda s:curses.tigetnum('lines')), curses.wrapper(lambda s:curses.tigetnum('cols'))
 	try:
-		s = struct.pack('HHHH', 0, 0, 0, 0)
-		x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
-		return struct.unpack('HHHH', x)[:2]
+		curses.setupterm()
+		return curses.tigetnum('lines'), curses.tigetnum('cols')
 	except:
 		try:
-			return int(os.environ['LINES']), int(os.environ['COLUMNS'])
+			import fcntl, struct, termios
+			s = struct.pack('HHHH', 0, 0, 0, 0)
+			x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
+			return struct.unpack('HHHH', x)[:2]
 		except:
-			return 25, 80
+			try:
+				return int(os.environ['LINES']), int(os.environ['COLUMNS'])
+			except:
+				return 25, 80
 
 def getcpunr():
 	cpunr = -1
@@ -1347,8 +1355,7 @@ def main():
 
 	### Check terminal capabilities
 	if sys.stdout.isatty():
-#		import curses
-#		if not curses.wrapper(lambda s:curses.has_colors()):
+#		if curses.tigetnum('colors') < 0:
 		if os.environ.get('TERM', None) not in ('ansi', 'gnome', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm', 'xterm-color'):
 			op.color = False
 	else:
@@ -1417,6 +1424,9 @@ def main():
 			if curwidth + o.varwidth() + 1 <= cols:
 				vislist.append(o)
 				curwidth = curwidth + o.varwidth() + 1
+			elif vislist == totlist[:-1] and curwidth + o.varwidth() <= cols:
+				vislist.append(o)
+				curwidth = curwidth + o.varwidth() + 1
 
 		### Check when to display the header
 		if op.header:
@@ -1426,6 +1436,8 @@ def main():
 				showheader = True
 
 		if showheader:
+			if loop == 0 and totlist != vislist:
+				print 'Screen width too small, trimming output.'
 			showheader = False
 			showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
 			showtitle(2, totlist, vislist, ansi['silver'] + char['pipe'], ansi['darkblue'] + char['gt'])
@@ -1506,9 +1518,10 @@ if __name__ == '__main__':
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
 #		print e.errno
 		print
-		print ansi['reset'] + 'OSError: %s' %e
+		print ansi['reset'] + 'OSError: %s' % e
 		sys.exit(7)
 
+signal.signal(signal.SIGALRM, signal.SIG_DFL)
 sys.exit(0)
 
 # vim:ts=4:sw=4
