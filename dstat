@@ -873,7 +873,7 @@ def main():
 			update = update + 1
 		else:
 			update = update + op.delay
-		step = ((update+3) % op.delay)+1
+		step = ((update + op.delay - 1) % op.delay)+1
 		count = update / op.delay 
 
 		if count != op.count:
