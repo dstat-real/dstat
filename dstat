@@ -15,7 +15,7 @@
 # Copyright 2004 Dag Wieers <dag@wieers.com>
 
 from __future__ import generators
-import os, sys, re, getopt
+import os, sys, re, getopt, fcntl, termios, struct
 import ConfigParser, urlparse, signal, resource
 
 VERSION = "0.4"
@@ -217,7 +217,7 @@ class dstat_cpu(dstat):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
 			if l[0] == 'cpu':
-				self.cn2['user'] = int(l[1])
+				self.cn2['user'] = int(l[1]) + int(l[2])
 				self.cn2['sys'] = int(l[3])
 				self.cn2['idle'] = int(l[4])
 				self.cn2['wait'] = int(l[5])
@@ -246,7 +246,6 @@ class dstat_disk(dstat):
 		}
 		self.nick = self.vars
 		self.init()
-#		self.vars = ('hda', 'hdc', 'sda', 'local', 'total')
 
 		for name in self.vars: self.cn1[name] = (0, 0)
 		self.cn1['total'] = (0, 0)
@@ -259,10 +258,11 @@ class dstat_disk(dstat):
 		retlist = []
 		for line in open('/proc/diskstats', 'r').readlines():
 			dev = line.split()[2]
-			if dev in ('hda', 'hdb', 'hdc', 'hdd', 'sda', 'sdb', 'sdc', 'sdd'):
+			if re.match('^(hd[a-z]|sd[a-z])$', dev):
 				retlist.append(dev)
 		if len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
+		print retlist
 		return retlist
 
 	def check(self):
@@ -292,7 +292,16 @@ class dstat_disk(dstat):
 
 class dstat_disk24(dstat_disk):
 	def discover(self):
-		return ('local', 'lores', 'hires', 'total')
+		retlist = []
+		for line in open('/proc/partitions', 'r').readlines():
+			if len(line) < 4: continue
+			dev = line.split()[3]
+			if re.match('^(hd[a-z]|sd[a-z])$', dev):
+				retlist.append(dev)
+		if len(retlist) > 2: retlist = retlist[0:2]
+		retlist.sort()
+		return retlist
+#		return ('local', 'lores', 'hires', 'total')
 
 	def check(self):
 		if os.path.exists('/proc/partitions') and os.uname()[2] < '2.4.22':
@@ -300,14 +309,12 @@ class dstat_disk24(dstat_disk):
 		return False
 
 	def stats(self):
-		procs = 2
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
 			if l[0] == 'cpu':
 				self.uptime2 = int(l[1]) + int(l[2]) + int(l[3]) + int(l[4])
 
-		hz = 100.0
 		itv = ( self.uptime2 - self.uptime ) / procs
 
 #		print '[up2=', self.uptime2, 'up=', self.uptime , ']',
@@ -399,6 +406,10 @@ class dstat_int(dstat):
 			l = line.split(); name = l[0].split(':')[0]
 			if name in self.vars:
 				self.cn2[name] = int(l[1])
+			elif len(l) > 2 + procs:
+				for hw in self.vars:
+					for mod in l[2+procs:]:
+						self.cn2[mod] = int(l[1])
 
 		if count != 0:
 			for name in self.cn2:
@@ -472,12 +483,11 @@ class dstat_net(dstat):
 		retlist = []
 		for line in open('/proc/net/dev', 'r').readlines():
 			iface = line.split()[0].split(':')[0]
-			if iface in ('bond0', 'bond1', 'eth0', 'eth1', 'eth2', 'wifi0'):
+			if re.match('^(bond\d|eth\d|wifi\d)$', iface):
 				retlist.append(iface)
 		if len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
 		return retlist
-#		return ('bond0', 'eth0', 'eth1')
 
 	def check(self):
 		if os.path.exists('/proc/net/dev'):
@@ -489,14 +499,14 @@ class dstat_net(dstat):
 		for line in open('/proc/net/dev', 'r').readlines():
 			l = line.split()
 			l2 = l[0].split(':')
-			name = l2[0]
+			iface = l2[0]
 			if len(l2) > 1 and l2[1].strip():
 				l = l2[1:] + l[1:]
 			else:
 				l = l[1:]
-			if name in (self.vars) :
-				self.cn2[name] = ( round(float(l[0]) /op.sleep), round(float(l[8]) /op.sleep) )
-			if name in ('bond0', 'bond1', 'bond2', 'eth0', 'eth1', 'eth2', 'eth3', 'eth4', 'eth5'):
+			if iface in (self.vars) :
+				self.cn2[iface] = ( round(float(l[0]) /op.sleep), round(float(l[8]) /op.sleep) )
+			if re.match('^(bond\d|eth\d|wifi\d)$', iface):
 				self.cn2['total'] = ( self.cn2['total'][0] + round(float(l[0]) /op.sleep), self.cn2['total'][1] + round(float(l[8]) /op.sleep))
 
 		if count != 0:
@@ -538,7 +548,7 @@ class dstat_page24(dstat_page):
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split(); name = l[0]
-			if name == 'page':
+			if name == 'swap':
 				self.cn2['pswpin'] = int(l[1]) * pagesize / op.sleep
 				self.cn2['pswpout'] = int(l[2]) * pagesize / op.sleep
 		if count != 0:
@@ -638,7 +648,7 @@ def convlist(max, list):
 
 def conv(max, var, base = 1024):
 	### 'b' is better for the eyes than 'B'
-	units = ('B', 'k', 'm', 'g', 't', 'p')
+	units = ('B', 'k', 'M', 'G', 'T', 'P')
 	c = 0
 	var = round(var)
 #	while len(str(int(var))) > max-1:
@@ -647,38 +657,56 @@ def conv(max, var, base = 1024):
 		c = c + 1
 	return str(int(var)).rjust(max-1) + units[c]
 
-def scsidev(nr):
-	if nr < 26:
-		return 'sd' + chr(ord('a') + nr)
-	else:
-		return 'sd' + chr(ord('a') -1 + nr/26) + chr(ord('a') + nr%26)
+def getwinsize():
+	s = struct.pack("HHHH", 0, 0, 0, 0)
+	try:
+		x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
+	except IOError:
+		return (25, 80)
+	return struct.unpack("HHHH", x)[:2]
 
-def dev(maj, min):
-	scsi = [8, 65, 66, 67, 68, 69, 70, 71, 128, 129, 130, 131, 132, 133, 134, 135]
-	ide = [3, 22, 33, 34, 56, 57, 88, 89, 90, 91]
-	if maj in scsi:
-		nr = scsi.index(maj) * 16 + min
-#		nr = scsi.index(maj) * 16 + min / 16
-		return scsidev(nr)
-	elif maj in ide:
-		nr = ide.index(maj) * 2 + min / 64
-		return 'hd' + chr(ord('a') + nr)
+def getcpunr():
+	procs = 0
+	for line in open('/proc/stat', 'r').readlines():
+		name = line.split()[0]
+		if len(name) == 4 and name[0:3] == 'cpu':
+			procs = procs + 1
+	return procs
 
-def mountpoint(dev):
-	"Return the mountpoint of a mounted device/file"
-	for entry in open('/etc/mtab', 'r').readlines():
-		if entry:
-			list = entry.split()
-			if dev == list[0]:
-				return list[1]
+#def scsidev(nr):
+#	if nr < 26:
+#		return 'sd' + chr(ord('a') + nr)
+#	else:
+#		return 'sd' + chr(ord('a') -1 + nr/26) + chr(ord('a') + nr%26)
+
+#def dev(maj, min):
+#	scsi = [8, 65, 66, 67, 68, 69, 70, 71, 128, 129, 130, 131, 132, 133, 134, 135]
+#	ide = [3, 22, 33, 34, 56, 57, 88, 89, 90, 91]
+#	if maj in scsi:
+#		nr = scsi.index(maj) * 16 + min
+##		nr = scsi.index(maj) * 16 + min / 16
+#		return scsidev(nr)
+#	elif maj in ide:
+#		nr = ide.index(maj) * 2 + min / 64
+#		return 'hd' + chr(ord('a') + nr)
+
+#def mountpoint(dev):
+#	"Return the mountpoint of a mounted device/file"
+#	for entry in open('/etc/mtab', 'r').readlines():
+#		if entry:
+#			list = entry.split()
+#			if dev == list[0]:
+#				return list[1]
 
 def handler(signum, frame):
 	pass
 
 def main():
-	global count, pagesize
+	global count, pagesize, procs, hz
 	count = 0
 	pagesize = resource.getpagesize()
+	procs = getcpunr()
+	hz = os.sysconf('SC_CLK_TCK')
 
 	olist = []
 	for mod in op.modlist:
@@ -707,7 +735,10 @@ def main():
 	while count != op.count:
 		signal.alarm(op.sleep)
 
-		if count % 23 == 0:
+		rows = getwinsize()[0]
+#		if count % (rows-2)  == 0:
+		if count == 0 or count >= (rows-2):
+			count = 0
 			for o in olist:
 				sys.stdout.write(o.title1)
 				if o != olist[-1]:

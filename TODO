@@ -2,8 +2,6 @@
 + Use /etc/dstat.conf to influence output
 + Add --config option
 + Add -o/--output option
-+ Make -I eth0,acpi or -I ide0,yenta work
-+ Show header when out of display instead of 22 lines (see term ?)
 + Maybe add colors to indicate units better (may become ugly)
 + Allow to force to given magnitude
 

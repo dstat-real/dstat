@@ -11,7 +11,10 @@
 - Added enumerate() for python < 2.3, and rewrote/removed it again
 - Check for support of proc filesystem and entries
 - Fixes for kernel 2.4 support (disk and paging)
+- Count number of CPUs (for kernel 2.4 disk support)
 - Titles are now truncated to max-1
+- Show header when it disappears from screen
+- Allow to specify interrupt by device eg. -I eth0,acpi or -I ide0,yenta
 - Initial public release
 
 * 0.3
