@@ -3,7 +3,8 @@
 - Improve conv() function and stat show() functions.
 - Improved the calculation of the cpu usage.
 - cpu stats will now show hardirq and softirq by default if possible. (Anton Blanchard)
-- Color cpu and proc stats too.
+- Color cpu, proc, tcp and udp stats too.
+- Don't clear the line after restoring the cursor at the start (disable flickering).
 
 * 0.5.5
 - In fact, round() was not the problem, use str() instead. (Anton Blanchard)

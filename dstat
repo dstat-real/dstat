@@ -1109,7 +1109,7 @@ def main():
 		if step == op.delay:
 			sys.stdout.write('\n' + ansi['clearline'] + ansi['save'])
 		else:
-			sys.stdout.write(ansi['restore'] + ansi['clearline'])
+			sys.stdout.write(ansi['clearline'] + ansi['restore'])
 
 		loop = (update + op.delay - 1) / op.delay
 		step = ((update - 1) % op.delay) + 1

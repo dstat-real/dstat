@@ -13,6 +13,7 @@
 ### Extending statistics (help welcome!)
 + Add all stats to seperate modules and allow people to plugin their own modules
 + Add application stats (-a or -A pid,cmd)
++ Add mpstat information (-C 0,1,2)
 + Add icmp stats ?
 + Add ntp stats
 + Add user stats (number of users logged on)
