@@ -245,6 +245,8 @@ class dstat:
 					sys.stdout.write('%s' % conv(self.len, self.val[name], 1000))
 			elif self.format == '%ps':
 					sys.stdout.write('%s' % conv(self.len, self.val[name], 100))
+			elif self.format == '%f':
+					sys.stdout.write('%s' % conv(self.len, self.val[name], 1))
 			elif self.format == '%is':
 					sys.stdout.write('%s' % conv(self.len, self.val[name], 0))
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
@@ -520,8 +522,8 @@ class dstat_int(dstat):
 
 class dstat_load(dstat):
 	def __init__(self):
-		self.len = 5
-		self.format = '%5.2f'
+		self.len = 4
+		self.format = '%f'
 		self.name = 'load avg'
 		self.vars = ('load1', 'load5', 'load15')
 		self.nick = ('1m', '5m', '15m')
@@ -671,7 +673,6 @@ class dstat_page24(dstat_page):
 
 class dstat_proc(dstat):
 	def __init__(self):
-#		self.name = 'procs'
 		self.name = 'procs'
 		self.format = '%is'
 		self.len = 2
@@ -888,6 +889,8 @@ def conv(max, var, base = 1024):
 			return ansi['default'] + '0'.rjust(max)
 		else:
 			return ansi[color[long(round(var)/34)]] + str(long(round(var))).rjust(max)
+	elif base == 1:
+		unit = ('', '', '')
 	elif base == 1000:
 		unit = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	else:
@@ -897,7 +900,7 @@ def conv(max, var, base = 1024):
 	while True:
 		repr = str(long(round(var))) + unit[c]
 		if len(repr) <= max:
-			if not op.integer and ( base == 1024 or c > 0):
+			if not op.integer and ( base != 1000 or c > 0):
 				if len('%1.2f' % var) < max:
 					repr = '%1.2f' % var + unit[c]
 				elif len('%1.1f' % var) < max:
