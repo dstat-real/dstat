@@ -1,3 +1,6 @@
+* 0.5.2
+- Changed disk stats discover() from a whitelist to a blacklist
+
 * 0.5.1
 - Fixed bug that caused counters to not be averages when delay > 1
 - Added time stats (-t)

@@ -18,7 +18,7 @@
 import os, sys, re, getopt, fcntl, termios, struct, time
 import ConfigParser, urlparse, signal, resource
 
-VERSION = "0.5.1"
+VERSION = "0.5.2"
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -48,7 +48,7 @@ class Options:
 
 		for opt, arg in opts:
 			if opt in ['-a', '--all']:
-				self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys', 'load' ]
+				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys', 'load' ]
 			elif opt in ['-c', '--cpu']:
 				self.modlist.append('cpu')
 			elif opt in ['-h', '--help']:
@@ -276,9 +276,11 @@ class dstat_disk(dstat):
 	def discover(self):
 		retlist = []
 		for line in open('/proc/diskstats', 'r').readlines():
-			dev = line.split()[2]
-			if re.match('^(hd[a-z]|sd[a-z])$', dev):
-				retlist.append(dev)
+			l = line.split()
+			if len(l) < 13: continue
+			name = l[2]
+			if not re.match('^(ram[0-9]+|loop[0-9]+)$', name):
+				retlist.append(name)
 		if len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
 		return retlist
@@ -291,7 +293,9 @@ class dstat_disk(dstat):
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/diskstats', 'r').readlines():
-			l = line.split(); name = l[2]
+			l = line.split();
+			if len(l) < 13: continue
+			name = l[2]
 			if name in self.vars:
 #				print mountpoint('/dev/' + name)
 #				bsize = os.statvfs(mountpoint('/dev/' + name))[0]
@@ -314,10 +318,11 @@ class dstat_disk24(dstat_disk):
 	def discover(self):
 		retlist = []
 		for line in open('/proc/partitions', 'r').readlines():
-			if len(line) < 4: continue
-			dev = line.split()[3]
-			if re.match('^(hd[a-z]|sd[a-z])$', dev):
-				retlist.append(dev)
+			l = line.split()
+			if len(l) < 15 or l[12] == '0': continue
+			name = l[3]
+			if not re.match('^(ram[0-9]+|loop[0-9]+|name)$', name):
+				retlist.append(name)
 		if len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
 		return retlist
@@ -736,9 +741,9 @@ def conv(max, var, base = 1024):
 	### lowercase (b) is better for the eyes than uppercase
 	unit = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	if step == op.delay:
-		color = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
+		color = ('silver', 'red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred')
 	else:
-		color = ('darkred', 'brown', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'darkred', 'darkgreen')
+		color = ('gray', 'darkred', 'brown', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'darkred')
 		
 	c = 0
 	var = var / step
@@ -892,7 +897,7 @@ def main():
 			update = update + 1
 		else:
 			update = update + op.delay
-		step = ((update + op.delay - 1) % op.delay)+1
+		step = ((update + op.delay - 1) % op.delay) + 1
 		count = update / op.delay 
 
 		if count != op.count:
@@ -924,12 +929,14 @@ if __name__ == '__main__':
 	try:
 		main()
 	except KeyboardInterrupt, e:
-		print
+		if step != op.delay:
+			print
 		print 'Exiting on user request'
 		sys.exit(6)
 	except OSError, e:
 #		print e.errno
-		print
+		if step != op.delay:
+			print
 		print 'OSError: %s' %e
 		sys.exit(7)
 
