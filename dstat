@@ -1408,7 +1408,7 @@ def main():
 		sys.stdout.write(ansi['default'])
 
 		### Debugging info
-#		sys.stdout.write('[%d:%d:%d]' % (loop, step, update))
+#		sys.stdout.write('[%d:%d:%d] ' % (loop, step, update))
 
 		### Show the stats, calculate all objects (visible, invisible)
 		for o in totlist:
@@ -1416,9 +1416,9 @@ def main():
 			if o in vislist:
 				o.show()
 				o.showend(totlist, vislist)
-				if op.output and step == op.delay:
-					o.showcsv()
-					o.showcsvend(totlist, vislist)
+			if op.output and step == op.delay:
+				o.showcsv()
+				o.showcsvend(totlist, vislist)
 		sys.stdout.write(ansi['default'])
 		if op.output and step == op.delay:
 			outputfile.write('\n')
