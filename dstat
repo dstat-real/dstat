@@ -15,7 +15,7 @@
 # Copyright 2004 Dag Wieers <dag@wieers.com>
 
 #from __future__ import generators
-import os, sys, re, getopt, fcntl, termios, struct, time
+import os, sys, re, getopt, time
 import ConfigParser, urlparse, signal, resource
 
 VERSION = "0.5.2"
@@ -38,7 +38,7 @@ class Options:
 		try:
 			opts, args = getopt.getopt (args, 'acdghilmnpstvyD:I:N:',
 				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net',
-				'page', 'proc', 'swap', 'sys', 'time', 'version', 'vm', 'vmstat',
+				'page', 'proc', 'swap', 'sys', 'time', 'version', 'vmstat',
 				'integer', 'nocolor', 'noheader', 'noupdate'])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
@@ -47,14 +47,8 @@ class Options:
 		self.modlist = []
 
 		for opt, arg in opts:
-			if opt in ['-a', '--all']:
-				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys', 'load' ]
-			elif opt in ['-c', '--cpu']:
+			if opt in ['-c', '--cpu']:
 				self.modlist.append('cpu')
-			elif opt in ['-h', '--help']:
-				self.usage()
-				self.help()
-				sys.exit(0)
 			elif opt in ['-d', '--disk']:
 				self.modlist.append('disk')
 			elif opt in ['-D']:
@@ -81,12 +75,13 @@ class Options:
 				self.modlist.append('time')
 			elif opt in ['-y', '--sys']:
 				self.modlist.append('sys')
-			elif opt in ['-v', '--version']:
-				self.version()
-				sys.exit(0)
-			elif opt in ['--vm', '--vmstat']:
-				self.modlist = [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
+
+			elif opt in ['-a', '--all']:
+				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys', 'load' ]
+			elif opt in ['-v', '--vmstat']:
+				self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 				self.disklist = ('total',)
+
 			elif opt in ['--integer']:
 				self.integer = True
 			elif opt in ['--nocolor']:
@@ -95,6 +90,15 @@ class Options:
 				self.header = False
 			elif opt in ['--noupdate']:
 				self.update = False
+
+			elif opt in ['-h', '--help']:
+				self.usage()
+				self.help()
+				sys.exit(0)
+			elif opt in ['-v', '--version']:
+				self.version()
+				sys.exit(0)
+
 
 		if not self.modlist:
 			self.modlist = [ 'cpu', 'disk', 'net', 'sys' ]
@@ -120,7 +124,6 @@ class Options:
 		print '''Versatile tool for generating system resource statistics
 
 Dstat options:
-  -a, --all          enable cpu, disk, net, page, sys and load (eq. -cdngyl)
   -c, --cpu          enable cpu stats
   -d, --disk         enable disk stats
      -D total,hda       include hda and total
@@ -135,6 +138,9 @@ Dstat options:
   -s, --swap         enable swap stats
   -t, --time         enable time counter
   -y, --sys          enable system stats
+
+  -a, --all          equals -cdngyl
+  -v, --vmstat       equals -pmgdsc -D total
 
   --integer          show integer values
   --nocolor          disable colors
@@ -237,12 +243,12 @@ class dstat_cpu(dstat):
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if len(l) > 6 and l[0] == 'cpu':
-				self.cn2['user'] = long(l[1]) + long(l[2])
-				self.cn2['sys'] = long(l[3])
-				self.cn2['idle'] = long(l[4])
-				self.cn2['wait'] = long(l[5])
-				self.cn2['sum'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait']
+			if len(l) < 1 or l[0] != 'cpu' or len(l) < 6: continue
+			self.cn2['user'] = long(l[1]) + long(l[2])
+			self.cn2['sys'] = long(l[3])
+			self.cn2['idle'] = long(l[4])
+			self.cn2['wait'] = long(l[5])
+			self.cn2['sum'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait']
 		for name in self.vars:
 			self.val[name] = (100.0 * (self.cn2[name]-self.cn1[name]) + (self.cn2['sum']-self.cn1['sum']) / 2) / (self.cn2['sum']-self.cn1['sum'])
 		self.cn1.update(self.cn2)
@@ -279,7 +285,7 @@ class dstat_disk(dstat):
 			l = line.split()
 			if len(l) < 13: continue
 			name = l[2]
-			if not re.match('^(ram[0-9]+|loop[0-9]+)$', name):
+			if not re.match('^(ram\d+|loop\d+)$', name):
 				retlist.append(name)
 		if len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
@@ -329,26 +335,12 @@ class dstat_disk24(dstat_disk):
 #		return ('local', 'lores', 'hires', 'total')
 
 	def check(self):
-		if os.path.exists('/proc/partitions') and os.uname()[2] < '2.4.22':
+		if os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
 			return True
 		return False
 
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
-		for line in open('/proc/stat', 'r').readlines():
-			l = line.split()
-			if len(l) > 7 and ( l[0] == 'cpu0' or l[0] == 'cpu' ):
-				self.uptime2 = long(l[1]) + long(l[2]) + long(l[3]) + long(l[4]) + long(l[5]) + long(l[6]) + long(l[7])
-#				self.uptime2 = sum(map(long, l[1-7]))
-
-		itv = self.uptime2 - self.uptime
-
-#		print '[up2=', self.uptime2, 'up=', self.uptime , ']',
-#		print '[dup=', self.uptime2 - self.uptime , ']',
-#		print '[itv=', itv, 'HZ=', hz , ']',
-
-		self.uptime = self.uptime2
-
 		for line in open('/proc/partitions', 'r').readlines():
 			l = line.split();
 			if len(l) < 10: continue
@@ -364,23 +356,26 @@ class dstat_disk24(dstat_disk):
 		if update:
 			for name in self.cn2:
 				self.val[name] = ( 
-					(self.cn2[name][0]-self.cn1[name][0]) * 1024.0 / itv * hz / 2.0,
-					(self.cn2[name][1]-self.cn1[name][1]) * 1024.0 / itv * hz / 2.0,
+					(self.cn2[name][0]-self.cn1[name][0]) * 512.0 / step,
+					(self.cn2[name][1]-self.cn1[name][1]) * 512.0 / step,
 				)
-#		print '[rd=', self.cn2[name][0]-self.cn1[name][0], 'wr=', self.cn2[name][1]-self.cn1[name][1] , ']',
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
 class dstat_disk24old(dstat_disk24):
 	def check(self):
-		if os.path.exists('/proc/stat') and os.uname()[2] < '2.4.22':
+		if os.path.exists('/proc/stat') and \
+			not os.path.exists('/proc/partitions') and \
+			not os.path.exists('/proc/diskstats'):
 			return True
 		return False
 
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
-			l = line.split(':'); name = l[0]
+			l = line.split(':');
+			if len(l) < 1: continue
+			name = l[0]
 			if name == 'disk_io':
 				for pair in line.split()[1:]:
 					m = re.match('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$', pair)
@@ -403,8 +398,8 @@ class dstat_disk24old(dstat_disk24):
 
 class dstat_int(dstat):
 	def __init__(self):
-		self.format = '%4d'
-		self.len = 4
+		self.len = 5
+		self.format = '%5d'
 		self.name = 'interrupts'
 		if op.intlist:
 			self.vars = op.intlist
@@ -414,13 +409,15 @@ class dstat_int(dstat):
 		self.init()
 
 	def discover(self):
-		retlist = ()
+		retlist = []
 		for line in open('/proc/interrupts', 'r').readlines():
-			l = line.split(); name = l[0].split(':')[0]
-			if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
-				continue
+			l = line.split();
+			if len(l) < 1: continue
+			name = l[0].split(':')[0]
+			if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'): continue
 			if len(l) > 1 and l[1] != '0':
-				retlist = retlist + (name,)
+				retlist.append(name)
+		if len(retlist) > 3: retlist = retlist[-4:-1]
 		return retlist
 
 	def check(self):
@@ -460,6 +457,7 @@ class dstat_load(dstat):
 	def stats(self):
 		for line in open('/proc/loadavg', 'r').readlines():
 			l = line.split()
+			if len(l) < 1: continue
 			self.val['load1'] = float(l[0])
 			self.val['load5'] = float(l[1])
 			self.val['load15'] = float(l[2])
@@ -481,6 +479,7 @@ class dstat_mem(dstat):
 	def stats(self):
 		for line in open('/proc/meminfo', 'r').readlines():
 			l = line.split()
+			if len(l) < 1: continue
 			name = l[0].split(':')[0]
 			if name in self.vars + ('MemTotal',):
 				self.val[name] = long(l[1]) * 1024.0
@@ -508,9 +507,11 @@ class dstat_net(dstat):
 	def discover(self):
 		retlist = []
 		for line in open('/proc/net/dev', 'r').readlines():
-			iface = line.split()[0].split(':')[0]
-			if re.match('^(bond\d|eth\d|wifi\d)$', iface):
-				retlist.append(iface)
+			l = line.split()
+			name = l[0].split(':')[0]
+			if l[1] == '0': continue
+			if not re.match('^(Inter-\||face|lo|wifi\d+)$', name):
+				retlist.append(name)
 		if len(retlist) > 2: retlist = retlist[0:2]
 		retlist.sort()
 		return retlist
@@ -525,20 +526,20 @@ class dstat_net(dstat):
 		for line in open('/proc/net/dev', 'r').readlines():
 			l = line.split()
 			l2 = l[0].split(':')
-			iface = l2[0]
+			name = l2[0]
 			if len(l2) > 1 and l2[1].strip():
 				l = l2[1:] + l[1:]
 			else:
 				l = l[1:]
-			if iface in (self.vars) :
-				self.cn2[iface] = ( long(l[0]), long(l[8]) )
-			if re.match('^(bond\d|eth\d|wifi\d)$', iface):
+			if name in (self.vars) :
+				self.cn2[name] = ( long(l[0]), long(l[8]) )
+			if not re.match('^(Inter-\||face|lo)$', name):
 				self.cn2['total'] = ( self.cn2['total'][0] + long(l[0]), self.cn2['total'][1] + long(l[8]))
 		if update:
 			for name in self.cn2:
 				self.val[name] = ( 
 					(self.cn2[name][0]-self.cn1[name][0]) * 1.0 / step,
-					(self.cn2[name][1]-self.cn1[name][1]) * 1.0 / step
+					(self.cn2[name][1]-self.cn1[name][1]) * 1.0 / step,
 				 )
 		if step == op.delay:
 			self.cn1.update(self.cn2)
@@ -565,12 +566,12 @@ class dstat_page(dstat):
 		if update:
 			for name in self.vars:
 				self.val[name] = (self.cn2[name]-self.cn1[name]) * pagesize * 1.0 / step
-		if step == 1:
+		if step == op.delay:
 			self.cn1.update(self.cn2)
 
 class dstat_page24(dstat_page):
 	def check(self):
-		if os.path.exists('/proc/stat') and os.uname()[2] < '2.4.22':
+		if os.path.exists('/proc/stat') and not os.path.exists('/proc/vmstat'):
 			return True
 		return False
 
@@ -608,11 +609,12 @@ class dstat_proc(dstat):
 			l = line.split(); name = l[0]
 			if name in self.vars:
 				self.val[name] = long(l[1])
-#			if name in ('processess',):
+#			if name in ('processes',):
+#				self.val['processes'] = 0
 #				self.cn2[name] = long(l[1])
 		self.val['procs_running'] = self.val['procs_running'] - 1
 #		if update:
-#			self.val['processes'] = self.cn2['processes']-self.cn1['processes']
+#			self.val['processes'] = (self.cn2['processes'] - self.cn1['processes'])
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
@@ -691,7 +693,7 @@ ansi = {
 	'black': '\033[0;30m',
 	'darkred': '\033[0;31m',
 	'darkgreen': '\033[0;32m',
-	'brown': '\033[0;33m',
+	'darkyellow': '\033[0;33m',
 	'darkblue': '\033[0;34m',
 	'darkmagenta': '\033[0;35m',
 	'darkcyan': '\033[0;36m',
@@ -741,12 +743,11 @@ def conv(max, var, base = 1024):
 	### lowercase (b) is better for the eyes than uppercase
 	unit = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	if step == op.delay:
-		color = ('silver', 'red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred')
+		color = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
 	else:
-		color = ('gray', 'darkred', 'brown', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'darkred')
+		color = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'geen')
 		
 	c = 0
-	var = var / step
 	while True:
 		if len('%d' % round(long(var))) < max:
 			if not op.integer and len('%1.2f' % var) < max:
@@ -766,12 +767,14 @@ def conv(max, var, base = 1024):
 		return ' ' * (max-2) + '0 '
 
 def getwinsize():
-	s = struct.pack("HHHH", 0, 0, 0, 0)
 	try:
+		import fcntl, struct, termios
+		s = struct.pack("HHHH", 0, 0, 0, 0)
 		x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
+		ret = struct.unpack("HHHH", x)[:2]
 	except IOError:
 		return (25, 80)
-	return struct.unpack("HHHH", x)[:2]
+	return ret
 
 def getcpunr():
 	procs = 0
@@ -785,7 +788,7 @@ def scsidev(nr):
 	if nr < 26:
 		return 'sd' + chr(ord('a') + nr)
 	else:
-		return 'sd' + chr(ord('a') -1 + nr/26) + chr(ord('a') + nr%26)
+		return 'sd' + chr(ord('a') - 1 + nr / 26) + chr(ord('a') + nr % 26)
 
 def dev(maj, min):
 	scsi = [8, 65, 66, 67, 68, 69, 70, 71, 128, 129, 130, 131, 132, 133, 134, 135]
@@ -810,13 +813,13 @@ def handler(signum, frame):
 	pass
 
 def main():
-	global update, count, step, pagesize, procs, hz, ansi
+	global update, loop, step, pagesize, procs, ansi
 
-	count = update = 0
+	loop = update = 0
 	step = op.delay
 	pagesize = resource.getpagesize()
 	procs = getcpunr()
-	hz = os.sysconf('SC_CLK_TCK')
+#	hz = os.sysconf('SC_CLK_TCK')
 
 	### Empty ansi database if no colors are requested
 	if not op.color:
@@ -828,16 +831,16 @@ def main():
 	for mod in op.modlist:
 		if mod == 'cpu':	olist.append(dstat_cpu())
 		elif mod == 'disk':
-#			olist.append(dstat_disk24old())
-			olist.append(dstat_disk24())
 			olist.append(dstat_disk())
+			olist.append(dstat_disk24())
+			olist.append(dstat_disk24old())
 		elif mod == 'int':	olist.append(dstat_int())
 		elif mod == 'load':	olist.append(dstat_load())
 		elif mod == 'mem':	olist.append(dstat_mem())
 		elif mod == 'net':	olist.append(dstat_net())
 		elif mod == 'page':
-			olist.append(dstat_page24())
 			olist.append(dstat_page())
+			olist.append(dstat_page24())
 		elif mod == 'proc':	olist.append(dstat_proc())
 		elif mod == 'swap':	olist.append(dstat_swap())
 		elif mod == 'sys':	olist.append(dstat_sys())
@@ -852,8 +855,9 @@ def main():
 		os.nice(-10)
 #	sys.setcheckinterval(op.delay * 1.5 * 100)
 	signal.signal(signal.SIGALRM, handler)
-	while count != op.count:
+	while loop != op.count:
 
+		### When intermediate updates are enabled, signal each second
 		if op.update:
 			signal.alarm(1)
 		else:
@@ -861,7 +865,8 @@ def main():
 
 		rows = getwinsize()[0]
 
-		if step == op.delay and count % (rows-2) == 0 and (op.header or count == 0):
+		### Check when to display a header
+		if step == op.delay and loop % (rows-2) == 0 and (op.header or loop == 0):
 			for o in olist:
 				sys.stdout.write(o.title1)
 				if o != olist[-1]: sys.stdout.write(' ')
@@ -872,35 +877,38 @@ def main():
 				if o != olist[-1]: sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
 			sys.stdout.write('\n')
 
-
-		if step == op.delay:
-			ansi['default'] = ansi['reset']
-		else:
+		### Prepare the colors for intermediate updates, last step in a loop is normal
+		if step != op.delay:
 			ansi['default'] = ansi['gray']
-
+		else:
+			ansi['default'] = ansi['reset']
 		sys.stdout.write(ansi['default'])
 
-#		sys.stdout.write('[%d:%d:%d]' % (count,step,update))
+		### Debugging info
+#		sys.stdout.write('[%d:%d:%d]' % (loop,step,update))
+
+		### Show the stats
 		for o in olist:
 			o.stats()
 			o.show()
 			if o != olist[-1]: sys.stdout.write(ansi['silver'] + '|' + ansi['default'])
 
+		### The last step in a loop is to show the definitive line on a new line
 		if step == op.delay:
-			sys.stdout.write('\n')
-			sys.stdout.write(ansi['save'])
+			sys.stdout.write('\n' + ansi['save'])
 		else:
 #			sys.stdout.write('\n')
 			sys.stdout.write(ansi['restore'])
 
+		### If intermediate results, update increases with 1 sec
 		if op.update:
 			update = update + 1
 		else:
 			update = update + op.delay
-		step = ((update + op.delay - 1) % op.delay) + 1
-		count = update / op.delay 
+		step = ((update - 1) % op.delay) + 1
+		loop = update / op.delay 
 
-		if count != op.count:
+		if loop != op.count:
 			signal.pause()
 
 ### Unbuffered sys.stdout

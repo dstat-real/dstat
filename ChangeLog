@@ -1,5 +1,6 @@
 * 0.5.2
-- Changed disk stats discover() from a whitelist to a blacklist
+- Improved disk and net discovery functions
+- Fixed a bug with values when using --noupdate (Pasi Pirhonen)
 
 * 0.5.1
 - Fixed bug that caused counters to not be averages when delay > 1

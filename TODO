@@ -21,3 +21,4 @@
 + Implement better (?) protection against counter rollovers
 + If you have 2 devices with the same name, -I will only work on the first one
 + When using -D hdk, -I 99, -N eth9 dstat should fail when it does not exist 
++ CPU stats is avg of begin and end snapshot, not avg of intermediate results (better than vmstat though)
