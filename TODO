@@ -29,6 +29,7 @@
 
 ### General bugs
 + Timer is not accurate on 2.6 kernel, every second there's a 1ms deviation (every 17mins -> 1sec)
++ Python 1.5 prints 'L' for long, crashes when int()
 
 ### Stat bugs
 + tcp stat is very slow and generates lots of softirqs (on some systems)

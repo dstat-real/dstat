@@ -19,7 +19,7 @@ import fcntl, struct, types, string
 import os, sys, re, getopt, time, termios
 import ConfigParser, urlparse, signal, resource
 
-VERSION = '0.5.8'
+VERSION = '0.5.9'
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -405,7 +405,15 @@ class dstat_cpu(dstat):
 		if op.cpulist:
 			list = op.cpulist
 		else:
-			list = ('', )
+			if not op.full:
+				list = ('', )
+			else:
+				list = []
+				cpu = 0
+				while cpu < cpunr:
+					list.append(str(cpu))
+					cpu = cpu + 1
+				if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
@@ -456,7 +464,15 @@ class dstat_cpu24(dstat):
 		if op.cpulist:
 			list = op.cpulist
 		else:
-			list = ('',)
+			if not op.full:
+				list = ('', )
+			else:
+				list = []
+				cpu = 0
+				while cpu < cpunr:
+					list.append(str(cpu))
+					cpu = cpu + 1
+				if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
@@ -513,9 +529,12 @@ class dstat_disk(dstat):
 		if op.disklist:
 			list = op.disklist
 		else:
-			list = self.discover()
-			if not op.full and len(list) > 2: list = list[0:2]
-			list.sort()
+			if not op.full:
+				list = ('total', )
+			else:
+				list = self.discover()
+				if len(list) > 2: list = list[0:2]
+				list.sort()
 		for name in list:
 			if name in self.discover('total') + self.diskset.keys():
 				ret.append(name)
@@ -561,9 +580,12 @@ class dstat_disk24(dstat_disk):
 		if op.disklist:
 			list = op.disklist
 		else:
-			list = self.discover()
-			if not op.full and len(list) > 2: list = list[0:2]
-			list.sort()
+			if not op.full:
+				list = ('total', )
+			else:
+				list = self.discover()
+				if len(list) > 2: list = list[0:2]
+				list.sort()
 		for name in list:
 			if name in self.discover('total') + self.diskset.keys():
 				ret.append(name)
@@ -703,7 +725,7 @@ class dstat_int24(dstat):
 		if os.path.exists('/proc/interrupts'):
 			for line in open('/proc/interrupts', 'r').readlines():
 				l = string.split(line)
-				if len(l) < procs+1: continue
+				if len(l) < cpunr+1: continue
 				name = string.split(l[0], ':')[0]
 				if long(l[1]) > 10:
 					ret.append(name)
@@ -735,15 +757,15 @@ class dstat_int24(dstat):
 	def stats(self):
 		for line in open('/proc/interrupts', 'r').readlines():
 			l = string.split(line)
-			if len(l) < procs+1: continue
+			if len(l) < cpunr+1: continue
 			name = string.split(l[0], ':')[0]
 			if name in self.vars:
 				self.cn2[name] = 0
-				for i in l[1:1+procs]:
+				for i in l[1:1+cpunr]:
 					self.cn2[name] = self.cn2[name] + long(i)
-#			elif len(l) > 2 + procs:
+#			elif len(l) > 2 + cpunr:
 #				for hw in self.vars:
-#					for mod in l[2+procs:]:
+#					for mod in l[2+cpunr:]:
 #						self.cn2[mod] = long(l[1])
 		if update:
 			for name in self.cn2.keys():
@@ -791,7 +813,7 @@ class dstat_mem(dstat):
 		for line in open('/proc/meminfo', 'r').readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
-			name = l[0].split(':')[0]
+			name = string.split(l[0],':')[0]
 			if name in self.vars + ('MemTotal',):
 				self.val[name] = long(l[1]) * 1024.0
 		self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
@@ -830,8 +852,12 @@ class dstat_net(dstat):
 		if op.netlist:
 			list = op.netlist
 		else:
-			list = self.discover()
-			if not op.full and len(list) > 2: list = list[0:2]
+			if not op.full:
+				list = ('total', )
+			else:
+				list = self.discover()
+				if len(list) > 2: list = list[0:2]
+				list.sort()
 		for name in list:
 			if name in self.discover('total'):
 				ret.append(name)
@@ -1122,7 +1148,8 @@ ansi = {
 	'underline': '\033[4m',
 
 	'clear': '\033[2J',
-	'clearline': '\033[K',
+#	'clearline': '\033[K',
+	'clearline': '\033[2K',
 #	'save': '\033[s',
 #	'restore': '\033[u',
 	'save': '\0337',
@@ -1242,11 +1269,11 @@ def getwinsize():
 			return 25, 80
 
 def getcpunr():
-	procs = -1
+	cpunr = -1
 	for line in open('/proc/stat', 'r').readlines():
 		if line[0:3] == 'cpu':
-			procs = procs + 1
-	return procs
+			cpunr = cpunr + 1
+	return cpunr
 
 def scsidev(nr):
 	if nr < 26:
@@ -1277,17 +1304,14 @@ def signaler(signum, frame):
 	signal.alarm(interval)
 
 def main():
-	global update, loop, step, pagesize, procs, ansi, interval, outputfile
+	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile
 
 	loop = update = 0
 	step = op.delay
 	pagesize = resource.getpagesize()
-	procs = getcpunr()
+	cpunr = getcpunr()
 #	hz = os.sysconf('SC_CLK_TCK')
 	interval = 1
-
-	if not op.update:
-		interval = op.delay
 
 	if op.output:
 		outputfile = open(op.output, 'a', 0)
@@ -1322,9 +1346,12 @@ def main():
 			info(1, 'Module \'%s\' does not exist or failed to load.' % mod)
 
 	### Check terminal capabilities
-#	import curses
-#	if not sys.stdout.isatty() or not curses.wrapper(lambda s:curses.has_colors()):
-	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'gnome', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm'):
+	if sys.stdout.isatty():
+#		import curses
+#		if not curses.wrapper(lambda s:curses.has_colors()):
+		if os.environ.get('TERM', None) not in ('ansi', 'gnome', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm', 'xterm-color'):
+			op.color = False
+	else:
 		op.color = False
 		op.nolimit = True
 		op.update = False
@@ -1336,6 +1363,9 @@ def main():
 		op.update = False
 		for key in ansi.keys():
 			ansi[key] = ''
+
+	if not op.update:
+		interval = op.delay
 
 	### Remove defect objects and calculate line length
 	linewidth = 0
@@ -1453,7 +1483,7 @@ except NameError:
 Yes = yes = On = on = True
 No = no = Off = off = False
 
-### Workaround for python < 2.3
+### Workaround for python < 2.1
 def enumerate(sequence):
     index = 0
     list = []

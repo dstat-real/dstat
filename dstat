@@ -1313,9 +1313,6 @@ def main():
 #	hz = os.sysconf('SC_CLK_TCK')
 	interval = 1
 
-	if not op.update:
-		interval = op.delay
-
 	if op.output:
 		outputfile = open(op.output, 'a', 0)
 
@@ -1349,9 +1346,12 @@ def main():
 			info(1, 'Module \'%s\' does not exist or failed to load.' % mod)
 
 	### Check terminal capabilities
-#	import curses
-#	if not sys.stdout.isatty() or not curses.wrapper(lambda s:curses.has_colors()):
-	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'gnome', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm'):
+	if sys.stdout.isatty():
+#		import curses
+#		if not curses.wrapper(lambda s:curses.has_colors()):
+		if os.environ.get('TERM', None) not in ('ansi', 'gnome', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm', 'xterm-color'):
+			op.color = False
+	else:
 		op.color = False
 		op.nolimit = True
 		op.update = False
@@ -1363,6 +1363,9 @@ def main():
 		op.update = False
 		for key in ansi.keys():
 			ansi[key] = ''
+
+	if not op.update:
+		interval = op.delay
 
 	### Remove defect objects and calculate line length
 	linewidth = 0
@@ -1471,16 +1474,7 @@ def main():
 ### Unbuffered sys.stdout
 sys.stdout = os.fdopen(1, 'w', 0)
 
-### Workaround for python <= 2.2.1
-try:
-     True, False
-except NameError:
-     True = 1
-     False = 0
-Yes = yes = On = on = True
-No = no = Off = off = False
-
-### Workaround for python < 2.3
+### Workaround for python > 2.1 and < 2.3
 def enumerate(sequence):
     index = 0
     for item in sequence:
