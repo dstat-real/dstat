@@ -1,3 +1,6 @@
+* 0.5.5
+- Abandoned the use of round() as it is limited to integers (Juergen Kreileder)
+
 * 0.5.4
 - Added a python 1.5 version of dstat (Ville Herva)
 - Fixed a problem with count

@@ -884,17 +884,18 @@ def conv(max, var, base = 1024):
 	else:
 		color = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'geen')
 		
-	if var < 0: return ' ' * (max-2) + '- '
+	if var < 0:
+		return ' ' * (max-2) + '- '
 
 	c = 0
 	while True:
-		if len('%d' % round(long(var))) < max:
+		if len('%d' % long(var)) < max:
 			if not op.integer and len('%1.2f' % var) < max:
 				ret = '%1.2f' % var
 			elif not op.integer and len('%1.1f' % var) < max:
 				ret = '%1.1f' % var
 			else:
-				ret = '%d' % round(long(var))
+				ret = '%d' % long(var)
 			break
 		var = var / base
 		c = c + 1
