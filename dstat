@@ -571,13 +571,12 @@ class dstat_int(dstat):
 
 	def discover(self):
 		ret = []
-		if os.path.exists('/proc/interrupts'):
-			for line in open('/proc/interrupts', 'r').readlines():
+		if os.path.exists('/proc/stat'):
+			for line in open('/proc/stat', 'r').readlines():
 				l = line.split()
-				if len(l) < procs+1: continue
-				name = l[0].split(':')[0]
-				if long(l[1]) > 10:
-					ret.append(name)
+				if l[0] != 'intr': continue
+				for name, i in enumerate(l[2:]):
+					if long(i) > 10: ret.append(str(name))
 		return ret
 
 	def vars(self):
@@ -589,7 +588,62 @@ class dstat_int(dstat):
 			for name in list:
 				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
 					list.remove(name)
-			if not op.full and len(list) > 3: list = list[-4:-1]
+			if not op.full and len(list) > 3: list = list[-3:]
+		for name in list:
+			if name in self.discover():
+				ret.append(name)
+		return ret
+
+	def stats(self):
+		for line in open('/proc/stat', 'r').readlines():
+			l = line.split()
+			if l[0] != 'intr': continue
+			for name in self.vars:
+				self.cn2[name] = long(l[int(name) + 2])
+		if update:
+			for name in self.vars:
+				self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / step
+		if step == op.delay:
+			self.cn1.update(self.cn2)
+
+class dstat_int24(dstat):
+	def __init__(self):
+		self.len = 5
+		self.format = '%ds'
+		self.name = 'interrupts'
+		self.vars = self.vars()
+		self.nick = self.vars
+		self.init()
+
+	def discover(self):
+		ret = []
+		if os.path.exists('/proc/interrupts'):
+			for line in open('/proc/interrupts', 'r').readlines():
+				l = line.split()
+				if len(l) < procs+1: continue
+				name = l[0].split(':')[0]
+				if long(l[1]) > 10:
+					ret.append(name)
+		return ret
+
+	def check(self):
+		for line in open('/proc/stat', 'r').readlines():
+			l = line.split()
+			if l[0] != 'intr' or len(l) > 2: continue
+			if self.discover():
+				return True
+		return False
+
+	def vars(self):
+		ret = []
+		if op.intlist:
+			list = op.intlist
+		else:
+			list = self.discover()
+			for name in list:
+				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
+					list.remove(name)
+			if not op.full and len(list) > 3: list = list[-3:]
 		for name in list:
 			if name in self.discover():
 				ret.append(name)
@@ -1117,7 +1171,9 @@ def main():
 			olist.append(dstat_disk())
 			olist.append(dstat_disk24())
 			olist.append(dstat_disk24old())
-		elif mod == 'int':	olist.append(dstat_int())
+		elif mod == 'int':
+			olist.append(dstat_int())
+			olist.append(dstat_int24())
 		elif mod == 'load':	olist.append(dstat_load())
 		elif mod == 'mem':	olist.append(dstat_mem())
 		elif mod == 'net':	olist.append(dstat_net())
