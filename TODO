@@ -18,6 +18,7 @@
 + Look into interfacing with apps (bind, sendmail, postfix, squid, amavisd, laus, samba)
 + Look into interfacing with specific HW counters in /proc
 + Look at /proc/slabinfo, /proc/meminfo, /proc/locks, /proc/mdstat, /proc/vmstat
++ Allow for SNMP counters to be added
 
 ### Documentation (help welcome!)
 + Improve manpage
@@ -27,7 +28,6 @@
   (explaining the different uses of tools like dstat, iostat, pmap, strace, tcpdump)
 
 ### General bugs
-+ Backport all changes to dstat15
 + Timer is not accurate on 2.6 kernel, every second there's a 1ms deviation (every 17mins -> 1sec)
 
 ### Stat bugs

@@ -21,7 +21,7 @@ in a cluster with a minimum of effort:
 	screen -t node05 5 ssh -t 172.17.0.215 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
 
 Put this in a file named screenrc-5nodes and then set the environment
-variable to tell screen to unly run this config-file for the next screen.
+variable to tell screen to use this config-file for the next screen.
 
 	SCREENRC='screenrc-5nodes' screen
 
