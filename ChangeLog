@@ -9,7 +9,8 @@
 - Implemented a basic network, interrupt and disk 'discovery' function
 - Replaced hardcoded 4096 by resource.getpagesize()
 - Added enumerate() for python < 2.3
-- Fixes for kernel 2.4 support
+- Check for support of proc filesystem and entries
+- Fixes for kernel 2.4 support (disk and paging)
 - Titles are now truncated to max-1
 - Initial public release
 
