@@ -1,10 +1,12 @@
+* 0.5.8
+- Added user stats using python-utmp
+- Bail out if all requested stats fail
+
 * 0.5.7
 - Change Makefile to not install when run without target (Kurt Roeckx)
 - Fixed another crash caused by /proc instability
 - Added --csv option to output Comma-Seperated-Value output
 - If output is not a tty, don't care about line-width
-- Added user stats using python-utmp
-- Bail out if all requested stats fail
 
 * 0.5.6
 - Made sys and int stats unit-aware (so 10000 int/sec -> 10.0k) (Anton Blanchard)

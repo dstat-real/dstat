@@ -20,7 +20,7 @@ import os, sys, re, getopt, time, termios
 import ConfigParser, urlparse, signal, resource
 #import curses
 
-VERSION = '0.5.7'
+VERSION = '0.5.8'
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -175,6 +175,7 @@ Dstat options:
   -p, --proc               enable process stats
   -s, --swap               enable swap stats
   -t, --time               enable time counter
+  -u, --user               enable user stats
   -y, --sys                enable system stats
 
   -M stat1,stat2           enable specific stats

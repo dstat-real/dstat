@@ -3,7 +3,7 @@
 .SH NAME
 Dstat \- Versatile tool for generating system resource statistics
 .SH SYNOPSIS
-dstat [-afv] [-cdgilmnpsty] [-D..] [-I..] [-N..] [delay [count]]
+dstat [-afv] [-cdgilmnpstuy] [-D..] [-I..] [-N..] [delay [count]]
 .SH DESCRIPTION
 Dstat is a versatile replacement for vmstat, iostat and ifstat. Dstat overcomes some of the limitations and adds some extra features.
 
@@ -53,6 +53,9 @@ enable swap stats
 \fB\-t\fR, \fB\-\-time\fR
 enable time counter
 .TP
+\fB\-u\fR, \fB\-\-user\fR
+enable user stats
+.TP
 \fB\-y\fR, \fB\-\-sys\fR
 enable system stats
 .TP
@@ -61,7 +64,7 @@ enable specific stats
 
 Possible stats are:
   cpu, disk, page, int, load, mem, net, proc,
-  swap, sys, tcp, time, udp
+  swap, sys, tcp, time, udp, user
 .TP
 \fB\-a\fR, \fB\-\-all\fR
 equals \fB\-cdngyl\fR
