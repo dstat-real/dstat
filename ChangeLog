@@ -1,6 +1,9 @@
 * 0.5.8
 - Added user stats using python-utmp
 - Bail out if all requested stats fail
+- Replaced --noheader option --noheaders (like vmstat)
+- Added -V as short for --version
+- Improved help output
 
 * 0.5.7
 - Change Makefile to not install when run without target (Kurt Roeckx)
