@@ -469,7 +469,7 @@ class dstat_disk24(dstat_disk):
 				name = l[3]
 				if not re.match('^(ram\d+|loop\d+|name)$', name):
 					ret.append(name)	
-			ret.sort()
+#			ret.sort()
 			for item in list: ret.append(item)
 		return ret
 
@@ -480,6 +480,7 @@ class dstat_disk24(dstat_disk):
 		else:
 			list = self.discover()
 			if not op.full and len(list) > 2: list = list[0:2]
+			list.sort()
 		for name in list:
 			if name in self.discover('total') + self.diskset.keys():
 				ret.append(name)
@@ -516,7 +517,7 @@ class dstat_disk24old(dstat_disk24):
 				l = line.split()
 				if len(l) < 15: continue
 				ret.append(l[3])
-			ret.sort()
+#			ret.sort()
 			for item in list: ret.append(item)
 		return ret
 
@@ -527,6 +528,7 @@ class dstat_disk24old(dstat_disk24):
 		else:
 			list = self.discover()
 			if not op.full and len(list) > 2: list = list[0:2]
+			list.sort()
 		for name in list:
 			if name in self.discover('total') + self.diskset.keys():
 				ret.append(name)
@@ -574,7 +576,7 @@ class dstat_int(dstat):
 				l = line.split()
 				if len(l) < 1: continue
 				name = l[0].split(':')[0]
-				if name != '0' and len(l) > 1 and int(l[1]) > 10:
+				if name != '0' and name != 'CPU0' and len(l) > 1 and int(l[1]) > 10:
 					ret.append(name)
 		return ret
 
@@ -584,9 +586,9 @@ class dstat_int(dstat):
 			list = op.intlist
 		else:
 			list = self.discover()
-#			for name in list:
-#				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
-#					list.delete(name)
+			for name in list:
+				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
+					list.remove(name)
 			if not op.full and len(list) > 3: list = list[-4:-1]
 		for name in list:
 			if name in self.discover():
@@ -599,11 +601,13 @@ class dstat_int(dstat):
 			if len(l) < 2: continue
 			name = l[0].split(':')[0]
 			if name in self.vars:
-				self.cn2[name] = long(l[1])
-			elif len(l) > 2 + procs:
-				for hw in self.vars:
-					for mod in l[2+procs:]:
-						self.cn2[mod] = long(l[1])
+				self.cn2[name] = 0
+				for i in l[1:1+procs]:
+					self.cn2[name] = self.cn2[name] + long(i)
+#			elif len(l) > 2 + procs:
+#				for hw in self.vars:
+#					for mod in l[2+procs:]:
+#						self.cn2[mod] = long(l[1])
 		if update:
 			for name in self.cn2.keys():
 				self.val[name] = (self.cn2[name]-self.cn1[name]) * 1.0 / step
@@ -1098,7 +1102,7 @@ def main():
 
 	### Check terminal capabilities
 #	if not sys.stdout.isatty() or not curses.wrapper(lambda s:curses.has_colors()):
-	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'linux', 'rxvt', 'screen', 'xterm'):
+	if not sys.stdout.isatty() or os.environ.get('TERM',None) not in ('ansi', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm'):
 		op.color = False
 		op.update = False
 
