@@ -274,10 +274,10 @@ class dstat:
 				sys.stdout.write('%s' % conv(self.len, self.val[name], 1000))
 			elif self.format == '%ps':
 				sys.stdout.write('%s' % conv(self.len, self.val[name], 100))
+			elif self.format == '%is':
+				sys.stdout.write('%s' % conv(self.len, self.val[name], 10))
 			elif self.format == '%f':
 				sys.stdout.write('%s' % conv(self.len, self.val[name], 1))
-			elif self.format == '%is':
-				sys.stdout.write('%s' % conv(self.len, self.val[name], 0))
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
 				sys.stdout.write(self.format % convlist(self.len, self.val[name]))
 				sep = ansi['default'] + ':'
@@ -796,13 +796,14 @@ class dstat_proc(dstat):
 			if name == 'processes':
 				self.val['processes'] = 0
 				self.cn2[name] = long(l[1])
-			elif name in ('procs_running', 'procs_blocked'):
+			elif name == 'procs_running':
+				self.cn2[name] = self.cn2[name] + long(l[1]) - 1
+			elif name == 'procs_blocked':
 				self.cn2[name] = self.cn2[name] + long(l[1])
-		self.cn2['procs_running'] = self.cn2['procs_running'] - 1
 		if update:
-			self.val['processes'] = (self.cn2['processes'] - self.cn1['processes']) / step
+			self.val['processes'] = (self.cn2['processes'] - self.cn1['processes']) * 1.0 / step
 			for name in ('procs_running', 'procs_blocked'):
-				self.val[name] = self.cn2[name] / step
+				self.val[name] = self.cn2[name] * 1.0 / step
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 			for name in ('procs_running', 'procs_blocked'):
@@ -979,6 +980,7 @@ def convlist(max, list, base = 1024):
 #def convlist(max, list):
 #	return map(conv, list)
 
+### Use capabilities like: float=true, base=nr, color=true
 def conv(max, var, base = 1024):
 	if var < 0:
 		return ansi['default'] + '- '.rjust(max)
@@ -988,32 +990,29 @@ def conv(max, var, base = 1024):
 	else:
 		color = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'green')
 
-	if base == 0:
-		if round(var) == 0:
-			return ansi['default'] + '0'.rjust(max)
-		else:
-			return ansi[color[long(round(var)/1000)]] + str(long(round(var))).rjust(max)
+	if base in (0, 1, 10):
+		unit = ('', '', '', '', '', '', '', '', '', '', '')
 	elif base == 100:
 		if round(var) == 0:
 			return ansi['default'] + '0'.rjust(max)
 		else:
 			return ansi[color[long(round(var)/34)]] + str(long(round(var))).rjust(max)
-	elif base == 1:
-		unit = ('', '', '')
 	elif base == 1000:
 		unit = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
-	else:
+	elif base == 1024:
 		### lowercase (b) is better for the eyes than uppercase
 		unit = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+	else:
+		return ansi['default'] + '? '.rjust(max)
 
 	c = 0
 	while True:
 		repr = str(long(round(var))) + unit[c]
 		if len(repr) <= max:
-			if not op.integer and ( base != 1000 or c > 0):
-				if len('%1.2f' % var + unit[c]) <= max:
+			if not op.integer and (base != 1000 or c > 0):
+				if var != round(var) and len('%1.2f' % var + unit[c]) <= max:
 					repr = '%1.2f' % var + unit[c]
-				elif len('%1.1f' % var + unit[c]) <= max:
+				elif var != round(var) and len('%1.1f' % var + unit[c]) <= max:
 					repr = '%1.1f' % var + unit[c]
 			else:
 				var = long(round(var))
@@ -1021,12 +1020,9 @@ def conv(max, var, base = 1024):
 		var = var / base
 		c = c + 1
 
-	if type(var) == int and long(round(var)) != 0:
-	 	return ansi[color[c]] + repr.rjust(max)
-	elif var != 0:
-	 	return ansi[color[c]] + repr.rjust(max)
-	else:
-		return ansi['default'] + '0 '.rjust(max)
+	if var == 0:
+		return ansi['default'] + ('0' + ' ' * len(unit[0])).rjust(max)
+	return ansi[color[c]] + repr.rjust(max)
 
 def info(level, str):
 	"Output info message"

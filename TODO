@@ -3,8 +3,9 @@
 + Allow to force to given magnitude
 + Look at possibilities to show deviation (on second line ?)
 + Improve manpage
-+ I should be able to detect when terminal has no ANSI capabilities (anyone?)
-+ Implement -I eth0,eth1 again
++ Detect terminal capabilities (colors, ANSI) using curses (?)
++ Find a way to use curses without the flickering and tty clearing in screen
++ Re-implement -I eth0,eth1
 
 ### Export/Graph
 + Add -o/--output option to save directly to a file
@@ -14,20 +15,15 @@
 ### Extending statistics (help welcome!)
 + Add all stats to seperate modules and allow people to plugin their own modules
 + Add application stats (-a or -A pid,cmd)
-+ Add icmp stats ?
-+ Add ntp stats
-+ Add nfs stats
++ Add icmp, nfs, ntp stats ?
 + Add user stats (number of users logged on)
 + Look into interfacing with apps (bind, sendmail, postfix, squid, amavisd, laus, samba)
 + Look into interfacing with specific HW counters in /proc
 
 ### General bugs
-+ If you have 2 devices with the same name, -I will only work on the first one
-+ When using -D foo, -I 99, -N eth9 dstat should fail when it does not exist 
 + Timer is not accurate on 2.6 kernel, every second there's a 1ms deviation (every 17mins -> 1sec)
-+ Find a way to use curses without the flickering and clearing tty in screen
 
 ### Stat bugs
-+ tcp stat is very slow and generates lots of siq (on some systems)
++ tcp stat is very slow and generates lots of softirqs (on some systems)
 + proc stat seems to be off by one, no clue why
 + Implement better (?) protection against counter rollovers

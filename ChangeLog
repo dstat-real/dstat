@@ -14,6 +14,8 @@
 - proc stats now show averages
 - Check if output is a tty, else disable colors and updates
 - Fixed bug in interrupt stats on smp systems
+- Improvement in output, 10.0k or 5.0 will be displayed simply as 10k or 5
+- proc stats now show floats
 
 * 0.5.5
 - In fact, round() was not the problem, use str() instead. (Anton Blanchard)
