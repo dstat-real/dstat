@@ -238,8 +238,8 @@ class dstat_disk(dstat):
 			self.vars = self.discover()
 		self.diskset = {
 			'local': ('sda', 'hda', 'hdc'),
-			'lores': ('sdl', 'sdm', 'sdn', 'sdo', 'sdp', 'sdq', 'sdr', 'sds', 'sdt', 'sdu', 'sdv', 'sdw', 'sdx', 'sdy', 'sdz', 'sdaa', 'sdab', 'sdac', 'sdad'),
-			'hires': ('sdb', 'sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh', 'sdi', 'sdj', 'sdk' ),
+			'lores': ('sdb', 'sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh', 'sdi', 'sdj', 'sdk', 'sdl', 'sdm', 'sdn', 'sdo', 'sdp', 'sdq', 'sdr', 'sds', 'sdt'),
+			'hires': ('sdu', 'sdv', 'sdw', 'sdx', 'sdy', 'sdz', 'sdaa', 'sdab', 'sdac', 'sdad' ),
 		}
 		self.nick = self.vars
 		self.init()
@@ -309,7 +309,7 @@ class dstat_disk24(dstat_disk):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if len(l) > 8 and ( l[0] == 'cpu0' or l[0] == 'cpu' ):
+			if len(l) > 7 and ( l[0] == 'cpu0' or l[0] == 'cpu' ):
 				self.uptime2 = int(l[1]) + int(l[2]) + int(l[3]) + int(l[4]) + int(l[5]) + int(l[6]) + int(l[7])
 #				self.uptime2 = sum(map(int, l[1-7]))
 
@@ -648,9 +648,10 @@ def conv(max, var, base = 1024):
 	### lowercase (b) is better for the eyes than uppercase
 	units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	c = 0
-	var = int(var * 1.0)
-	while len(str(var)) > max-1:
-		var = int(var / base * 1.0)
+#	var = int(var * 1.0)
+	var = var * 1.0
+	while len(str(int(var))) > max-1:
+		var = var / base * 1.0
 		c = c + 1
 	if var != 0:
 		return str(int(round(var))).rjust(max-1) + units[c]
