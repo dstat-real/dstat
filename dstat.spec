@@ -59,8 +59,7 @@ interprete real-time data as easy as possible.
 %defattr(-, root, root, 0755)
 %doc AUTHORS ChangeLog COPYING README TODO 
 #%doc *.conf
-#%config(noreplace) %{_sysconfdir}/dconf.conf
-#%config(noreplace) %{_sysconfdir}/dconf-custom.conf
+#%config(noreplace) %{_sysconfdir}/dstat.conf
 %{_bindir}/dstat
 
 %changelog

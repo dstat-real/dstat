@@ -175,8 +175,7 @@ class dstat:
 		ret = ''
 		for str in self.nick:
 			ret = ret + str[0:self.len].center(self.len).replace(' ', '_')
-			if str != self.nick[-1]:
-				ret = ret + ' '
+			if str != self.nick[-1]: ret = ret + ' '
 		return ret
 
 	def check(self):
@@ -223,7 +222,7 @@ class dstat_cpu(dstat):
 				self.cn2['wait'] = int(l[5])
 				self.cn2['sum'] = self.cn2['user'] + self.cn2['sys'] + self.cn2['idle'] + self.cn2['wait']
 		for name in self.vars:
-			self.val[name] = (self.cn2[name]-self.cn1[name])*100.0/(self.cn2['sum']-self.cn1['sum'])
+			self.val[name] = (100.0 * (self.cn2[name]-self.cn1[name]) + (self.cn2['sum']-self.cn1['sum'])/2) /(self.cn2['sum']-self.cn1['sum'])
 		self.cn1.update(self.cn2)
 
 class dstat_disk(dstat):
@@ -623,10 +622,10 @@ class dstat_sys(dstat):
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split(); name = l[0]
 			if l[0] in self.vars:
-				self.cn2[l[0]] = int(l[1]) /op.sleep
+				self.cn2[l[0]] = int(l[1])
 		if count != 0:
 			for name in self.vars:
-				self.val[name] = self.cn2[name]-self.cn1[name]
+				self.val[name] = (self.cn2[name]-self.cn1[name]) / op.sleep
 		self.cn1.update(self.cn2)
 
 	def show(self):
@@ -650,7 +649,10 @@ def conv(max, var, base = 1024):
 	while len(str(var)) > max-1:
 		var = int(var / base * 1.0)
 		c = c + 1
-	return str(int(round(var))).rjust(max-1) + units[c]
+	if var != 0:
+		return str(int(round(var))).rjust(max-1) + units[c]
+	else:
+		return ' ' * (max-2) + '0 '
 
 def getwinsize():
 	s = struct.pack("HHHH", 0, 0, 0, 0)
@@ -726,6 +728,8 @@ def main():
 		if not o.check():
 			olist.remove(o)
 
+	if os.geteuid() == 0:
+		os.nice(-10)
 #	sys.setcheckinterval(op.sleep * 1.5 * 100)
 	signal.signal(signal.SIGALRM, handler)
 	while count != op.count:

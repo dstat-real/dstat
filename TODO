@@ -19,3 +19,4 @@
 
 ### Bugs
 + Implement protection against counter rollovers
++ If you have 2 devices with the same name, -I will only work on the first one
