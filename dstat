@@ -1,5 +1,6 @@
 #!/usr/bin/python2
 
+from __future__ import generators
 import os, sys, glob, re, shutil, getopt, popen2
 import ConfigParser, urlparse, time, signal, resource
 
@@ -141,6 +142,9 @@ class Config:
 
 class dstat:
 	def init(self):
+		if not self.check():
+			return
+		
 		self.title1 = self.set_title1()
 		self.title2 = self.set_title2()
 
@@ -155,15 +159,18 @@ class dstat:
 
 	def set_title1(self):
 		max = len(self.vars) * self.len + len(self.vars) - 1
-		return self.name.center(max).replace(' ', '-')
+		return self.name[0:max-2].center(max).replace(' ', '-')
 
 	def set_title2(self):
 		str = ''
 		for c, i in enumerate(self.nick):
-			str = str + i.center(self.len).replace(' ', '_')
+			str = str + i[0:self.len].center(self.len).replace(' ', '_')
 			if c != len(self.nick)-1:
 				str = str + ' '
 		return str
+
+	def check(self):
+		return True
 
 	def stats(self):
 		pass
@@ -191,11 +198,16 @@ class dstat_cpu(dstat):
 		self.init()
 		self.cn1['sum'] = 0
 
+	def check(self):
+		if os.path.exists('/proc/stat'):
+			return True
+		return False
+
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			list = line.split()
-			cn = map(int, list[1:])
 			if list[0] == 'cpu':
+				cn = map(int, list[1:])
 				self.cn2['user'] = cn[0]
 				self.cn2['sys'] = cn[2]
 				self.cn2['idle'] = cn[3]
@@ -209,6 +221,7 @@ class dstat_cpu(dstat):
 
 class dstat_disk(dstat):
 	def __init__(self):
+		if not self.check(): return
 		self.format = '%s %s'
 		self.len = 11
 		self.name = 'disk i/o'
@@ -216,7 +229,6 @@ class dstat_disk(dstat):
 			self.vars = op.disklist
 		else:
 			self.vars = self.discover()
-#		self.vars = ('hda', 'hdc', 'sda', 'local', 'total')
 		self.diskset = {
 			'local': ('sda', 'hda', 'hdc'),
 			'lores': ('sdb', 'sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh', 'sdi', 'sdj', 'sdk', 'sdl', 'sdm', 'sdn', 'sdo', 'sdp', 'sdq', 'sdr', 'sds', 'sdt'),
@@ -224,6 +236,7 @@ class dstat_disk(dstat):
 		}
 		self.nick = self.vars
 		self.init()
+#		self.vars = ('hda', 'hdc', 'sda', 'local', 'total')
 
 		for name in self.vars: self.cn1[name] = (0, 0)
 		self.cn1['total'] = (0, 0)
@@ -242,6 +255,11 @@ class dstat_disk(dstat):
 		retlist.sort()
 		return retlist
 #		return ('local', 'lores', 'hires')
+
+	def check(self):
+		if os.path.exists('/proc/diskstats'):
+			return True
+		return False
 
 	def stats(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
@@ -277,7 +295,21 @@ class dstat_int(dstat):
 		self.init()
 
 	def discover(self):
-		return ('5', '9', '10', '14', '15')
+		retlist = ()
+		for line in open('/proc/interrupts', 'r').readlines():
+			list = line.split()
+			name = list[0].split(':')[0]
+			if name in ('0', '1', '2', '8'):
+				continue
+			if len(list) > 1 and list[1] != '0':
+				retlist = retlist + (name,)
+#		return ('5', '9', '10', '14', '15')
+		return retlist
+
+	def check(self):
+		if os.path.exists('/proc/interrupts'):
+			return True
+		return False
 
 	def stats(self):
 		for line in open('/proc/interrupts', 'r').readlines():
@@ -301,6 +333,11 @@ class dstat_load(dstat):
 		self.vars = ('load1', 'load5', 'load15')
 		self.init()
 
+	def check(self):
+		if os.path.exists('/proc/loadavg'):
+			return True
+		return False
+
 	def stats(self):
 		for line in open('/proc/loadavg', 'r').readlines():
 			list = line.split()
@@ -316,6 +353,11 @@ class dstat_mem(dstat):
 		self.nick = ('used', 'free', 'buff', 'cach')
 		self.vars = ('MemUsed', 'MemFree', 'Buffers', 'Cached')
 		self.init()
+
+	def check(self):
+		if os.path.exists('/proc/meminfo'):
+			return True
+		return False
 
 	def stats(self):
 		for line in open('/proc/meminfo', 'r').readlines():
@@ -355,6 +397,11 @@ class dstat_net(dstat):
 		return retlist
 #		return ('bond0', 'eth0', 'eth1')
 
+	def check(self):
+		if os.path.exists('/proc/net/dev'):
+			return True
+		return False
+
 	def stats(self):
 		self.cn2['total'] = (0, 0)
 		for line in open('/proc/net/dev', 'r').readlines():
@@ -366,10 +413,10 @@ class dstat_net(dstat):
 			else:
 				list = list[1:]
 			if name in (self.vars) :
-				cn = map(int, list)
+				cn = map(float, list)
 				self.cn2[name] = ( round(cn[0] /op.sleep), round(cn[8] /op.sleep) )
 			if name in ('bond0', 'bond1', 'bond2', 'eth0', 'eth1', 'eth2', 'eth3', 'eth4', 'eth5'):
-				cn = map(int, list)
+				cn = map(float, list)
 				self.cn2['total'] = ( self.cn2['total'][0] + round(cn[0] /op.sleep), self.cn2['total'][1] + round(cn[8] /op.sleep))
 
 		if count != 0:
@@ -387,6 +434,11 @@ class dstat_page(dstat):
 		self.nick = ('in', 'out')
 		self.init()
 
+	def check(self):
+		if os.path.exists('/proc/vmstat'):
+			return True
+		return False
+
 	def stats(self):
 		for line in open('/proc/vmstat', 'r').readlines():
 			list = line.split()
@@ -400,7 +452,8 @@ class dstat_page(dstat):
 
 class dstat_proc(dstat):
 	def __init__(self):
-		self.name = 'procs'
+#		self.name = 'procs'
+		self.name = 'prc'
 		self.format = '%2d'
 		self.len = 2
 #		self.vars = ('procs_running', 'procs_blocked', 'processes')
@@ -409,16 +462,20 @@ class dstat_proc(dstat):
 		self.nick = ('ru', 'bl')
 		self.init()
 
+	def check(self):
+		if os.path.exists('/proc/stat'):
+			return True
+		return False
+
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			list = line.split()
-			cn = map(int, list[1:])
-			if list[0] in ('processess'):
-				self.cn2[list[0]] = cn[0]
+			if list[0] in ('processess',):
+				self.cn2[list[0]] = int(list[1])
 			elif list[0] in self.vars:
-				self.val[list[0]] = cn[0]
-		if count != 0:
-			self.val['processes'] = self.cn2['processes']-self.cn1['processes']
+				self.val[list[0]] = int(list[1])
+#		if count != 0:
+#			self.val['processes'] = self.cn2['processes']-self.cn1['processes']
 		self.val['procs_running'] = self.val['procs_running']-1
 		self.cn1.update(self.cn2)
 
@@ -430,6 +487,11 @@ class dstat_swap(dstat):
 		self.nick = ('used', 'free')
 		self.vars = ('SwapUsed', 'SwapFree')
 		self.init()
+
+	def check(self):
+		if os.path.exists('/proc/meminfo'):
+			return True
+		return False
 
 	def stats(self):
 		for line in open('/proc/meminfo', 'r').readlines():
@@ -449,11 +511,16 @@ class dstat_sys(dstat):
 		self.names = { 'intr': 'int', 'ctxt': 'csw' }
 		self.init()
 
+	def check(self):
+		if os.path.exists('/proc/stat'):
+			return True
+		return False
+
 	def stats(self):
 		for line in open('/proc/stat', 'r').readlines():
 			list = line.split()
-			cn = map(int, list[1:])
 			if list[0] in self.vars:
+				cn = map(int, list[1:])
 				self.cn2[list[0]] = cn[0] /op.sleep
 
 		if count != 0:
@@ -509,6 +576,14 @@ def main():
 		elif mod == 'swap':	olist.append(dstat_swap())
 		elif mod == 'sys':	olist.append(dstat_sys())
 
+	### Remove defect objects
+	rmlist = ()
+	for o in olist:
+		if not o.check():
+			rmlist = rmlist + (o,)
+	for o in rmlist:
+			olist.remove(o)
+
 #	sys.setcheckinterval(op.sleep * 1.5 * 100)
 	signal.signal(signal.SIGALRM, handler)
 	signal.alarm(op.sleep)
@@ -548,6 +623,15 @@ except NameError:
      False = 0
 Yes = yes = On = on = True
 No = no = Off = off = False
+
+#try:
+#	enumerate(None)
+#except NameError:
+def enumerate(sequence):
+    index = 0
+    for item in sequence:
+        yield index, item
+        index += 1
 
 ### Main entrance
 if __name__ == '__main__':
