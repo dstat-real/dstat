@@ -14,12 +14,13 @@
 ### Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 ### Copyright 2004 Dag Wieers <dag@wieers.com>
 
+from __future__ import generators
+
 import sys
 
 if sys.version_info < (2, 2):
 	sys.exit('error: Python 2.2 or later required, try dstat15 instead')
 
-from __future__ import generators
 import os, re, getopt, time, types
 import ConfigParser, urlparse, signal, resource
 import curses, termios
