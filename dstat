@@ -241,8 +241,8 @@ class dstat_disk(dstat):
 			self.vars = self.discover()
 		self.diskset = {
 			'local': ('sda', 'hda', 'hdc'),
-			'lores': ('sdb', 'sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh', 'sdi', 'sdj', 'sdk', 'sdl', 'sdm', 'sdn', 'sdo', 'sdp', 'sdq', 'sdr', 'sds', 'sdt'),
-			'hires': ('sdu', 'sdv', 'sdw', 'sdx', 'sdy', 'sdz', 'sdaa', 'sdab', 'sdac', 'sdad' ),
+			'lores': ('sdl', 'sdm', 'sdn', 'sdo', 'sdp', 'sdq', 'sdr', 'sds', 'sdt', 'sdu', 'sdv', 'sdw', 'sdx', 'sdy', 'sdz', 'sdaa', 'sdab', 'sdac', 'sdad'),
+			'hires': ('sdb', 'sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh', 'sdi', 'sdj', 'sdk' ),
 		}
 		self.nick = self.vars
 		self.init()
@@ -312,10 +312,11 @@ class dstat_disk24(dstat_disk):
 		for name in self.vars: self.cn2[name] = (0, 0)
 		for line in open('/proc/stat', 'r').readlines():
 			l = line.split()
-			if l[0] == 'cpu':
-				self.uptime2 = int(l[1]) + int(l[2]) + int(l[3]) + int(l[4])
+			if l[0] == 'cpu0' or l[0] == 'cpu':
+				self.uptime2 = int(l[1]) + int(l[2]) + int(l[3]) + int(l[4]) + int(l[5]) + int(l[6]) + int(l[7])
+#				self.uptime2 = sum(map(int, l[1-7]))
 
-		itv = ( self.uptime2 - self.uptime ) / procs
+		itv = self.uptime2 - self.uptime
 
 #		print '[up2=', self.uptime2, 'up=', self.uptime , ']',
 #		print '[dup=', self.uptime2 - self.uptime , ']',
@@ -343,36 +344,33 @@ class dstat_disk24(dstat_disk):
 
 		self.cn1.update(self.cn2)
 
-#class dstat_disk24(dstat_disk):
-#	def discover(self):
-#		return ('local', 'lores', 'hires', 'total')
-#
-#	def check(self):
-#		if os.path.exists('/proc/stat') and os.uname()[2] < '2.4.22':
-#			return True
-#		return False
-#
-#	def stats(self):
-#		for name in self.vars: self.cn2[name] = (0, 0)
-#		for line in open('/proc/stat', 'r').readlines():
-#			l = line.split(':'); name = l[0]
-#			if name == 'disk_io':
-#				for pair in line.split()[1:]:
-#					m = re.match('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$', pair)
-#					if m:
-#						l = m.groups()
-#						name = dev(int(l[0]), int(l[1]))
-#						self.cn2[name] = ( int(l[2]) * 512 / op.sleep, int(l[3]) * 512 / op.sleep)
-#						for set in self.vars:
-#							if set in self.diskset and name in self.diskset[set]:
-#								self.cn2[set] = ( self.cn2[set][0] + int(l[2]) * 512 / op.sleep, self.cn2[set][1] + int(l[3]) * 512 / op.sleep)
-#						self.cn2['total'] = ( self.cn2['total'][0] + int(l[2]) * 512 / op.sleep, self.cn2['total'][1] + int(l[3]) * 512 / op.sleep)
-#
-#		if count != 0:
-#			for name in self.cn2:
-#				self.val[name] = ( self.cn2[name][0]-self.cn1[name][0], self.cn2[name][1]-self.cn1[name][1] )
-#
-#		self.cn1.update(self.cn2)
+class dstat_disk24old(dstat_disk_disk24):
+	def check(self):
+		if os.path.exists('/proc/stat') and os.uname()[2] < '2.4.22':
+			return True
+		return False
+
+	def stats(self):
+		for name in self.vars: self.cn2[name] = (0, 0)
+		for line in open('/proc/stat', 'r').readlines():
+			l = line.split(':'); name = l[0]
+			if name == 'disk_io':
+				for pair in line.split()[1:]:
+					m = re.match('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$', pair)
+					if m:
+						l = m.groups()
+						name = dev(int(l[0]), int(l[1]))
+						self.cn2[name] = ( int(l[2]) * 512 / op.sleep, int(l[3]) * 512 / op.sleep)
+						for set in self.vars:
+							if set in self.diskset and name in self.diskset[set]:
+								self.cn2[set] = ( self.cn2[set][0] + int(l[2]) * 512 / op.sleep, self.cn2[set][1] + int(l[3]) * 512 / op.sleep)
+						self.cn2['total'] = ( self.cn2['total'][0] + int(l[2]) * 512 / op.sleep, self.cn2['total'][1] + int(l[3]) * 512 / op.sleep)
+
+		if count != 0:
+			for name in self.cn2:
+				self.val[name] = ( self.cn2[name][0]-self.cn1[name][0], self.cn2[name][1]-self.cn1[name][1] )
+
+		self.cn1.update(self.cn2)
 
 class dstat_int(dstat):
 	def __init__(self):
@@ -647,8 +645,8 @@ def convlist(max, list):
 	return retlist
 
 def conv(max, var, base = 1024):
-	### 'b' is better for the eyes than 'B'
-	units = ('B', 'k', 'M', 'G', 'T', 'P')
+	### lowercase (b) is better for the eyes than uppercase
+	units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	c = 0
 	var = round(var)
 #	while len(str(int(var))) > max-1:
@@ -673,22 +671,22 @@ def getcpunr():
 			procs = procs + 1
 	return procs
 
-#def scsidev(nr):
-#	if nr < 26:
-#		return 'sd' + chr(ord('a') + nr)
-#	else:
-#		return 'sd' + chr(ord('a') -1 + nr/26) + chr(ord('a') + nr%26)
+def scsidev(nr):
+	if nr < 26:
+		return 'sd' + chr(ord('a') + nr)
+	else:
+		return 'sd' + chr(ord('a') -1 + nr/26) + chr(ord('a') + nr%26)
 
-#def dev(maj, min):
-#	scsi = [8, 65, 66, 67, 68, 69, 70, 71, 128, 129, 130, 131, 132, 133, 134, 135]
-#	ide = [3, 22, 33, 34, 56, 57, 88, 89, 90, 91]
-#	if maj in scsi:
-#		nr = scsi.index(maj) * 16 + min
-##		nr = scsi.index(maj) * 16 + min / 16
-#		return scsidev(nr)
-#	elif maj in ide:
-#		nr = ide.index(maj) * 2 + min / 64
-#		return 'hd' + chr(ord('a') + nr)
+def dev(maj, min):
+	scsi = [8, 65, 66, 67, 68, 69, 70, 71, 128, 129, 130, 131, 132, 133, 134, 135]
+	ide = [3, 22, 33, 34, 56, 57, 88, 89, 90, 91]
+	if maj in scsi:
+		nr = scsi.index(maj) * 16 + min
+#		nr = scsi.index(maj) * 16 + min / 16
+		return scsidev(nr)
+	elif maj in ide:
+		nr = ide.index(maj) * 2 + min / 64
+		return 'hd' + chr(ord('a') + nr)
 
 #def mountpoint(dev):
 #	"Return the mountpoint of a mounted device/file"
@@ -712,6 +710,7 @@ def main():
 	for mod in op.modlist:
 		if mod == 'cpu':	olist.append(dstat_cpu())
 		elif mod == 'disk':
+#			olist.append(dstat_disk24old())
 			olist.append(dstat_disk24())
 			olist.append(dstat_disk())
 		elif mod == 'int':	olist.append(dstat_int())

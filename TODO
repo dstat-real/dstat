@@ -9,7 +9,7 @@
 + Add all stats to seperate modules and allow people to plugin their own modules
 
 ### Statistics
-+ Add application stats ( -a or -A pid,cmd)
++ Add application stats (-a or -A pid,cmd)
 + Add ip stats (icmp, tcp, udp)
 + Add ntp stats
 + Add user stats (number of users logged on)

@@ -15,6 +15,8 @@
 - Titles are now truncated to max-1
 - Show header when it disappears from screen
 - Allow to specify interrupt by device eg. -I eth0,acpi or -I ide0,yenta
+- Fix disk stats bug related to RHEL3 U3 iostat bug on 2.4 (RHbz 137595, Charlie Bennett)
+- Uncommented old 2.4 disk stats functionality (see source for enabling it)
 - Initial public release
 
 * 0.3
