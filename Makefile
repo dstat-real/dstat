@@ -9,5 +9,8 @@ all:
 
 install:
 #	-[ ! -f $(DESTDIR)$(sysconfdir)/dstat.conf ] && install -D -m0644 dstat.conf $(DESTDIR)$(sysconfdir)/dstat.conf
-	install -D -m0755 dstat $(DESTDIR)$(bindir)/dstat
-	install -D -m0644 dstat.1 $(DESTDIR)$(mandir)/man1/dstat.1
+	install -Dp -m0755 dstat $(DESTDIR)$(bindir)/dstat
+	install -Dp -m0644 dstat.1 $(DESTDIR)$(mandir)/man1/dstat.1
+
+clean:
+	@echo "No clean phase."

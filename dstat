@@ -25,7 +25,7 @@ import os, re, getopt, time, types
 import ConfigParser, urlparse, signal, resource
 import curses, termios
 
-VERSION = '0.5.9'
+VERSION = '0.5.10'
 
 enable = ('yes', 'on', 'true', '1')
 disable = ('no', 'off', 'false', '0')
@@ -54,7 +54,7 @@ class Options:
 				'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate', 'output='])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
-			sys.exit(1)
+			exit(1)
 
 		self.modlist = []
 
@@ -120,10 +120,10 @@ class Options:
 			elif opt in ['-h', '--help']:
 				self.usage()
 				self.help()
-				sys.exit(0)
+				exit(0)
 			elif opt in ['-V', '--version']:
 				self.version()
-				sys.exit(0)
+				exit(0)
 
 		if not self.modlist:
 			self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
@@ -133,11 +133,11 @@ class Options:
 			if len(args) > 1: self.count = int(args[1])
 		except:
 			print 'dstat: incorrect argument, try dstat -h for the correct syntax'
-			sys.exit(1)
+			exit(1)
 
 		if self.delay == 0:
 			print 'dstat: delay must be an integer, greater than zero'
-			sys.exit(1)
+			exit(1)
 
 	def version(self):
 		print 'Dstat %s' % VERSION
@@ -1257,7 +1257,7 @@ def info(level, str):
 def die(ret, str):
 	"Print error and exit with errorcode"
 	info(0, str)
-	sys.exit(ret)
+	exit(ret)
 
 def getwinsize():
 	if op.nolimit:
@@ -1311,6 +1311,12 @@ def dev(maj, min):
 
 def signaler(signum, frame):
 	signal.alarm(interval)
+
+def exit(ret):
+	sys.stdout.write(ansi['reset'])
+	signal.signal(signal.SIGALRM, signal.SIG_DFL)
+	termios.tcsetattr(fd, termios.TCSADRAIN, old)
+	sys.exit(ret)
 
 def main():
 	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile
@@ -1505,23 +1511,17 @@ if __name__ == '__main__':
 	try:
 		main()
 	except KeyboardInterrupt, e:
-		signal.signal(signal.SIGALRM, signal.SIG_DFL)
-		termios.tcsetattr(fd, termios.TCSADRAIN, old)
-		print ansi['reset']
+		print
 	except OSError, e:
-		signal.signal(signal.SIGALRM, signal.SIG_DFL)
-		termios.tcsetattr(fd, termios.TCSADRAIN, old)
 #		print e.errno
 		print
-		print ansi['reset'] + 'OSError: %s' % e
-		sys.exit(7)
+		print 'OSError: %s' % e
+		exit(7)
 #	except Exception, e:
 #		signal.signal(signal.SIGALRM, signal.SIG_DFL)
 #		termios.tcsetattr(fd, termios.TCSADRAIN, old)
 #		raise e
 
-signal.signal(signal.SIGALRM, signal.SIG_DFL)
-termios.tcsetattr(fd, termios.TCSADRAIN, old)
-sys.exit(0)
+exit(0)
 
 # vim:ts=4:sw=4
