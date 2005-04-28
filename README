@@ -8,16 +8,20 @@ directly with the disk throughput (in the same interval).
 
 Dstat also cleverly gives you the most detailed information in
 columns and clearly indicates in what magnitude and unit the output
-is displayed. Less confusion, less mistakes.
+is displayed. Less confusion, less mistakes, more efficient.
 
-Dstat is also unique in letting you aggregate block device throughput
-for a certain diskset or network bandwidth for a group of interfaces,
-ie. you can see the throughput for all the block devices that make up
-a single filesystem or storage system.
+Dstat is unique in letting you aggregate block device throughput for
+a certain diskset or network bandwidth for a group of interfaces, ie.
+you can see the throughput for all the block devices that make up a
+single filesystem or storage system.
 
-You can customize your dstat output from /etc/dstat.conf and you can
-write your own dstat modules to plug into the dstat output.
+Dstat allows its data to be directly written to a CSV file to be
+imported and used by OpenOffice, Gnumeric or Excelto create graphs.
 
-Dstat's output, in its current form, is not very useful to be post-
-processed by other tools. It's mostly meant for allowing humans to
-interprete real-time data as easy as possible.
+Since it's practically impossible to test dstat on every possible
+permutation of kernel , python or distribution version, I need your
+help and your feedback to fix the remaining problems.
+
+If you have improvements or bugreports, please send them to:
+
+	<dag@wieers.com>

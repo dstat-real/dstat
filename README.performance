@@ -1,0 +1,17 @@
+Dstat performance
+"""""""""""""""""
+Since dstat is written in python, it's not optimized for performance.
+
+When doing performance analysis, it's important to verify that the
+monitoring tool is not messing with the performance numbers.
+
+Depending on the stats being used and the load on the server itself
+the impact Dstat has on the system you're monitoring might be
+considerable.
+
+Before performing any tests please verify for yourself what impact
+Dstat has on your test results and keep that in mind when analysing
+the results afterwards.
+
+In case the impact is higher than expected, reduce the number of stats
+and remove expensive stats.

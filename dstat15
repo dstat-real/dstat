@@ -12,22 +12,53 @@
 ### You should have received a copy of the GNU Library General Public License
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-### Copyright 2004 Dag Wieers <dag@wieers.com>
+### Copyright 2004, 2005 Dag Wieers <dag@wieers.com>
 
-import sys
+#from __future__ import generators
+
+try:
+	import sys, signal, os, re, time, string
+	import types, curses, signal, resource
+	sys.path.insert(0, '/usr/share/dstat/')
+except KeyboardInterrupt, e:
+	pass
 
 #if sys.version_info < (1, 5):
 #	sys.exit('error: Python 1.5 or later required')
 
-#from __future__ import generators
-import os, re, getopt, time, types, string
-import ConfigParser, urlparse, signal, resource
-import curses, termios
+### Workaround for python < 2.3 (FIXME: check for sys.version_info existence)
+if not callable(enumerate):
+	if sys.version_info < (2, 3) and sys.version_info >= (2, 2):
+		def enumerate(sequence):
+			index = 0
+			for item in sequence:
+				yield index, item
+				index = index + 1
+	elif sys.version_info < (2, 2):
+		def enumerate(sequence):
+			index = 0
+			list = []
+			for item in sequence:
+				list.append((index, item))
+				index = index + 1
+			return list
 
-VERSION = '0.5.10'
+### Workaround for python < 2.3
+if not callable(sum):
+	def sum(sequence):
+		ret = 0
+		for i in sequence:
+			ret = ret + i
+		return ret
 
-enable = ('yes', 'on', 'true', '1')
-disable = ('no', 'off', 'false', '0')
+### Workaround for python <= 2.2.1
+try:
+	True, False
+except NameError:
+	True = 1
+	False = 0
+
+VERSION = '0.6.0'
 
 class Options:
 	def __init__(self, args):
@@ -46,10 +77,18 @@ class Options:
 		self.header = True
 		self.output = False
 
+		### Temporary hardcoded for my own project
+		self.diskset = {
+			'local': ('sda', 'hd[a-d]'),
+			'lores': ('sd[b-k]', 'sd[v-z]', 'sda[a-e]'),
+			'hires': ('sd[l-u]', 'sda[f-o]'),
+		}
+
 		try:
-			opts, args = getopt.getopt (args, 'acdfghilmnopstuvyC:D:I:M:N:V',
-				['all', 'cpu', 'disk', 'help', 'int', 'load', 'mem', 'net', 'page', 'proc',
-				'swap', 'sys', 'tcp', 'time', 'udp', 'user', 'version', 'vmstat',
+			import getopt
+			opts, args = getopt.getopt (args, 'acdfghilmno:pstvyC:D:I:M:N:V',
+				['all', 'cpu', 'disk', 'help', 'int', 'ipc', 'load', 'lock', 'mem', 'net', 'page',
+				'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 'version', 'vmstat',
 				'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate', 'output='])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
@@ -66,45 +105,51 @@ class Options:
 				self.modlist.append('disk')
 			elif opt in ['-D']:
 				self.disklist = string.split(arg, ',')
-			elif opt in ['-i', '--int']:
-				self.modlist.append('int')
 			elif opt in ['-g', '--page']:
 				self.modlist.append('page')
+			elif opt in ['-i', '--int']:
+				self.modlist.append('int')
 			elif opt in ['-I']:
 				self.intlist = string.split(arg, ',')
+			elif opt in ['--ipc']:
+				self.modlist.append('ipc')
+			elif opt in ['-l', '--load']:
+				self.modlist.append('load')
+			elif opt in ['--lock']:
+				self.modlist.append('lock')
 			elif opt in ['-m', '--mem']:
 				self.modlist.append('mem')
 			elif opt in ['-M', '--mods', '--modules']:
 				self.modlist = self.modlist + string.split(arg, ',')
-			elif opt in ['-l', '--load']:
-				self.modlist.append('load')
 			elif opt in ['-n', '--net']:
 				self.modlist.append('net')
 			elif opt in ['-N']:
 				self.netlist = string.split(arg, ',')
 			elif opt in ['-p', '--proc']:
 				self.modlist.append('proc')
+			elif opt in ['--raw']:
+				self.modlist.append('raw')
 			elif opt in ['-s', '--swap']:
 				self.modlist.append('swap')
 			elif opt in ['--tcp']:
 				self.modlist.append('tcp')
 			elif opt in ['-t', '--time']:
 				self.modlist.append('time')
-			elif opt in ['-u', '--user']:
-				self.modlist.append('user')
 			elif opt in ['--udp']:
 				self.modlist.append('udp')
+			elif opt in ['--unix']:
+				self.modlist.append('unix')
 			elif opt in ['-y', '--sys']:
 				self.modlist.append('sys')
 
 			elif opt in ['-a', '--all']:
-				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys', 'load' ]
+				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys' ]
 			elif opt in ['-v', '--vmstat']:
 				self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 				self.disklist = ('total',)
-
 			elif opt in ['-f', '--full']:
 				self.full = True
+
 			elif opt in ['--integer']:
 				self.integer = True
 			elif opt in ['--nocolor']:
@@ -152,93 +197,80 @@ class Options:
 		print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
 
 	def usage(self):
-		print 'usage: dstat [-afv] [-cdgilmnpsty] [-D..] [-I..] [-N..] [delay [count]]'
+		print 'Usage: dstat [-afv] [-cdgilmnpsty] [-C..] [-D..] [-I..] [-N..] [delay [count]]'
 
 	def help(self):
 		print '''Versatile tool for generating system resource statistics
 
 Dstat options:
-  -c, --cpu                enable cpu stats
-     -C 0,3,                  include cpu0, cpu3 and total
-  -d, --disk               enable disk stats
-     -D total,hda             include hda and total
-  -g, --page               enable page stats
-  -i, --int                enable interrupt stats
-     -I 5,eth2                include int5 and interrupt used by eth2
-  -l, --load               enable load stats
-  -m, --mem                enable memory stats
-  -n, --net                enable network stats
-     -N eth1,total            include eth1 and total
-  -p, --proc               enable process stats
-  -s, --swap               enable swap stats
-  -t, --time               enable time counter
-  -u, --user               enable user stats
-  -y, --sys                enable system stats
+  -c, --cpu              enable cpu stats
+     -C 0,3,                include cpu0, cpu3 and total
+  -d, --disk             enable disk stats
+     -D total,hda           include hda and total
+  -g, --page             enable page stats
+  -i, --int              enable interrupt stats
+     -I 5,eth2              include int5 and interrupt used by eth2
+  -l, --load             enable load stats
+  -m, --mem              enable memory stats
+  -n, --net              enable network stats
+     -N eth1,total          include eth1 and total
+  -p, --proc             enable process stats
+  -s, --swap             enable swap stats
+  -t, --time             enable time counter
+  -y, --sys              enable system stats
+  --ipc                  enable ipc stats
+  --lock                 enable lock stats
+  --raw                  enable raw stats
+  --tcp                  enable tcp stats
+  --udp                  enable udp stats
+  --unix                 enable unix stats
 
-  -M stat1,stat2           enable specific stats
+  -M stat1,stat2         enable external stats
      --mods stat1,stat2
 
-    Possible stats are:
-      cpu, disk, page, int, load, mem, net, proc,
-      swap, sys, tcp, time, udp, user
+  -a, --all              equals -cdngy (default)
+  -f, --full             expand -D, -I and -N discovery lists
+  -v, --vmstat           equals -pmgdsc -D total
 
-  -a, --all          equals -cdngyl
-  -v, --vmstat       equals -pmgdsc -D total
-  -f, --full         expand -D, -I and -N discovery lists
-
-  --integer          show integer values
-  --nocolor          disable colors (implies --noupdate)
-  --noheaders        disable repetitive headers
-  --noupdate         disable intermediate updates when delay > 1
-  --output file      write CSV output to file
+  --integer              show integer values
+  --nocolor              disable colors (implies --noupdate)
+  --noheaders            disable repetitive headers
+  --noupdate             disable intermediate updates
+  --output file          write CSV output to file
 
   delay is the delay in seconds between each update
   count is the number of updates to display before exiting
-  The default delay is zero and count is one
+  The default delay is 1 and count is unspecified (unlimited)
 '''
 
-class Config:
-	def __init__(self):
-		self.configfile = op.configfile
-		self.cfg = ConfigParser.ConfigParser()
-
-		(s,b,p,q,f,o) = urlparse.urlparse(self.configfile)
-		if s in ('http', 'ftp', 'file'):
-			configfh = urllib.urlopen(self.configfile)
-			try:
-				self.cfg.readfp(configfh)
-			except ConfigParser.MissingSectionHeaderError, e:
-				die(6, 'Error accessing URL: %s' % self.configfile)
-		else:
-			if os.access(self.configfile, os.R_OK):
-				try:
-					self.cfg.read(self.configfile)
-				except:
-					die(7, 'Syntax error reading file: %s' % self.configfile)
-			else:
-				die(6, 'Error accessing file: %s' % self.configfile)
-
-	def getoption(self, section, option, var):
-		"Get an option from a section from configfile"
-		try:
-			var = self.cfg.get(section, option)
-			info(3, 'Setting option %s in section [%s] to: %s' % (option, section, var))
-		except ConfigParser.NoSectionError, e:
-			info(4, 'Failed to find section [%s] in %s' % (section, op.configfile))
-		except ConfigParser.NoOptionError, e:
-#			info(4, 'Failed to find option %s in [%s], set to default: %s' % (option, section, var))
-			info(4, 'Setting option %s in section [%s] to: %s (default)' % (option, section, var))
-		return var
+### START STATS DEFINITIONS ###
 
 class dstat:
-	def init(self):
-		### Initialise default variables
-		self.val = {}; self.cn1 = {}; self.cn2 = {}
-		for i in self.vars: self.val[i] = self.cn1[i] = self.cn2[i] = 0
+	### Initialise default variables
+	def init(self, vars=(), len=0):
+		if vars:
+			self.val = {}; self.cn1 = {}; self.cn2 = {}
+			for name in vars:
+				if len <= 1:
+					self.val[name] = self.cn1[name] = self.cn2[name] = 0
+				else:
+					self.val[name] = self.cn1[name] = self.cn2[name] = range(len)
+					for i in range(len):
+						self.val[name][i] = self.cn1[name][i] = self.cn2[name][i] = 0
 
+	### Open stat file descriptor
+	def open(self, file):
+		self.file = file
+		if os.path.exists(file):
+			self.fd = dopen(file)
+		else:
+			self.fd = None
+
+	### Return var width
 	def varwidth(self):
 		return len(self.vars) * self.width() + len(self.vars) - 1
 
+	### Return column width
 	def width(self):
 		if isinstance(self.name, types.StringType):
 			return self.len
@@ -260,7 +292,7 @@ class dstat:
 		ret = ''
 		for i, name in enumerate(self.name):
 			max = self.width()
-			ret = ret + string.replace(string.center(name[0:max], max),' ', '-')
+			ret = ret + string.replace(string.center(name[0:max], max), ' ', '-')
 			if i + 1 != len(self.name): ret = ret + '-'
 		return ansi['darkblue'] + ret
 
@@ -313,6 +345,8 @@ class dstat:
 			return ret
 
 	def check(self):
+		if hasattr(self, 'fd') and not self.fd:
+			return False
 		if self.discover() and self.width():
 			return True
 		return False
@@ -320,67 +354,73 @@ class dstat:
 	def discover(self):
 		return True
 
-	def stats(self):
+	def extract(self):
 		pass
 
-	def show(self):
+	def results(self):
 		sep = ' '
+		line = ''
 		for i, name in enumerate(self.vars):
 			if self.format in ('%s', '%bs'):
-				sys.stdout.write('%s' % conv(self.len, self.val[name], 1024))
+				line = line + '%s' % conv(self.len, self.val[name], 1024)
 			elif self.format == '%ds':
-				sys.stdout.write('%s' % conv(self.len, self.val[name], 1000))
+				line = line + '%s' % conv(self.len, self.val[name], 1000)
 			elif self.format == '%ps':
-				sys.stdout.write('%s' % conv(self.len, self.val[name], 100))
+				line = line + '%s' % conv(self.len, self.val[name], 100)
 			elif self.format == '%is':
-				sys.stdout.write('%s' % conv(self.len, self.val[name], 10))
+				line = line + '%s' % conv(self.len, self.val[name], 10)
 			elif self.format == '%f':
-				sys.stdout.write('%s' % conv(self.len, self.val[name], 1))
+				line = line + '%s' % conv(self.len, self.val[name], 1)
 			elif self.format in ('%s %s', '%s:%s', '%s-%s'):
-				sys.stdout.write(self.format % convlist(self.len, self.val[name]))
+				line = line + self.format % convlist(self.len, self.val[name])
 				sep = ansi['default'] + char['colon']
 			elif self.format in ('%s %s %s', '%s %s %s %s %s %s'):
-				sys.stdout.write(self.format % convlist(self.len, self.val[name], 100))
+				line = line + self.format % convlist(self.len, self.val[name], 100)
 				sep = ansi['default'] + char['colon']
 			else:
-				sys.stdout.write(self.format % self.val[name])
+				line = line + self.format % self.val[name]
 			if i + 1 != len(self.vars):
-				sys.stdout.write(sep)
+				line = line + sep
+		return line
 
 	def showend(self, totlist, vislist):
 		if self is not vislist[-1]:
-			sys.stdout.write(ansi['default'] + char['pipe'])
-		elif self is not totlist[-1]:
-			sys.stdout.write(ansi['default'] + char['gt'])
+			return ansi['default'] + char['pipe']
+		elif totlist != vislist:
+			return ansi['default'] + char['gt']
+		return ''
 
 	def showcsv(self):
 		def printcsv(var):
 			if var != round(var):
-				outputfile.write('%.2f' % var)
-			else:
-				outputfile.write('%d' % round(var))
+				return '%.2f' % var
+			return '%s' % round(var)
 
+		line = ''
 		for i, name in enumerate(self.vars):
 			if isinstance(self.val[name], types.ListType) or isinstance(self.val[name], types.TupleType):
 				for j, val in enumerate(self.val[name]):
-					printcsv(val)
+					line = line + printcsv(val)
 					if j + 1 != len(self.val[name]):
-						outputfile.write(',')
+						line = line + ','
 			else:
-				printcsv(self.val[name])
+				line = line + printcsv(self.val[name])
 			if i + 1 != len(self.vars):
-				outputfile.write(',')
+				line = line + ','
+		return line
 
 	def showcsvend(self, totlist, vislist):
 		if self is not vislist[-1]:
-			outputfile.write(',')
+			return ','
 		elif self is not totlist[-1]:
-			outputfile.write(',')
+			return ','
+		return ''
 
 class dstat_cpu(dstat):
 	def __init__(self):
-		self.len = 3
 		self.format = '%s %s %s %s %s %s'
+		self.len = 3
+		self.open('/proc/stat')
 		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
 		self.vars = self.vars()
 		self.name = []
@@ -389,15 +429,13 @@ class dstat_cpu(dstat):
 				self.name.append('cpu' + name + ' usage')
 			else:
 				self.name.append('total cpu usage')
-		self.init()
-		for name in self.vars: self.cn1[name] = (0, 0, 0, 0, 0, 0); self.cn1[''] = (0, 0, 0, 0, 0, 0)
-		for name in self.vars: self.cn2[name] = (0, 0, 0, 0, 0, 0); self.cn2[''] = (0, 0, 0, 0, 0, 0)
-		for name in self.vars: self.val[name] = [0, 0, 0, 0, 0, 0]; self.val[''] = [0, 0, 0, 0, 0, 0]
+		self.init( self.vars + ['',], 6)
 
 	def discover(self, *list):
 		ret = []
-		if os.path.exists('/proc/stat'):
-			for line in open('/proc/stat', 'r').readlines():
+		if self.fd:
+			self.fd.seek(0)
+			for line in self.fd.readlines():
 				l = string.split(line)
 				if len(l) < 8 or l[0][0:3] != 'cpu': continue
 				ret.append(l[0][3:])
@@ -409,37 +447,38 @@ class dstat_cpu(dstat):
 		ret = []
 		if op.cpulist:
 			list = op.cpulist
+		elif not op.full:
+			list = ('', )
 		else:
-			if not op.full:
-				list = ('', )
-			else:
-				list = []
-				cpu = 0
-				while cpu < cpunr:
-					list.append(str(cpu))
-					cpu = cpu + 1
-				if len(list) > 2: list = list[0:2]
+			list = []
+			cpu = 0
+			while cpu < cpunr:
+				list.append(str(cpu))
+				cpu = cpu + 1
+			if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
 		return ret
 
-	def stats(self):
-		for line in open('/proc/stat', 'r').readlines():
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			for name in self.vars:
 				if len(l) < 8 or l[0] != 'cpu' + name: continue
 				self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
 		for name in self.vars:
-			for i in (0, 1, 2, 3, 4, 5):
-				self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (total(self.cn2[name]) - total(self.cn1[name]))
+			for i in range(6):
+				self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
 class dstat_cpu24(dstat):
 	def __init__(self):
-		self.len = 3
 		self.format = '%s %s %s'
+		self.len = 3
+		self.open('/proc/stat')
 		self.nick = ( 'usr', 'sys', 'idl')
 		self.vars = self.vars()
 		self.name = []
@@ -448,15 +487,13 @@ class dstat_cpu24(dstat):
 				self.name.append('cpu' + name)
 			else:
 				self.name.append('cpu total')
-		self.init()
-		for name in self.vars: self.cn1[name] = (0, 0, 0); self.cn1[''] = (0, 0, 0)
-		for name in self.vars: self.cn2[name] = (0, 0, 0); self.cn2[''] = (0, 0, 0)
-		for name in self.vars: self.val[name] = [0, 0, 0]; self.val[''] = [0, 0, 0]
+		self.init(self.vars + ['',], 3)
 
 	def discover(self, *list):
 		ret = []
-		if os.path.exists('/proc/stat'):
-			for line in open('/proc/stat', 'r').readlines():
+		if self.fd:
+			self.fd.seek(0)
+			for line in self.fd.readlines():
 				l = string.split(line)
 				if len(l) != 5 or l[0][0:3] != 'cpu': continue
 				ret.append(l[0][3:])
@@ -468,30 +505,30 @@ class dstat_cpu24(dstat):
 		ret = []
 		if op.cpulist:
 			list = op.cpulist
+		elif not op.full:
+			list = ('', )
 		else:
-			if not op.full:
-				list = ('', )
-			else:
-				list = []
-				cpu = 0
-				while cpu < cpunr:
-					list.append(str(cpu))
-					cpu = cpu + 1
-				if len(list) > 2: list = list[0:2]
+			list = []
+			cpu = 0
+			while cpu < cpunr:
+				list.append(str(cpu))
+				cpu = cpu + 1
+			if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
 		return ret
 
-	def stats(self):
-		for line in open('/proc/stat', 'r').readlines():
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			for name in self.vars:
 				if len(l) < 5 or l[0] != 'cpu' + name: continue
 				self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]) )
 		for name in self.vars:
-			for i in (0, 1, 2):
-				self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (total(self.cn2[name]) - total(self.cn1[name]))
+			for i in range(3):
+				self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
@@ -499,33 +536,23 @@ class dstat_disk(dstat):
 	def __init__(self):
 		self.format = '%s %s'
 		self.len = 5
+		self.open('/proc/diskstats')
 		self.nick = ('read', 'write')
-		### Temporary hardcoded for my own project
-		self.diskset = {
-			'local': ('sda', 'hda', 'hdc'), 
-			'lores': ('sdb', 'sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh', 'sdi', 'sdj', 'sdk', 'sdv', 'sdw', 'sdx', 'sdy', 'sdz', 'sdaa', 'sdab', 'sdac', 'sdad', 'sdae'),
-			'hires': ('sdl', 'sdm', 'sdn', 'sdo', 'sdp', 'sdq', 'sdr', 'sds', 'sdt', 'sdu', 'sdaf', 'sdag', 'sdah', 'sdai', 'sdaj', 'sdak', 'sdal', 'sdam', 'sdan', 'sdao'),
-		}
 		self.vars = self.vars()
-		self.name = []
-		for name in self.vars:
-			self.name.append('disk/' + name)
-		self.init()
-
-		for name in self.vars: self.cn1[name] = (0, 0); self.cn1['total'] = (0, 0)
-		for name in self.vars: self.cn2[name] = (0, 0); self.cn2['total'] = (0, 0)
-		for name in self.vars: self.val[name] = [0, 0]; self.val['total'] = [0, 0]
+		self.name = ['disk/'+name for name in self.vars]
+		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
 		ret = []
-		if os.path.exists('/proc/diskstats'):
-			for line in open('/proc/diskstats', 'r').readlines():
+		if self.fd:
+			regexp = re.compile('^(ram\d+|loop\d+)$')
+			self.fd.seek(0)
+			for line in self.fd.readlines():
 				l = string.split(line)
 				if len(l) < 13 or l[3] == '0': continue
 				name = l[2]
-				if not re.match('^(ram\d+|loop\d+)$', name):
+				if not regexp.match(name):
 					ret.append(name)
-#			ret.sort()
 			for item in list: ret.append(item)
 		return ret
 
@@ -533,50 +560,64 @@ class dstat_disk(dstat):
 		ret = []
 		if op.disklist:
 			list = op.disklist
+		elif not op.full:
+			list = ('total', )
 		else:
-			if not op.full:
-				list = ('total', )
-			else:
-				list = self.discover()
-				if len(list) > 2: list = list[0:2]
-				list.sort()
+			list = self.discover()
+			if len(list) > 2: list = list[0:2]
+			list.sort()
 		for name in list:
-			if name in self.discover('total') + self.diskset.keys():
+			if name in self.discover('total') + op.diskset.keys():
 				ret.append(name)
 		return ret
 
-	def stats(self):
+	def extract(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
-		for line in open('/proc/diskstats', 'r').readlines():
+		regexp = re.compile('^(ram\d+|loop\d+)$')
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 13: continue
+			if l[5] == '0' and l[9] == '0': continue
 			name = l[2]
+			if regexp.match(name): continue
+			self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
 			if name in self.vars:
 				self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
 			for set in self.vars:
-				if set in self.diskset.keys() and name in self.diskset[set]:
-					self.cn2[set] = ( self.cn2[set][0] + long(l[5]), self.cn2[set][1] + long(l[9]) )
-			self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
-		if update:
-			for name in self.cn2.keys():
-				self.val[name] = ( 
-					(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / step,
-					(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / step,
-				)
+				if set in op.diskset.keys():
+					for disk in op.diskset[set]:
+						if re.match('^'+disk+'$', name):
+							self.cn2[set] = ( self.cn2[set][0] + long(l[5]), self.cn2[set][1] + long(l[9]) )
+		for name in self.cn2.keys():
+			self.val[name] = ( 
+				(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
+				(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
+			)
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
-class dstat_disk24(dstat_disk):
+class dstat_disk24(dstat):
+	def __init__(self):
+		self.format = '%s %s'
+		self.len = 5
+		self.open('/proc/partitions')
+		self.nick = ('read', 'write')
+		self.vars = self.vars()
+		self.name = ['disk/'+name for name in self.vars]
+		self.init(self.vars + ['total',], 2)
+
 	def discover(self, *list):
 		ret = []
-		if os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
-			for line in open('/proc/partitions', 'r').readlines():
+		if self.fd and not os.path.exists('/proc/diskstats'):
+			regexp = re.compile('^(ram\d+|loop\d+|name)$')
+			self.fd.seek(0)
+			for line in self.fd.readlines():
 				l = string.split(line)
 				if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 				name = l[3]
-				if not re.match('^(ram\d+|loop\d+|name)$', name):
+				if not regexp.match(name):
 					ret.append(name)	
-#			ret.sort()
 			for item in list: ret.append(item)
 		return ret
 
@@ -584,50 +625,63 @@ class dstat_disk24(dstat_disk):
 		ret = []
 		if op.disklist:
 			list = op.disklist
+		elif not op.full:
+			list = ('total', )
 		else:
-			if not op.full:
-				list = ('total', )
-			else:
-				list = self.discover()
-				if len(list) > 2: list = list[0:2]
-				list.sort()
+			list = self.discover()
+			if len(list) > 2: list = list[0:2]
+			list.sort()
 		for name in list:
-			if name in self.discover('total') + self.diskset.keys():
+			if name in self.discover('total') + op.diskset.keys():
 				ret.append(name)
 		return ret
 
-	def stats(self):
+	def extract(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
-		for line in open('/proc/partitions', 'r').readlines():
+		regexp = re.compile('^(ram\d+|loop\d+|name)$')
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 15: continue
+			if l[6] == '0' and l[10] == '0': continue
 			name = l[3]
 			if name == 'name': continue
+			if regexp.match(name): continue
+			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]))
 			if name in self.vars:
 				self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
 			for set in self.vars:
-				if set in self.diskset.keys() and name in self.diskset[set]:
-					self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
-			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]))
-		if update:
-			for name in self.cn2.keys():
-				self.val[name] = ( 
-					(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / step,
-					(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / step,
-				)
+				if set in op.diskset.keys():
+					for disk in op.diskset[set]:
+						if re.match('^'+disk+'$', name):
+							self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
+		for name in self.cn2.keys():
+			self.val[name] = ( 
+				(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
+				(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
+			)
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
 ### FIXME: Needs rework, does anyone care ?
-class dstat_disk24old(dstat_disk24):
+class dstat_disk24old(dstat):
+	def __init__(self):
+		self.format = '%s %s'
+		self.len = 5
+		self.open('/proc/stat')
+		self.nick = ('read', 'write')
+		self.vars = self.vars()
+		self.name = ['disk/'+name for name in self.vars]
+		self.init(self.vars + ['total',], 2)
+
 	def discover(self, *list):
 		ret = []
-		if os.path.exists('/proc/stat') and not os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
-			for line in open('/proc/stat', 'r').readlines():
+		if self.fd and not os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
+			self.fd.seek(0)
+			for line in self.fd.readlines():
 				l = string.split(line)
 				if len(l) < 15: continue
 				ret.append(l[3])
-#			ret.sort()
 			for item in list: ret.append(item)
 		return ret
 
@@ -635,112 +689,84 @@ class dstat_disk24old(dstat_disk24):
 		ret = []
 		if op.disklist:
 			list = op.disklist
+		elif not op.full:
+			list = ('total', )
 		else:
 			list = self.discover()
-			if not op.full and len(list) > 2: list = list[0:2]
+			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
-			if name in self.discover('total') + self.diskset.keys():
+			if name in self.discover('total') + op.diskset.keys():
 				ret.append(name)
 		return ret
 
-	def stats(self):
+	def extract(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
-		for line in open('/proc/stat', 'r').readlines():
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line, ':')
 			if len(l) < 3: continue
 			name = l[0]
 			if name == 'disk_io':
+				regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
 				for pair in string.split(line)[1:]:
-					m = re.match('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$', pair)
+					m = regexp.match(pair)
 					if m:
 						l = m.groups()
 						name = dev(int(l[0]), int(l[1]))
 						self.cn2[name] = ( long(l[2]), long(l[3]) )
-						for set in self.vars:
-							if set in self.diskset.keys() and name in self.diskset[set]:
-								self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
 						self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
-		if update:
-			for name in self.cn2.keys():
-				self.val[name] = (
-					(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / step,
-					(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / step,
-				)
+						for set in self.vars:
+							if set in op.diskset.keys():
+								for disk in op.diskset[set]:
+									if re.match('^'+disk+'$', name):
+										self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
+		for name in self.cn2.keys():
+			self.val[name] = (
+				(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
+				(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
+			)
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
 class dstat_int(dstat):
 	def __init__(self):
-		self.len = 5
-		self.format = '%ds'
 		self.name = 'interrupts'
+		self.format = '%ds'
+		self.len = 5
+		self.open('/proc/stat')
+
+		self.intmap = {}
+		for line in dopen('/proc/interrupts').readlines():
+			l = string.split(line)
+			if len(l) <= cpunr: continue
+			l1 = string.split(l[0], ':')[0]
+			l2 = string.split(string.join(l[cpunr+2:], ' '), ',')
+			self.intmap[l1] = l1
+			for name in l2:
+				self.intmap[string.strip(string.lower(name))] = l1
+
 		self.vars = self.vars()
 		self.nick = self.vars
-		self.init()
+		self.init(self.vars, 1)
 
 	def discover(self):
 		ret = []
-		if os.path.exists('/proc/stat'):
-			for line in open('/proc/stat', 'r').readlines():
+		if self.fd:
+			self.fd.seek(0)
+			for line in self.fd.readlines():
 				l = string.split(line)
 				if l[0] != 'intr': continue
 				for name, i in enumerate(l[2:]):
 					if long(i) > 10: ret.append(str(name))
 		return ret
 
-	def vars(self):
-		ret = []
-		if op.intlist:
-			list = op.intlist
-		else:
-			list = self.discover()
-			for name in list:
-				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
-					list.remove(name)
-			if not op.full and len(list) > 3: list = list[-3:]
-		for name in list:
-			if name in self.discover():
-				ret.append(name)
-		return ret
-
-	def stats(self):
-		for line in open('/proc/stat', 'r').readlines():
-			l = string.split(line)
-			if l[0] != 'intr': continue
-			for name in self.vars:
-				self.cn2[name] = long(l[int(name) + 2])
-		if update:
-			for name in self.vars:
-				self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / step
-		if step == op.delay:
-			self.cn1.update(self.cn2)
-
-class dstat_int24(dstat):
-	def __init__(self):
-		self.len = 5
-		self.format = '%ds'
-		self.name = 'interrupts'
-		self.vars = self.vars()
-		self.nick = self.vars
-		self.init()
-
-	def discover(self):
-		ret = []
-		if os.path.exists('/proc/interrupts'):
-			for line in open('/proc/interrupts', 'r').readlines():
-				l = string.split(line)
-				if len(l) < cpunr+1: continue
-				name = string.split(l[0], ':')[0]
-				if long(l[1]) > 10:
-					ret.append(name)
-		return ret
-
 	def check(self):
-		for line in open('/proc/stat', 'r').readlines():
-			l = string.split(line)
-			if l[0] != 'intr' or len(l) > 2: continue
-			if self.discover():
+		if self.fd and self.vars:
+			self.fd.seek(0)
+			for line in self.fd.readlines():
+				l = string.split(line)
+				if l[0] != 'intr': continue
 				return True
 		return False
 
@@ -757,10 +783,85 @@ class dstat_int24(dstat):
 		for name in list:
 			if name in self.discover():
 				ret.append(name)
+			elif string.lower(name) in self.intmap.keys():
+				ret.append(self.intmap[string.lower(name)])
 		return ret
 
-	def stats(self):
-		for line in open('/proc/interrupts', 'r').readlines():
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = string.split(line)
+			if l[0] != 'intr': continue
+			for name in self.vars:
+				self.cn2[name] = long(l[int(name) + 2])
+		for name in self.vars:
+			self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+		if step == op.delay:
+			self.cn1.update(self.cn2)
+
+class dstat_int24(dstat):
+	def __init__(self):
+		self.name = 'interrupts'
+		self.format = '%ds'
+		self.len = 5
+		self.open('/proc/interrupts')
+
+		self.intmap = {}
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = string.split(line)
+			if len(l) <= cpunr: continue
+			l1 = string.split(l[0], ':')[0]
+			l2 = string.split(string.join(l[cpunr+2:], ' '), ',')
+			self.intmap[l1] = l1
+			for name in l2:
+				self.intmap[string.strip(string.lower(name))] = l1
+
+		self.vars = self.vars()
+		self.nick = self.vars
+		self.init(self.vars, 1)
+
+	def discover(self):
+		ret = []
+		if self.fd:
+			self.fd.seek(0)
+			for line in self.fd.readlines():
+				l = string.split(line)
+				if len(l) < cpunr+1: continue
+				name = string.split(l[0], ':')[0]
+				if long(l[1]) > 10:
+					ret.append(name)
+		return ret
+
+	def check(self):
+		if self.fd and self.discover():
+			self.fd.seek(0)
+			for line in self.fd.readlines():
+				l = string.split(line)
+				if l[0] != 'intr' or len(l) > 2: continue
+				return True
+		return False
+
+	def vars(self):
+		ret = []
+		if op.intlist:
+			list = op.intlist
+		else:
+			list = self.discover()
+			for name in list:
+				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
+					list.remove(name)
+			if not op.full and len(list) > 3: list = list[-3:]
+		for name in list:
+			if name in self.discover():
+				ret.append(name)
+			elif string.lower(name) in self.intmap.keys():
+				ret.append(self.intmap[string.lower(name)])
+		return ret
+
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < cpunr+1: continue
 			name = string.split(l[0], ':')[0]
@@ -772,124 +873,162 @@ class dstat_int24(dstat):
 #				for hw in self.vars:
 #					for mod in l[2+cpunr:]:
 #						self.cn2[mod] = long(l[1])
-		if update:
-			for name in self.cn2.keys():
-				self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / step
+		for name in self.cn2.keys():
+			self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
-class dstat_load(dstat):
+class dstat_ipc(dstat):
 	def __init__(self):
-		self.len = 4
-		self.format = '%f'
-		self.name = 'load avg'
-		self.vars = ('load1', 'load5', 'load15')
-		self.nick = ('1m', '5m', '15m')
-		self.init()
+		self.name = 'sysv ipc'
+		self.format = '%is'
+		self.len = 3
+		self.vars = ('msg', 'sem', 'shm')
+		self.nick = self.vars
+		self.init(self.vars, 1)
 
 	def check(self):
-		if os.path.exists('/proc/loadavg'):
+		return True
+
+	def extract(self):
+		for name in self.vars:
+			self.val[name] = len(dopen('/proc/sysvipc/'+name).readlines()) - 1
+
+class dstat_load(dstat):
+	def __init__(self):
+		self.name = 'load avg'
+		self.format = '%f'
+		self.len = 4
+		self.open('/proc/loadavg')
+		self.nick = ('1m', '5m', '15m')
+		self.vars = ('load1', 'load5', 'load15')
+		self.init(self.vars, 1)
+
+	def check(self):
+		if self.fd:
 			return True
 		return False
 
-	def stats(self):
-		for line in open('/proc/loadavg', 'r').readlines():
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 3: continue
 			self.val['load1'] = float(l[0])
 			self.val['load5'] = float(l[1])
 			self.val['load15'] = float(l[2])
 
-class dstat_mem(dstat):
+class dstat_lock(dstat):
 	def __init__(self):
-		self.name = 'memory usage'
-		self.len = 5
-		self.format = '%s'
-		self.vars = ('MemUsed', 'Buffers', 'Cached', 'MemFree')
-		self.nick = ('used', 'buff', 'cach', 'free')
-		self.init()
+		self.name = 'file locks'
+		self.format = '%is'
+		self.len = 3
+		self.open('/proc/locks')
+		self.nick = ('pos', 'lck', 'rea', 'wri')
+		self.vars = ('posix', 'flock', 'read', 'write')
+		self.init(self.vars, 1)
 
 	def check(self):
-		if os.path.exists('/proc/meminfo'):
+		if self.fd:
 			return True
 		return False
 
-	def stats(self):
-		for line in open('/proc/meminfo', 'r').readlines():
+	def extract(self):
+		for name in self.vars: self.val[name] = 0
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = string.split(line)
+			if len(l) < 4: continue
+			if l[1] == 'POSIX':
+				self.val['posix'] = self.val['posix'] + 1
+			elif l[1] == 'FLOCK':
+				self.val['flock'] = self.val['flock'] + 1
+			if l[3] == 'READ':
+				self.val['read'] = self.val['read'] + 1
+			elif l[3] == 'WRITE':
+				self.val['write'] = self.val['write'] + 1
+
+class dstat_mem(dstat):
+	def __init__(self):
+		self.name = 'memory usage'
+		self.format = '%s'
+		self.len = 5
+		self.open('/proc/meminfo')
+		self.nick = ('used', 'buff', 'cach', 'free')
+		self.vars = ('MemUsed', 'Buffers', 'Cached', 'MemFree')
+		self.init(self.vars, 1)
+
+	def check(self):
+		if self.fd:
+			return True
+		return False
+
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
-			name = string.split(l[0],':')[0]
+			name = string.split(l[0], ':')[0]
 			if name in self.vars + ('MemTotal',):
 				self.val[name] = long(l[1]) * 1024.0
 		self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
 
 class dstat_net(dstat):
 	def __init__(self):
-		self.len = 5
 		self.format = '%s %s'
-		self.vars = self.vars()
-		self.name = []
-		for name in self.vars:
-			self.name.append('net/' + name)
+		self.len = 5
+		self.open('/proc/net/dev')
 		self.nick = ('recv', 'send')
-		self.init()
-
-		for name in self.vars: self.cn1[name] = (0, 0); self.cn1['total'] = (0, 0)
-		for name in self.vars: self.cn2[name] = (0, 0); self.cn2['total'] = (0, 0)
-		for name in self.vars: self.val[name] = [0, 0]; self.val['total'] = [0, 0]
+		self.vars = self.vars()
+		self.name = ['net/'+name for name in self.vars]
+		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
 		ret = []
-		if os.path.exists('/proc/net/dev'):
-			for line in open('/proc/net/dev', 'r').readlines():
-				l = string.split(line)
-				if len(l) < 2: continue
-				name = string.split(l[0], ':')[0]
-				if l[1] == '0': continue
-				if not re.match('^(Inter-\||face|lo)$', name):
-					ret.append(name)
-			ret.sort()
-			for item in list: ret.append(item)
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = string.split(string.replace(line, ':', ' '))
+			if len(l) < 17: continue
+			if l[2] == '0' and l[10] == '0': continue
+			name = l[0]
+			if name not in ('lo', 'face'):
+				ret.append(name)
+		ret.sort()
+		for item in list: ret.append(item)
 		return ret
 
 	def vars(self):
 		ret = []
 		if op.netlist:
 			list = op.netlist
+		elif not op.full:
+			list = ('total', )
 		else:
-			if not op.full:
-				list = ('total', )
-			else:
-				list = self.discover()
-				if len(list) > 2: list = list[0:2]
-				list.sort()
+			list = self.discover()
+			if len(list) > 2: list = list[0:2]
+			list.sort()
 		for name in list:
-			if name in self.discover('total'):
+			if name in self.discover('total', 'lo'):
 				ret.append(name)
 		return ret
 
-	def stats(self):
+	def extract(self):
 		self.cn2['total'] = [0, 0]
-		for line in open('/proc/net/dev', 'r').readlines():
-			l = string.split(line)
-			if len(l) < 1: continue
-			l2 = string.split(l[0], ':')
-			if len(l2) < 1: continue
-			name = l2[0]
-			if len(l2) > 1 and string.strip(l2[1]):
-				l = l2[1:] + l[1:]
-			else:
-				l = l[1:]
-			if len(l) < 9: continue
-			if name in (self.vars) :
-				self.cn2[name] = ( long(l[0]), long(l[8]) )
-			if not re.match('^(Inter-\||face|lo)$', name):
-				self.cn2['total'] = ( self.cn2['total'][0] + long(l[0]), self.cn2['total'][1] + long(l[8]))
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = string.split(string.replace(line, ':', ' '))
+			if len(l) < 17: continue
+			if l[2] == '0' and l[10] == '0': continue
+			name = l[0]
+			if name in self.vars :
+				self.cn2[name] = ( long(l[2]), long(l[10]) )
+			if name not in ('lo','face'):
+				self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[10]))
 		if update:
 			for name in self.cn2.keys():
 				self.val[name] = ( 
-					(self.cn2[name][0] - self.cn1[name][0]) * 1.0 / step,
-					(self.cn2[name][1] - self.cn1[name][1]) * 1.0 / step,
+					(self.cn2[name][0] - self.cn1[name][0]) * 1.0 / tick,
+					(self.cn2[name][1] - self.cn1[name][1]) * 1.0 / tick,
 				 )
 		if step == op.delay:
 			self.cn1.update(self.cn2)
@@ -899,45 +1038,55 @@ class dstat_page(dstat):
 		self.name = 'paging'
 		self.format = '%s'
 		self.len = 5
-		self.vars = ('pswpin', 'pswpout')
+		self.open('/proc/vmstat')
 		self.nick = ('in', 'out')
-		self.init()
+		self.vars = ('pswpin', 'pswpout')
+		self.init(self.vars, 1)
 
 	def check(self):
-		if os.path.exists('/proc/vmstat'):
+		if self.fd:
 			return True
 		return False
 
-	def stats(self):
-		for line in open('/proc/vmstat', 'r').readlines():
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
 				self.cn2[name] = long(l[1])
-		if update:
-			for name in self.vars:
-				self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / step
+		for name in self.vars:
+			self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / tick
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
-class dstat_page24(dstat_page):
+class dstat_page24(dstat):
+	def __init__(self):
+		self.name = 'paging'
+		self.format = '%s'
+		self.len = 5
+		self.open('/proc/stat')
+		self.nick = ('in', 'out')
+		self.vars = ('pswpin', 'pswpout')
+		self.init(self.vars, 1)
+
 	def check(self):
-		if os.path.exists('/proc/stat') and not os.path.exists('/proc/vmstat'):
+		if self.fd and not os.path.exists('/proc/vmstat'):
 			return True
 		return False
 
-	def stats(self):
-		for line in open('/proc/stat', 'r').readlines():
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 3: continue
 			name = l[0]
 			if name == 'swap':
 				self.cn2['pswpin'] = long(l[1])
 				self.cn2['pswpout'] = long(l[2])
-		if update:
-			for name in self.vars:
-				self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / step
+		for name in self.vars:
+			self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / tick
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
@@ -946,19 +1095,19 @@ class dstat_proc(dstat):
 		self.name = 'procs'
 		self.format = '%is'
 		self.len = 3
-		self.vars = ('procs_running', 'procs_blocked', 'processes')
-#		self.vars = ('procs_running', 'procs_blocked')
+		self.open('/proc/stat')
 		self.nick = ('run', 'blk', 'new')
-#		self.nick = ('ru', 'bl')
-		self.init()
+		self.vars = ('procs_running', 'procs_blocked', 'processes')
+		self.init(self.vars, 1)
 
 	def check(self):
-		if os.path.exists('/proc/stat'):
+		if self.fd:
 			return True
 		return False
 
-	def stats(self):
-		for line in open('/proc/stat', 'r').readlines():
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = l[0]
@@ -969,31 +1118,51 @@ class dstat_proc(dstat):
 				self.cn2[name] = self.cn2[name] + long(l[1]) - 1
 			elif name == 'procs_blocked':
 				self.cn2[name] = self.cn2[name] + long(l[1])
-		if update:
-			self.val['processes'] = (self.cn2['processes'] - self.cn1['processes']) * 1.0 / step
-			for name in ('procs_running', 'procs_blocked'):
-				self.val[name] = self.cn2[name] * 1.0 / step
+		self.val['processes'] = (self.cn2['processes'] - self.cn1['processes']) * 1.0 / tick
+		for name in ('procs_running', 'procs_blocked'):
+			self.val[name] = self.cn2[name] * 1.0 / tick
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 			for name in ('procs_running', 'procs_blocked'):
 				self.cn2[name] = 0
 
-class dstat_swap(dstat):
+class dstat_raw(dstat):
 	def __init__(self):
-		self.name = 'swap'
-		self.len = 5
-		self.format = '%s'
-		self.vars = ('SwapUsed', 'SwapFree')
-		self.nick = ('used', 'free')
-		self.init()
+		self.name = 'raw'
+		self.format = '%is'
+		self.len = 3
+		self.open('/proc/net/raw')
+		self.nick = ('soc',)
+		self.vars = ('sockets',)
+		self.init(self.vars, 1)
 
 	def check(self):
-		if os.path.exists('/proc/meminfo'):
+		if self.fd:
 			return True
 		return False
 
-	def stats(self):
-		for line in open('/proc/meminfo', 'r').readlines():
+	def extract(self):
+		self.fd.seek(0)
+		self.val['sockets'] = len(self.fd.readlines()) - 1
+
+class dstat_swap(dstat):
+	def __init__(self):
+		self.name = 'swap'
+		self.format = '%s'
+		self.len = 5
+		self.open('/proc/meminfo')
+		self.nick = ('used', 'free')
+		self.vars = ('SwapUsed', 'SwapFree')
+		self.init(self.vars, 1)
+
+	def check(self):
+		if self.fd:
+			return True
+		return False
+
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = string.split(l[0], ':')[0]
@@ -1006,45 +1175,48 @@ class dstat_sys(dstat):
 		self.name = 'system'
 		self.format = '%ds'
 		self.len = 5
-		self.vars = ('intr', 'ctxt')
+		self.open('/proc/stat')
 		self.nick = ('int', 'csw')
-		self.init()
+		self.vars = ('intr', 'ctxt')
+		self.init(self.vars, 1)
 
 	def check(self):
-		if os.path.exists('/proc/stat'):
+		if self.fd:
 			return True
 		return False
 
-	def stats(self):
-		for line in open('/proc/stat', 'r').readlines():
+	def extract(self):
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = l[0]
 			if name in self.vars:
 				self.cn2[name] = long(l[1])
-		if update:
-			for name in self.vars:
-				self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / step
+		for name in self.vars:
+			self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
 class dstat_tcp(dstat):
 	def __init__(self):
-		self.name = 'tcp'
+		self.name = 'tcp sockets'
 		self.format = '%is'
 		self.len = 3
-		self.vars = ('listen', 'established', 'syn_sent', 'time_wait')
+		self.open('/proc/net/tcp')
 		self.nick = ('lis', 'act', 'syn', 'tim')
-		self.init()
+		self.vars = ('listen', 'established', 'syn_sent', 'time_wait')
+		self.init(self.vars, 1)
 
 	def check(self):
-		if os.path.exists('/proc/net/tcp'):
+		if self.fd:
 			return True
 		return False
 
-	def stats(self):
-		self.val['listen'] = self.val['established'] = self.val['syn_sent'] = self.val['time_wait'] = 0
-		for line in open('/proc/net/tcp', 'r').readlines():
+	def extract(self):
+		for name in self.vars: self.val[name] = 0
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 12: continue
 			if l[3] == '0A': self.val['listen'] = self.val['listen'] + 1
@@ -1060,64 +1232,71 @@ class dstat_time(dstat):
 		### Nice for debugging timer
 #		self.format = '%13.3f'
 #		self.len = 14
+		self.format = '%13.4f'
+		self.len = 15
 		self.nick = ('epoch',)
 		self.vars = ('epoch',)
-		self.init()
+		self.init(self.vars, 1)
 
-	def stats(self):
+	def extract(self):
 		self.val['epoch'] = time.time()
 
-	def show(self):
-		sys.stdout.write(self.format % self.val['epoch'])
+	def results(self):
+		return ansi['reset'] + self.format % self.val['epoch']
 
 class dstat_udp(dstat):
 	def __init__(self):
 		self.name = 'udp'
 		self.format = '%is'
 		self.len = 3
-		self.nick = ('con', )
-		self.vars = ('connections', )
-		self.init()
+		self.open('/proc/net/udp')
+		self.nick = ('lis', 'act')
+		self.vars = ('listen', 'established')
+		self.init(self.vars, 1)
 
 	def check(self):
-		if os.path.exists('/proc/net/udp'):
+		if self.fd:
 			return True
 		return False
 
-	def stats(self):
-		self.val['connections'] = 0
-		for line in open('/proc/net/udp', 'r').readlines():
+	def extract(self):
+		for name in self.vars: self.val[name] = 0
+		self.fd.seek(0)
+		for line in self.fd.readlines():
 			l = string.split(line)
-			if l[3] == '07': self.val['connections'] = self.val['connections'] + 1
+			if l[3] == '07': self.val['listen'] = self.val['listen'] + 1
+			elif l[3] == '01': self.val['established'] = self.val['established'] + 1
 
-class dstat_user(dstat):
+class dstat_unix(dstat):
 	def __init__(self):
-		self.name = 'users'
-		self.format = '%is'
-		self.len = 3
-		self.nick = ('usr', 'adm' )
-		self.vars = ('users', 'root')
-		self.init()
+		self.name = 'unix sockets'
+		self.format = '%ds'
+		self.len = 4
+		self.open('/proc/net/unix')
+		self.nick = ('dgrm', 'strm', 'lis', 'act')
+		self.vars = ('datagram', 'stream', 'listen', 'established')
+		self.init(self.vars, 1)
 
 	def check(self):
-		try:
-			import utmp
+		if self.fd:
 			return True
-		except:
-			print 'The user stat needs the python-utmp module.'
-			return False
+		return False
 
-	def stats(self):
-		import utmp
-		u = utmp.UtmpRecord()
-		self.val['users'] = 0
-		self.val['root'] = 0
-		for i in u:
-			if i.ut_type == utmp.USER_PROCESS:
-				self.val['users'] = self.val['users'] + 1
-				if i.ut_user == 'root':
-					self.val['root'] = self.val['root'] + 1
-			
+	def extract(self):
+		for name in self.vars: self.val[name] = 0
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = string.split(line)
+			if l[4] == '0002':
+				self.val['datagram'] = self.val['datagram'] + 1
+			elif l[4] == '0001':
+				self.val['stream'] = self.val['stream'] + 1
+				if l[5] == '01':
+					self.val['listen'] = self.val['listen'] + 1
+				elif l[5] == '03':
+					self.val['established'] = self.val['established'] + 1
+
+### END STATS DEFINITIONS ###
 
 ansi = {
 	'black': '\033[0;30m',
@@ -1172,11 +1351,34 @@ char = {
 	'space': ' ',
 }
 
-def total(list):
-	ret = 0
-	for i in list:
-		ret = ret + i
-	return ret
+def ticks():
+	try:
+		for line in open('/proc/uptime', 'r', 0).readlines():
+			l = string.split(line)
+			if len(l) < 2: continue
+			return float(l[0])
+	except:
+		for line in dopen('/proc/stat').readlines():
+			l = string.split(line)
+			if len(l) < 2: continue
+			if l[0] == 'btime':
+				return time.time() - long(l[1])
+
+def dopen(file):
+	global fds
+	if not 'fds' in globals(): fds = {}
+	if not file in fds:
+		fds[file] = open(file, 'r', 0)
+	else:
+		fds[file].seek(0)
+	return fds[file]
+
+def dclose(file):
+	global fds
+	if not 'fds' in globals(): fds = {}
+	if file in fds:
+		close(fds[file])
+		del(fds[file])
 
 def convlist(max, list, base = 1024):
 #	max = max / len(list)
@@ -1233,20 +1435,22 @@ def conv(max, var, base = 1024):
 	return ansi[color[c]] + string.rjust(repr, max)
 
 def showtitle(nr, totlist, vislist, midchar, endchar):
+	line = ''
 	for o in vislist:
-		sys.stdout.write(o.title(nr))
+		line = line + o.title(nr)
 		if o is not vislist[-1]:
-			sys.stdout.write(midchar)
+			line = line + midchar
 		elif totlist != vislist:
-			sys.stdout.write(endchar)
-	sys.stdout.write('\n')
+			line = line + endchar
+	sys.stdout.write(line + '\n')
 
 def showcsvtitle(nr, totlist):
+	line = ''
 	for o in totlist:
-		outputfile.write(o.titlecsv(nr))
+		line = line + o.titlecsv(nr)
 		if o is not totlist[-1]:
-			outputfile.write(',')
-	outputfile.write('\n')
+			line = line + ','
+	outputfile.write(line + '\n')
 
 def info(level, str):
 	"Output info message"
@@ -1256,7 +1460,7 @@ def info(level, str):
 def die(ret, str):
 	"Print error and exit with errorcode"
 	info(0, str)
-	sys.exit(ret)
+	exit(ret)
 
 def getwinsize():
 	if op.nolimit:
@@ -1278,7 +1482,7 @@ def getwinsize():
 
 def getcpunr():
 	cpunr = -1
-	for line in open('/proc/stat', 'r').readlines():
+	for line in dopen('/proc/stat').readlines():
 		if line[0:3] == 'cpu':
 			cpunr = cpunr + 1
 	return cpunr
@@ -1302,7 +1506,7 @@ def dev(maj, min):
 
 #def mountpoint(dev):
 #	"Return the mountpoint of a mounted device/file"
-#	for entry in open('/etc/mtab', 'r').readlines():
+#	for entry in dopen('/etc/mtab').readlines():
 #		if entry:
 #			list = string.split(entry)
 #			if dev == list[0]:
@@ -1313,55 +1517,39 @@ def signaler(signum, frame):
 
 def exit(ret):
 	sys.stdout.write(ansi['reset'])
-	signal.signal(signal.SIGALRM, signal.SIG_DFL)
+	if 'signal' in sys.modules:
+		signal.signal(signal.SIGALRM, signal.SIG_DFL)
+#	termios.tcsetattr(fd, termios.TCSADRAIN, old)
 	sys.exit(ret)
 
 def main():
-	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile
+	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick
 
 	loop = update = 0
 	step = op.delay
+	tick = ticks()
 	pagesize = resource.getpagesize()
 	cpunr = getcpunr()
 #	hz = os.sysconf('SC_CLK_TCK')
 	interval = 1
 
 	if op.output:
-		outputfile = open(op.output, 'a', 0)
-
-	### Build list of requested modules
-	totlist = []
-	for mod in op.modlist:
-		if mod == 'cpu':
-			totlist.append(dstat_cpu())
-			totlist.append(dstat_cpu24())
-		elif mod == 'disk':
-			totlist.append(dstat_disk())
-			totlist.append(dstat_disk24())
-			totlist.append(dstat_disk24old())
-		elif mod == 'int':
-			totlist.append(dstat_int())
-			totlist.append(dstat_int24())
-		elif mod == 'load':	totlist.append(dstat_load())
-		elif mod == 'mem':	totlist.append(dstat_mem())
-		elif mod == 'net':	totlist.append(dstat_net())
-		elif mod == 'page':
-			totlist.append(dstat_page())
-			totlist.append(dstat_page24())
-		elif mod == 'proc':	totlist.append(dstat_proc())
-		elif mod == 'swap':	totlist.append(dstat_swap())
-		elif mod == 'sys':	totlist.append(dstat_sys())
-		elif mod == 'tcp':	totlist.append(dstat_tcp())
-		elif mod == 'time':	totlist.append(dstat_time())
-		elif mod == 'udp':	totlist.append(dstat_udp())
-		elif mod == 'user':	totlist.append(dstat_user())
+		if os.path.exists(op.output):
+			outputfile = open(op.output, 'a', 0)
+			outputfile.write('\n\n')
 		else:
-			info(1, 'Module \'%s\' does not exist or failed to load.' % mod)
+			outputfile = open(op.output, 'w', 0)
+			outputfile.write('"Dstat %s CSV output"\n' % VERSION)
+			outputfile.write('"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"\n')
+
+		### FIXME: Get rid of socket()
+		import socket
+		outputfile.write('"Host:","%s"\n' % (socket.gethostbyaddr(socket.gethostname())[0]))
+		outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (' '.join(op.args), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
 
 	### Check terminal capabilities
 	if sys.stdout.isatty():
-#		if curses.tigetnum('colors') < 0:
-		if os.environ.get('TERM', None) not in ('ansi', 'gnome', 'linux', 'rxvt', 'screen', 'screen-w', 'xterm', 'xterm-color'):
+		if curses.tigetnum('colors') < 0:
 			op.color = False
 	else:
 		op.color = False
@@ -1379,46 +1567,54 @@ def main():
 	if not op.update:
 		interval = op.delay
 
-	### Remove defect objects and calculate line length
+	### Build list of requested modules
 	linewidth = 0
-	for o in totlist + []:
-		if o.check():
-			linewidth = linewidth + o.varwidth() + 1
+	oldvislist = []
+	totlist = []
+	for mod in op.modlist:
+		if mod == 'cpu':    objs = ( dstat_cpu(), dstat_cpu24() )
+		elif mod == 'disk': objs = ( dstat_disk(), dstat_disk24(), dstat_disk24old() )
+		elif mod == 'int':  objs = ( dstat_int(), dstat_int24() )
+		elif mod == 'page': objs = ( dstat_page(), dstat_page24() )
+		elif 'dstat_'+mod in globals():
+			exec(compile('objs = ( dstat_%s(), )' % mod, '<string>', 'exec'))
 		else:
-			totlist.remove(o)
+			try:
+				exec(compile('import dstat_%s\nobjs = ( dstat_%s.dstat_%s(), )' % (mod, mod, mod), '<string>', 'exec'))
+			except Exception, e:
+				info(1, 'Module \'dstat_%s\' does not exist or failed to load. (%s)' % (mod, e))
+				continue
+
+		### Remove defect stat objects and calculate line length
+		for o in objs:
+			if o.check():
+				linewidth = linewidth + o.varwidth() + 1
+				totlist.append(o)
+				break
 
 	if not totlist:
 		die(8, 'None of the stats you selected are available.')
 
-	### FIXME: Get rid of socket()
 	if op.output:
-		import socket
-		outputfile.write('"Dstat %s CSV output"\n' % VERSION)
-		outputfile.write('"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"\n')
-		outputfile.write('"Host:","%s",,,,"Date:","%s"\n' % (socket.gethostbyaddr(socket.gethostname())[0], time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
-		outputfile.write('"Cmd:","dstat %s"\n\n' % ' '.join(op.args))
-
-		if op.output:
-			showcsvtitle(1, totlist)
-			showcsvtitle(2, totlist)
-	oldvislist = []
+		showcsvtitle(1, totlist)
+		showcsvtitle(2, totlist)
 
 	### Increase precision if we're root (does not seem to have effect)
 #	if os.geteuid() == 0:
 #		os.nice(-20)
 #	sys.setcheckinterval(op.delay / 10000)
 
-	signal.signal(signal.SIGALRM, signaler)
-	signal.alarm(interval)
-
 	### Always show header the first time
 	showheader = True
+
+	signal.signal(signal.SIGALRM, signaler)
+	signal.alarm(interval)
 
 	### Let the games begin
 	while update <= op.delay * op.count or op.count == -1:
 
 		### Trim object list to what is visible on screen
-		(rows, cols) = getwinsize()
+		rows, cols = getwinsize()
 		vislist = []
 		curwidth = 0
 		for o in totlist:
@@ -1450,30 +1646,39 @@ def main():
 			ansi['default'] = ansi['reset']
 		else:
 			ansi['default'] = ansi['gray']
-		sys.stdout.write(ansi['default'])
+		line = ansi['default']
 
 		### Debugging info
-#		sys.stdout.write('[%d:%d:%d] ' % (loop, step, update))
+#		line = line + '[%d:%d:%d] ' % (loop, step, update)
 
-		### Show the stats, calculate all objects (visible, invisible)
+		### Calculate all objects (visible, invisible)
+		oline = ''
 		for o in totlist:
-			o.stats()
+			o.extract()
 			if o in vislist:
-				o.show()
-				o.showend(totlist, vislist)
+				line = line + o.results() + o.showend(totlist, vislist)
 			if op.output and step == op.delay:
-				o.showcsv()
-				o.showcsvend(totlist, vislist)
-		sys.stdout.write(ansi['default'])
+				oline = oline + o.showcsv() + o.showcsvend(totlist, vislist)
+
+		### Print stats
+		sys.stdout.write(line + ansi['default'])
 		if op.output and step == op.delay:
-			outputfile.write('\n')
+			outputfile.write(oline + '\n')
 
 		### If intermediate results, update increases with 1 sec (=interval)
 		update = update + interval
 
+		### Debugging/profiling
+#		global t1
+#		if not 't1' in globals(): t1 = tick
+#		sys.stdout.write(' [%4.4f' % (time.time() - t1))
+
 		### Do not pause when this is the final loop
 		if update <= op.delay * op.count or op.count == -1:
 			signal.pause()
+
+		### Debuggine/profiling
+#		t1 = time.time()
 
 		### The last step in a loop is to show the definitive line on its own line
 		if step == op.delay:
@@ -1483,43 +1688,35 @@ def main():
 
 		loop = (update + op.delay - 1) / op.delay
 		step = ((update - 1) % op.delay) + 1
-
-### Unbuffered sys.stdout
-sys.stdout = os.fdopen(1, 'w', 0)
-
-### Workaround for python <= 2.2.1
-try:
-     True, False
-except NameError:
-     True = 1
-     False = 0
-Yes = yes = On = on = True
-No = no = Off = off = False
-
-### Workaround for python < 2.1
-def enumerate(sequence):
-    index = 0
-    list = []
-    for item in sequence:
-#        yield index, item
-        list.append((index, item))
-        index = index + 1
-    return list
+		tick = step
 
 ### Main entrance
 if __name__ == '__main__':
-	op=Options(sys.argv[1:])
-#	cf=Config()
 	try:
+		### Unbuffered sys.stdout
+		sys.stdout = os.fdopen(1, 'w', 0)
+
+		curses.setupterm()
+
+		### Prevent keyboard input
+#		fd = sys.stdin.fileno()
+#		old = termios.tcgetattr(fd)
+#		new = termios.tcgetattr(fd)
+#		new[3] = new[3] & ~termios.ECHO
+#		termios.tcsetattr(fd, termios.TCSADRAIN, new)
+
+		op = Options(sys.argv[1:])
 		main()
 	except KeyboardInterrupt, e:
 		print
 	except OSError, e:
-#		print e.errno
 		print
 		print 'OSError: %s' % e
 		exit(7)
-
-exit(0)
+	exit(0)
+else:
+	op = Options('')
+	step = 1
+	tick = ticks()
 
 # vim:ts=4:sw=4

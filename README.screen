@@ -1,8 +1,9 @@
 Configuring screen to display multiple dstat for different systems
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-It saved me a lot of work after I discovered the split screen functionality
-and how it worked exactly. Here is an example of how I would monitor 5 nodes
-in a cluster with a minimum of effort:
+Here is an example of how I monitor 5 nodes in a cluster with a minimum
+of effort using screen:
+
+Put the following content in a file called screenrc-5nodes:
 
 	startup_message off
 	defwrap off
@@ -20,8 +21,8 @@ in a cluster with a minimum of effort:
 	focus down
 	screen -t node05 5 ssh -t 172.17.0.215 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
 
-Put this in a file named screenrc-5nodes and then set the environment
-variable to tell screen to use this config-file for the next screen.
+Then set the environment variable to tell screen to use this config-file
+for the next screen.
 
 	SCREENRC='screenrc-5nodes' screen
 
@@ -35,3 +36,5 @@ Do that 5 times, and then quit each dstat by pressing:
 	ctrl-c
 
 5 times.
+
+If you have other tips or hints, please send them to: <dag@wieers.com>

@@ -1,18 +1,44 @@
-* 0.5.10
-- Restore terminal for all exit situations (Modesto Alexandre)
-- Get ridding of duplicate 'too width' error message in dstat15
+* 0.6.0 - Bettiesbaai - released ../../2005
+- Removed keyboard input prevention patch. (Dbt 304673, Marc Lehmann)
+- Fixed bug with: dstat -tit -I 177
+- Added ipc stats (--ipc)
+- Added lock stats (--lock)
+- Added raw stats (--raw)
+- Added unix stats (--unix)
+- Improved udp stats
+- Reimplemented -I eth0,ide1 (Bert de Bruijn)
+- Smarter /proc handling, seek(0) instead of re-open()
+- Implemented dopen() as a wrapper hash for file descriptors
+- Small speedup improvements after profiling
+- Improvement in handling compatible stats (eg. disk, disk24, disk24old)
+- Added initial values (step=0) for disk, int, page, and sys stats
+- Allowed external tools to use the dstat classes
+- Added example scripts using the dstat classes (mstat.py and read.py)
+- Allowed external modules to be plugged in
+- Added external acpi modules (dstat_battery, dstat_cpufreq and dstat_thermal)
+- Added external modules (dstat_dbus and dstat_utmp)
+- Removed user stat (now in dstat_utmp module)
+- Smaller fixes and overall improvements
+- Improved help output and manpage
+- Added README.examples, README.performance and README.stats
+- Added profiling code (--debug)
+- Rewrote cprint/cprintlist logic
 
-* 0.5.9
+* 0.5.10 - released 08/04/2005
+- Small fix to restore terminal for all exit paths (Dbt 303526, Modesto Alexandre)
+- Get rid of duplicate 'screen width too small' error message in dstat15
+
+* 0.5.9 - released 28/03/2005
 - Make default list total lists (cpu, disk, net)
 - Fix clearline ANSI to work on older (Debian?) rxvt (Joshua Rodman)
-- Improved color/vt100 terminal capabilities logic (Charles Lepple)
+- Improved color/vt100 terminal capabilities logic (Dbt 300288, Charles Lepple)
 - Finally use curses for some of the terminal capabilities logic
 - Improvement to non-tty handling for intermediate updates
 - Small fix to handle the edge of the counters better
 - Prevent keyboard input/echo when running
 
-* 0.5.8
-- Added user stats using python-utmp
+* 0.5.8 - released 15/03/2005
+- Added user stats (-u), using python-utmp
 - Bail out if all requested stats fail
 - Replaced --noheader option by --noheaders option (like vmstat)
 - Added -V as short for --version
@@ -23,13 +49,13 @@
 - Replaced save and restore ANSI to save and restore VT100 (Olav Vitters)
 - Backported dstat to python 1.5 again
 
-* 0.5.7
+* 0.5.7 - released 31/12/2004
 - Change Makefile to not install when run without target (Kurt Roeckx)
 - Fixed another crash caused by /proc instability
 - Added --csv option to output Comma-Seperated-Value output
 - If output is not a tty, don't care about line-width
 
-* 0.5.6
+* 0.5.6 - released 20/12/2004
 - Made sys and int stats unit-aware (so 10000 int/sec -> 10.0k) (Anton Blanchard)
 - Improve conv() function and stat show() functions
 - Improved the calculation of the cpu usage
@@ -49,18 +75,18 @@
 - Improvement in output, 10.0k or 5.0 will be displayed simply as 10k or 5
 - proc stats now show floats
 
-* 0.5.5
+* 0.5.5 - released 02/12/2004
 - In fact, round() was not the problem, use str() instead. (Anton Blanchard)
 - Abandoned the use of round() as it is limited to integers (Juergen Kreileder)
 
-* 0.5.4
+* 0.5.4 - released 25/10/2004
 - Added a python 1.5 version of dstat (Ville Herva)
 - Fixed a problem with count
 - Improved the logic for displaying repetitive headers
 - Now --nocolor implies --noupdate (since it implies no ANSI escape sequences)
 - Removed the 'Exiting on user request' message
 
-* 0.5.3
+* 0.5.3 - released 21/10/2004
 - Added -M or --mods option to allow modules
 - Added --full option to expand the -D, -I and -N discovery lists
 - Re-added the number of new processes (the --vmstat will no longer resemble vmstat)
@@ -72,17 +98,17 @@
 - Signal handling cleanup
 - Partitions are excluded from discovery on 2.4 kernels
 
-* 0.5.2
+* 0.5.2 - released 13/10/2004
 - Improved disk and net discovery functions (Ville Herva)
 - Fixed a bug with values when using --noupdate (Pasi Pirhonen)
 - Documented the internals a bit more, hoping people will contribute
 - Implemented a fix for when the output exceeds terminal columns
 
-* 0.5.1
+* 0.5.1 - released 11/10/2004
 - Fixed bug that caused counters to not be averages when delay > 1
 - Added time stats (-t)
 
-* 0.5
+* 0.5 - released 11/10/2004
 - Changed some more int()'s into long()'s (Pasi Pirhonen)
 - Fixed the cpu out of index, /proc instability (Pasi Pirhonen)
 - Improved the rounding function
@@ -94,7 +120,7 @@
 - When counters roll over, show dash
 - Fixed 2 crash bugs caused by /proc instability
 
-* 0.4
+* 0.4 - released 26/10/2004
 - Added interrupt stats (-i)
 - Order of the stats adhere the order of the options
 - Interval more precise, using signals instead of sleep
@@ -122,6 +148,9 @@
 - Converted all values to bytes
 
 * 0.2
-- Added disk io (-d)
+- Added disk io stats (-d)
 - Added proc stats (-p)
 - Important layout changes
+
+* 0.1
+- Initial release

@@ -1,0 +1,36 @@
+External dstat modules
+""""""""""""""""""""""
+The core functionality of dstat is self-contained inside the dstat script,
+but it is possible to add your own dstat modules. Currently only the
+following external modules exist:
+
+	dstat_battery
+	dstat_cpufreq
+	dstat_dbus
+	dstat_thermal
+	dstat_utmp
+
+You can enable one of these stats by using the -M options:
+
+	dstat -a -M dbus,utmp
+
+Currently I foresee that all stats that depend on something else than
+just the kernel or the stock python modules are implemented as external
+modules. Also experimental modules or modules that are expensive should
+be external.
+
+Future possible external modules:
+
+	dstat_amavisd
+	dstat_apache
+	dstat_bind
+	dstat_dhcpd
+	dstat_dnsmasq
+	dstat_gfs
+	dstat_gpfs (needs a fast /proc interface)
+	dstat_nfs
+	dstat_postfix
+	dstat_qla2300
+	dstat_samba (needs a python tdb implementation)
+	dstat_sendmail
+	dstat_squid
