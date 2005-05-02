@@ -28,6 +28,7 @@ tr:
 			next if (s|self\.intmap\[(\S+)\.strip\(\)\.lower\(\)\]|self.intmap[string.strip(string.lower($$1))]|g); \
 			next if (s|\((.0.) \+ (. .) \* len\((\S+)\)\)\.rjust\((\S+)\)|string.rjust($$1 + $$2 * len($$3), $$4)|g); \
 			next if (s|(\S+)\.replace\((.:.), (. .)\)\.split\(\)|string.split(string.replace($$1, $$2, $$3))|g); \
+			next if (s|ret\[name\.strip\(\)\.lower\(\)\]|name = string.lower(string.strip(name))\n				ret[name]|g); \
 			s|(\S+)\.replace\((.+), (.+)\)|string.replace($$1, $$2, $$3)|g; \
 			s|(\S+)\.rjust\((.+)\)|string.rjust($$1, $$2)|g; \
 			s|(\S+)\.center\((.+)\)|string.center($$1, $$2)|g; \

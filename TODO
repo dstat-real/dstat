@@ -2,6 +2,7 @@
 + Add --config option and use /etc/dstat.conf and ~/.dstat to influence output (see example dstat.conf)
 + Allow to force to given magnitude (--unit=kilo)
 + Look at possibilities to show deviation (on second line ?)
++ Check for dark/light background color and change colors accordingly (see dstat.conf)
 
 ### Export/Graph
 + Interface with rrdtool (python-rrd ?)

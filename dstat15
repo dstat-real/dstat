@@ -27,7 +27,7 @@ except KeyboardInterrupt, e:
 #	sys.exit('error: Python 1.5 or later required')
 
 ### Workaround for python < 2.3 (FIXME: check for sys.version_info existence)
-if not callable(enumerate):
+if not callable('enumerate'):
 	if sys.version_info < (2, 3) and sys.version_info >= (2, 2):
 		def enumerate(sequence):
 			index = 0
@@ -44,7 +44,7 @@ if not callable(enumerate):
 			return list
 
 ### Workaround for python < 2.3
-if not callable(sum):
+if not callable('sum'):
 	def sum(sequence):
 		ret = 0
 		for i in sequence:

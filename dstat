@@ -19,6 +19,8 @@ from __future__ import generators
 try:
 	import sys, signal, os, re, time
 	import types, curses, signal, resource
+	sys.path.insert(0, '.')
+	sys.path.insert(0, './stats/')
 	sys.path.insert(0, '/usr/share/dstat/')
 except KeyboardInterrupt, e:
 	pass
@@ -27,7 +29,7 @@ if sys.version_info < (2, 2):
 	sys.exit('error: Python 2.2 or later required, try dstat15 instead')
 
 ### Workaround for python < 2.3
-if not callable(enumerate):
+if not callable('enumerate'):
 	if sys.version_info < (2, 3) and sys.version_info >= (2, 2):
 		def enumerate(sequence):
 			index = 0
@@ -44,7 +46,7 @@ if not callable(enumerate):
 			return list
 
 ### Workaround for python < 2.3
-if not callable(sum):
+if not callable('sum'):
 	def sum(sequence):
 		ret = 0
 		for i in sequence:
@@ -551,7 +553,7 @@ class dstat_disk(dstat):
 			list = ('total', )
 		else:
 			list = self.discover()
-			if len(list) > 2: list = list[0:2]
+#			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
 			if name in self.discover('total') + op.diskset.keys():
@@ -615,7 +617,7 @@ class dstat_disk24(dstat):
 			list = ('total', )
 		else:
 			list = self.discover()
-			if len(list) > 2: list = list[0:2]
+#			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
 			if name in self.discover('total') + op.diskset.keys():
@@ -678,7 +680,7 @@ class dstat_disk24old(dstat):
 			list = ('total', )
 		else:
 			list = self.discover()
-			if len(list) > 2: list = list[0:2]
+#			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
 			if name in self.discover('total') + op.diskset.keys():
@@ -964,7 +966,7 @@ class dstat_net(dstat):
 			list = ('total', )
 		else:
 			list = self.discover()
-			if len(list) > 2: list = list[0:2]
+#			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
 			if name in self.discover('total', 'lo'):
@@ -980,9 +982,9 @@ class dstat_net(dstat):
 			if l[2] == '0' and l[10] == '0': continue
 			name = l[0]
 			if name in self.vars :
-				self.cn2[name] = ( long(l[2]), long(l[10]) )
+				self.cn2[name] = ( long(l[1]), long(l[9]) )
 			if name not in ('lo','face'):
-				self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[10]))
+				self.cn2['total'] = ( self.cn2['total'][0] + long(l[1]), self.cn2['total'][1] + long(l[9]))
 		if update:
 			for name in self.cn2.keys():
 				self.val[name] = ( 
@@ -1272,8 +1274,8 @@ def ticks():
 def dopen(file):
 	global fds
 	if not os.path.exists(file): return None
-	if not 'fds' in globals(): fds = {}
-	if not file in fds:
+	if 'fds' not in globals(): fds = {}
+	if file not in fds:
 		fds[file] = open(file, 'r', 0)
 	else:
 		fds[file].seek(0)
@@ -1294,6 +1296,8 @@ def dchg(var, max, base):
 			break
 		var = var / base
 		c = c + 1
+	else:
+		c = -1
 	return ret, c
 
 def fchg(var, max, base):
@@ -1313,6 +1317,8 @@ def fchg(var, max, base):
 			break
 		var = var / base
 		c = c + 1
+	else:
+		c = -1
 	return ret, c
 
 def cprintlist(list, format):
@@ -1323,7 +1329,7 @@ def cprintlist(list, format):
 	return ret
 
 def cprint(var, format = ('f', 4, 1000)):
-	c = 0
+	c = -1
 	type = format[0]
 	max = format[1]
 	mp = format[2]
@@ -1372,7 +1378,7 @@ def cprint(var, format = ('f', 4, 1000)):
 	ret = ansi[color] + ret.rjust(max)
 
 	if unit:
-		if c:
+		if c != -1 and var != 0:
 			ret = ret + units[c]
 		else:
 			ret = ret + ' '

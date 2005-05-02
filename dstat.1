@@ -131,6 +131,8 @@ The default delay is 1 and count is unspecified (unlimited)
 .SH INTERMEDIATE UPDATES
 When invoking dstat with a \fBdelay\fR greater than 1 and without the \fB--noupdate\fR option, it will show intermediate updates, ie. the first time a 1 sec average, the second update a 2 second average, etc. until the delay has been reached.
 
+\fBSo the 9 intermediate updates are NOT snapshots\fR, they are averages over the time that passed since the last final update. The end result is that you get a 10 second average on a new line, just like vmstat.      
+
 .SH BUGS
 Since it's practically impossible to test dstat on every possible permutation of kernel , python or distribution version, I need your help and your feedback to fix the remaining problems. If you have improvements or bugreports, please send them to: dag@wieers.com
 
