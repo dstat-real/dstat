@@ -7,12 +7,13 @@ class dstat_cpufreq(dstat.dstat):
 		self.vars = os.listdir('/sys/devices/system/cpu/')
 		self.nick = [string.lower(name) for name in self.vars]
 		self.init(self.vars, 1)
+		self.check()
 
 	def check(self): 
 		if self.vars:
 			for cpu in self.vars:
 				if not os.access('/sys/devices/system/cpu/'+cpu+'/cpufreq/cpuinfo_cur_freq', os.R_OK):
-					dstat.info(1, 'cpufreq: Cannot access acpi cpu frequency information.')
+					raise Exception, 'Module cannot access acpi cpu frequency information.'
 					return False
 			return True
 		return false
@@ -25,7 +26,7 @@ class dstat_cpufreq(dstat.dstat):
 			for line in dstat.dopen('/sys/devices/system/cpu/'+cpu+'/cpufreq/cpuinfo_cur_freq').readlines():
 				l = string.split(line)
 				cur = int(l[0])
-			### Need to close becausee of bug in sysfs (?)
+			### Need to close because of bug in sysfs (?)
 			dstat.dclose('/sys/devices/system/cpu/'+cpu+'/cpufreq/cpuinfo_cur_freq')
 			self.val[cpu] = cur * 100.0 / max
 

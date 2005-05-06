@@ -17,6 +17,7 @@
 + Look into interfacing with apps (bind, sendmail, postfix, squid, amavisd, laus, samba)
 + Look into interfacing with specific HW counters in /proc
 + Look at /proc/meminfo, /proc/mdstat, /proc/netstat, /proc/snmp, /proc/vmstat
++ Look at /proc/fs/cifs/stats
 + Allow for SNMP counters to be added
 
 ### Documentation (help welcome!)

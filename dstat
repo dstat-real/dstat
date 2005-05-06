@@ -19,8 +19,9 @@ from __future__ import generators
 try:
 	import sys, signal, os, re, time
 	import types, curses, signal, resource
-	sys.path.insert(0, '.')
-	sys.path.insert(0, './stats/')
+	pwd = os.path.dirname(sys.argv[0])
+	sys.path.insert(0, pwd)
+	sys.path.insert(0, pwd + '/stats/')
 	sys.path.insert(0, '/usr/share/dstat/')
 except KeyboardInterrupt, e:
 	pass
@@ -362,9 +363,9 @@ class dstat:
 
 	def check(self):
 		"Check if stat is applicable"
-		if not self.vars:
-			return False
 		if hasattr(self, 'fd') and not self.fd:
+			return False
+		if not self.vars:
 			return False
 		if self.discover() and self.width():
 			return True
@@ -422,12 +423,13 @@ class dstat_cpu(dstat):
 
 	def discover(self, *list):
 		ret = []
-		self.fd.seek(0)
-		for line in self.fd.readlines():
-			l = line.split()
-			if len(l) < 8 or l[0][0:3] != 'cpu': continue
-			ret.append(l[0][3:])
-		ret.sort()
+		if self.fd:
+			self.fd.seek(0)
+			for line in self.fd.readlines():
+				l = line.split()
+				if len(l) < 8 or l[0][0:3] != 'cpu': continue
+				ret.append(l[0][3:])
+			ret.sort()
 		for item in list: ret.append(item)
 		return ret
 
@@ -535,13 +537,14 @@ class dstat_disk(dstat):
 
 	def discover(self, *list):
 		ret = []
-		self.fd.seek(0)
-		for line in self.fd.readlines():
-			l = line.split()
-			if len(l) < 13 or l[3] == '0': continue
-			name = l[2]
-			if not self.regexp.match(name):
-				ret.append(name)
+		if self.fd:
+			self.fd.seek(0)
+			for line in self.fd.readlines():
+				l = line.split()
+				if len(l) < 13 or l[3] == '0': continue
+				name = l[2]
+				if not self.regexp.match(name):
+					ret.append(name)
 		for item in list: ret.append(item)
 		return ret
 
@@ -591,14 +594,14 @@ class dstat_disk24(dstat):
 		self.len = 5
 		self.open('/proc/partitions')
 		self.nick = ('read', 'write')
+		self.regexp = re.compile('^(ram\d+|loop\d+|name)$')
 		self.vars = self.vars()
 		self.name = ['disk/'+name for name in self.vars]
 		self.init(self.vars + ['total',], 2)
-		self.regexp = re.compile('^(ram\d+|loop\d+|name)$')
 
 	def discover(self, *list):
 		ret = []
-		if not os.path.exists('/proc/diskstats'):
+		if self.fd and not os.path.exists('/proc/diskstats'):
 			self.fd.seek(0)
 			for line in self.fd.readlines():
 				l = line.split()
@@ -606,7 +609,7 @@ class dstat_disk24(dstat):
 				name = l[3]
 				if not self.regexp.match(name):
 					ret.append(name)	
-			for item in list: ret.append(item)
+		for item in list: ret.append(item)
 		return ret
 
 	def vars(self):
@@ -1533,7 +1536,7 @@ def main():
 			try:
 				exec(compile('import dstat_%s\nobjs = ( dstat_%s.dstat_%s(), )' % (mod, mod, mod), '<string>', 'exec'))
 			except Exception, e:
-				info(1, 'Module \'dstat_%s\' does not exist or failed to load. (%s)' % (mod, e))
+				info(1, 'Module \'dstat_%s\' failed to load. (%s)' % (mod, e))
 				continue
 
 		### Remove defect stat objects and calculate line length

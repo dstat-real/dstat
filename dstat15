@@ -19,6 +19,8 @@
 try:
 	import sys, signal, os, re, time, string
 	import types, curses, signal, resource
+	sys.path.insert(0, '.')
+	sys.path.insert(0, './stats/')
 	sys.path.insert(0, '/usr/share/dstat/')
 except KeyboardInterrupt, e:
 	pass
@@ -28,20 +30,13 @@ except KeyboardInterrupt, e:
 
 ### Workaround for python < 2.3 (FIXME: check for sys.version_info existence)
 if not callable('enumerate'):
-	if sys.version_info < (2, 3) and sys.version_info >= (2, 2):
-		def enumerate(sequence):
-			index = 0
-			for item in sequence:
-				yield index, item
-				index = index + 1
-	elif sys.version_info < (2, 2):
-		def enumerate(sequence):
-			index = 0
-			list = []
-			for item in sequence:
-				list.append((index, item))
-				index = index + 1
-			return list
+	def enumerate(sequence):
+		index = 0
+		list = []
+		for item in sequence:
+			list.append((index, item))
+			index = index + 1
+		return list
 
 ### Workaround for python < 2.3
 if not callable('sum'):
@@ -65,6 +60,7 @@ class Options:
 		self.args = args
 		self.count = -1
 		self.cpulist = None
+		self.debug = False
 		self.delay = 1
 		self.disklist = None
 		self.full = False
@@ -89,7 +85,7 @@ class Options:
 			opts, args = getopt.getopt (args, 'acdfghilmno:pstvyC:D:I:M:N:V',
 				['all', 'cpu', 'disk', 'help', 'int', 'ipc', 'load', 'lock', 'mem', 'net', 'page',
 				'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 'version', 'vmstat',
-				'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate', 'output='])
+				'debug', 'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate', 'output='])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
 			exit(1)
@@ -105,6 +101,8 @@ class Options:
 				self.modlist.append('disk')
 			elif opt in ['-D']:
 				self.disklist = string.split(arg, ',')
+			elif opt in ['--debug']:
+				self.debug = True
 			elif opt in ['-g', '--page']:
 				self.modlist.append('page')
 			elif opt in ['-i', '--int']:

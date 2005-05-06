@@ -7,6 +7,7 @@ class dstat_utmp(dstat.dstat):
 		self.nick = ('ses', 'usr', 'adm' )
 		self.vars = ('sessions', 'users', 'root')
 		self.init(self.vars, 1)
+		self.check()
 
 	def check(self): 
 		try:
@@ -14,7 +15,7 @@ class dstat_utmp(dstat.dstat):
 			import utmp
 			return True
 		except:
-			info(1, 'utmp: The utmp stat needs the python-utmp module.')
+			raise Exception, 'Module needs the python-utmp module.'
 			return False
 
 	def extract(self):
