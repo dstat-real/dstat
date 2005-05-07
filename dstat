@@ -20,9 +20,9 @@ try:
 	import sys, signal, os, re, time
 	import types, curses, signal, resource
 	pwd = os.path.dirname(sys.argv[0])
-	sys.path.insert(0, pwd)
-	sys.path.insert(0, pwd + '/stats/')
 	sys.path.insert(0, '/usr/share/dstat/')
+	sys.path.insert(0, pwd + '/stats/')
+	sys.path.insert(0, pwd)
 except KeyboardInterrupt, e:
 	pass
 
@@ -273,7 +273,7 @@ class dstat:
 				sep = ansi['default'] + char['colon']
 			else:
 				line = line + cprint(self.val[name], self.format)
-				sep = ' '
+				sep = char['space']
 			if i + 1 != len(self.vars):
 				line = line + sep
 		return line
@@ -310,7 +310,7 @@ class dstat:
 		for i, name in enumerate(self.name):
 			max = self.width()
 			ret = ret + name[0:max].center(max).replace(' ', '-')
-			if i + 1 != len(self.name): ret = ret + '-'
+			if i + 1 != len(self.name): ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
 		return ansi['darkblue'] + ret
 
 	def title2(self):
@@ -318,15 +318,15 @@ class dstat:
 			ret = ''
 			for i, nick in enumerate(self.nick):
 				ret = ret + nick.center(self.format[1]).replace(' ', '_')
-				if i + 1 != len(self.nick): ret = ret + ' '
+				if i + 1 != len(self.nick): ret = ret + char['space']
 			return ansi['blue'] + ret
 		else:
 			ret = ''
 			for i, name in enumerate(self.name):
 				for j, nick in enumerate(self.nick):
 					ret = ret + ansi['blue'] + nick.center(self.format[1]).replace(' ', '_')
-					if j + 1 != len(self.nick): ret = ret + ' '
-				if i + 1 != len(self.name): ret = ret + ' '
+					if j + 1 != len(self.nick): ret = ret + char['space']
+				if i + 1 != len(self.name): ret = ret + ansi['default'] + char['colon']
 			return ansi['blue'] + ret
 
 	def titlecsv(self, nr):
@@ -1259,6 +1259,7 @@ char = {
 	'colon': ':',
 	'gt': '>',
 	'space': ' ',
+	'dash': '-',
 }
 
 def ticks():

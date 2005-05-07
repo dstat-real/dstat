@@ -17,7 +17,7 @@ install:
 #	install -Dp -m0755 examples/*.py $(DESTDIR)$(datadir)/dstat/examples/
 
 clean:
-	rm -f dstat15.tr examples/*.pyc
+	rm -f dstat15.tr examples/*.pyc stats/*.pyc
 
 #### Imperfect translation to dstat15
 tr:

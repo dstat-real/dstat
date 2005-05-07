@@ -15,8 +15,14 @@
 - Allowed external tools to use the dstat classes
 - Added example scripts using the dstat classes (mstat.py and read.py)
 - Allowed external modules to be plugged in
-- Added external acpi modules (dstat_battery, dstat_cpufreq and dstat_thermal)
-- Added external modules (dstat_dbus and dstat_utmp)
+- Added external acpi module dstat_battery
+- Added external acpi module dstat_cpufreq
+- Added external acpi module dstat_thermal)
+- Added external app module dstat_postfix
+- Added external app module dstat_sendmail
+- Added external module dstat_dbus
+- Added external module dstat_freespace
+- Added external module dstat_utmp
 - Removed user stat (now in dstat_utmp module)
 - Smaller fixes and overall improvements
 - Improved help output and manpage
