@@ -18,6 +18,7 @@
 + Look into interfacing with specific HW counters in /proc
 + Look at /proc/meminfo, /proc/mdstat, /proc/netstat, /proc/snmp, /proc/vmstat
 + Look at /proc/fs/cifs/stats
++ Look at /proc/net/rpc/nfsd and /proc/net/rpc/nfs
 + Allow for SNMP counters to be added
 
 ### Documentation (help welcome!)
