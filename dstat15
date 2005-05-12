@@ -21,7 +21,7 @@ try:
 	import types, curses, signal, resource
 	pwd = os.path.dirname(sys.argv[0])
 	sys.path.insert(0, '/usr/share/dstat/')
-	sys.path.insert(0, pwd + '/stats/')
+	sys.path.insert(0, pwd + '/plugins/')
 	sys.path.insert(0, pwd)
 except KeyboardInterrupt, e:
 	pass
