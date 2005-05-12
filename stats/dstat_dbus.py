@@ -1,6 +1,4 @@
-import dstat
-
-class dstat_dbus(dstat.dstat):
+class dstat_dbus(dstat):
 	def __init__(self):
 		self.name = 'dbus'
 		self.format = ('d', 3, 100)

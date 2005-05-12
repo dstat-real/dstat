@@ -68,7 +68,7 @@ class Options:
 		self.args = args
 		self.count = -1
 		self.cpulist = None
-		self.debug = False
+		self.debug = 0
 		self.delay = 1
 		self.disklist = None
 		self.full = False
@@ -110,7 +110,7 @@ class Options:
 			elif opt in ['-D']:
 				self.disklist = arg.split(',')
 			elif opt in ['--debug']:
-				self.debug = True
+				self.debug = self.debug + 1
 			elif opt in ['-g', '--page']:
 				self.modlist.append('page')
 			elif opt in ['-i', '--int']:
@@ -250,7 +250,6 @@ Dstat options:
 '''
 
 ### START STATS DEFINITIONS ###
-
 class dstat:
 	### Initialise default variables
 	def init(self, vars=(), len=0):
@@ -591,7 +590,6 @@ class dstat_disk(dstat):
 class dstat_disk24(dstat):
 	def __init__(self):
 		self.format = ('f', 5, 1024)
-		self.len = 5
 		self.open('/proc/partitions')
 		self.nick = ('read', 'write')
 		self.regexp = re.compile('^(ram\d+|loop\d+|name)$')
@@ -739,6 +737,7 @@ class dstat_int(dstat):
 			ret[l1] = l1
 			for name in l2:
 				ret[name.strip().lower()] = l1
+		return ret
 
 	def discover(self):
 		ret = []
@@ -808,6 +807,7 @@ class dstat_int24(dstat):
 			ret[l1] = l1
 			for name in l2:
 				ret[name.strip().lower()] = l1
+		return ret
 
 	def discover(self):
 		ret = []
@@ -1307,13 +1307,17 @@ def dchg(var, max, base):
 def fchg(var, max, base):
 	c = 0
 	while True:
-		ret = str(long(round(var)))
+#		ret = repr(round(var))
+#		ret = repr(long(round(var,max)))
+		ret = str(long(round(var,max)))
+		if var == 0:
+			ret = str('0')
+			break
 		if len(ret) <= max:
 			i = max - len(ret)
 			while i > 0:
-				fmt = '%.'+str(i)+'f'
-				ret = fmt % var
-				if var != round(var) and len(ret) <= max:
+				ret = ('%.'+str(i)+'f') % var
+				if len(ret) <= max and ret != repr(round(var)):
 					break
 				i = i - 1
 			else:
@@ -1467,6 +1471,12 @@ def dev(maj, min):
 #			if dev == list[0]:
 #				return list[1]
 
+def readfile(file):
+	ret = ''
+	for line in open(file,'r').readlines():
+		ret = ret + line
+	return ret
+
 def signaler(signum, frame):
 	signal.alarm(interval)
 
@@ -1531,13 +1541,20 @@ def main():
 		elif mod == 'disk': objs = ( dstat_disk(), dstat_disk24(), dstat_disk24old() )
 		elif mod == 'int':  objs = ( dstat_int(), dstat_int24() )
 		elif mod == 'page': objs = ( dstat_page(), dstat_page24() )
-		elif 'dstat_'+mod in globals():
-			exec(compile('objs = ( dstat_%s(), )' % mod, '<string>', 'exec'))
 		else:
+			if 'dstat_'+mod not in globals():
+				try:
+#					exec(compile('from dstat_%s import *' % mod, '<string>', 'exec'))
+					import imp
+					file, pathname, description = imp.find_module('dstat_'+mod)
+					exec(compile(readfile(pathname), '<string>', 'exec'))
+				except Exception, e:
+					info(1, 'Module "dstat_%s" failed to load. (%s)' % (mod, e))
+					continue
 			try:
-				exec(compile('import dstat_%s\nobjs = ( dstat_%s.dstat_%s(), )' % (mod, mod, mod), '<string>', 'exec'))
+				exec(compile('objs = ( dstat_%s(), )' % mod, '<string>', 'exec'))
 			except Exception, e:
-				info(1, 'Module \'dstat_%s\' failed to load. (%s)' % (mod, e))
+				info(1, 'Class "dstat_%s" has problems. (%s)' % (mod, e))
 				continue
 
 		### Remove defect stat objects and calculate line length
@@ -1626,7 +1643,8 @@ def main():
 		if op.debug: t2 = time.time(); tt = tt + (t2 - t1) * 1000
 		if op.debug:
 			if loop == 0: tt = tt * step
-			sys.stdout.write(' %3.3f' % (tt / step))
+			sys.stdout.write(' %6.3f' % (tt / step))
+		if op.debug > 1:
 			sys.stdout.write(' [%d:%d:%d] ' % (loop, update, step))
 
 		### If intermediate results, update increases with 1 sec (=interval)

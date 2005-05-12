@@ -1,6 +1,7 @@
-import dstat, string, os
+global string
+import string
 
-class dstat_thermal(dstat.dstat):
+class dstat_thermal(dstat):
 	def __init__(self):
 		self.name = 'thermal'
 		self.format = ('d', 4, 20)
@@ -10,7 +11,7 @@ class dstat_thermal(dstat.dstat):
 
 	def extract(self):
 		for zone in self.vars:
-			for line in dstat.dopen('/proc/acpi/thermal_zone/'+zone+'/temperature').readlines():
+			for line in dopen('/proc/acpi/thermal_zone/'+zone+'/temperature').readlines():
 				l = string.split(line)
 				self.val[zone] = int(l[1])
 

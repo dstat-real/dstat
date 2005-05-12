@@ -1,6 +1,4 @@
-import dstat
-
-class dstat_utmp(dstat.dstat):
+class dstat_utmp(dstat):
 	def __init__(self):
 		self.name = 'utmp'
 		self.format = ('d', 3, 10)

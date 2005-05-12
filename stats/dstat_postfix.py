@@ -1,6 +1,4 @@
-import dstat, os, glob
-
-class dstat_postfix(dstat.dstat):
+class dstat_postfix(dstat):
 	def __init__(self):
 		self.name = 'postfix'
 		self.format = ('d', 4, 100)

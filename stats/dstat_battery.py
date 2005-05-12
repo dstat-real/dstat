@@ -1,6 +1,7 @@
-import dstat, string, os
+global string
+import string
 
-class dstat_battery(dstat.dstat):
+class dstat_battery(dstat):
 	def __init__(self):
 		self.name = 'battery'
 		self.format = ('f', 4, 34)
@@ -10,12 +11,12 @@ class dstat_battery(dstat.dstat):
 
 	def extract(self):
 		for battery in self.vars:
-			for line in dstat.dopen('/proc/acpi/battery/'+battery+'/info').readlines():
+			for line in dopen('/proc/acpi/battery/'+battery+'/info').readlines():
 				l = string.split(line)
 				if len(l) < 4: continue
 				if l[0] == 'last':
 					full = int(l[3])
-			for line in dstat.dopen('/proc/acpi/battery/'+battery+'/state').readlines():
+			for line in dopen('/proc/acpi/battery/'+battery+'/state').readlines():
 				l = string.split(line)
 				if len(l) < 3: continue
 				if l[0] == 'remaining':

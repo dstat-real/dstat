@@ -1,8 +1,8 @@
-import dstat, glob
-
 ### FIXME: Should read /var/log/mail/statistics or /etc/mail/statistics (format ?)
+global glob
+import glob
 
-class dstat_sendmail(dstat.dstat):
+class dstat_sendmail(dstat):
 	def __init__(self):
 		self.name = 'sendmail'
 		self.format = ('d', 4, 100)
