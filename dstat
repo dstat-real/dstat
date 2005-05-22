@@ -572,7 +572,7 @@ class dstat_disk(dstat):
 			name = l[2]
 			if self.regexp.match(name): continue
 			self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
-			if name in self.vars:
+			if name in self.vars and name != 'total':
 				self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
 			for set in self.vars:
 				if set in op.diskset.keys():
@@ -594,8 +594,8 @@ class dstat_disk24(dstat):
 		self.nick = ('read', 'write')
 		self.regexp = re.compile('^(ram\d+|loop\d+|name)$')
 		self.vars = self.vars()
-		if not self.discover():
-			raise Exception, 'kernel is lacking disk stat support, please compile CONFIG_BLK_STATS into your kernel'
+		if self.fd and not self.discover():
+			raise Exception, 'kernel is not compiled with CONFIG_BLK_STATS'
 #			info(1, 'dstat_disk24: kernel is lacking disk stat support, please compile CONFIG_BLK_STATS into your kernel')
 		self.name = ['disk/'+name for name in self.vars]
 		self.init(self.vars + ['total',], 2)
@@ -632,12 +632,12 @@ class dstat_disk24(dstat):
 		self.fd.seek(0)
 		for line in self.fd.readlines():
 			l = line.split()
-			if len(l) < 15: continue
+			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			if l[6] == '0' and l[10] == '0': continue
 			name = l[3]
 			if name == 'name': continue
 			if self.regexp.match(name): continue
-			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]))
+			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
 			if name in self.vars:
 				self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
 			for set in self.vars:
@@ -671,14 +671,15 @@ class dstat_disk24old(dstat):
 			l = line.split(':')
 			if len(l) < 3: continue
 			name = l[0]
-			if name == 'disk_io':
-				for pair in line.split()[1:]:
-					m = self.regexp.match(pair)
-					if m:
-						l = m.groups()
-						if len(l) < 4: continue
-						name = dev(int(l[0]), int(l[1]))
-						ret.append(name)
+			if name != 'disk_io': continue
+			for pair in line.split()[1:]:
+				m = self.regexp.match(pair)
+				if not m: continue
+				l = m.groups()
+				if len(l) < 4: continue
+				name = dev(int(l[0]), int(l[1]))
+				ret.append(name)
+			break
 		for item in list: ret.append(item)
 		return ret
 
@@ -704,25 +705,25 @@ class dstat_disk24old(dstat):
 			l = line.split(':')
 			if len(l) < 3: continue
 			name = l[0]
-			if name == 'disk_io':
-				for pair in line.split()[1:]:
-					m = self.regexp.match(pair)
-					if not m: continue
-					l = m.groups()
-					if len(l) < 4: continue
-					name = dev(int(l[0]), int(l[1]))
-					self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
-					if name in self.vars:
-						self.cn2[name] = ( self.cn2[name][0] + long(l[2]), self.cn2[name][1] + long(l[3]) )
-					for set in self.vars:
-						if set in op.diskset.keys():
-							for disk in op.diskset[set]:
-								if re.match('^'+disk+'$', name):
-									self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
+			if name != 'disk_io': continue
+			for pair in line.split()[1:]:
+				m = self.regexp.match(pair)
+				if not m: continue
+				l = m.groups()
+				if len(l) < 4: continue
+				name = dev(int(l[0]), int(l[1]))
+				self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
+				if name in self.vars and name != 'total':
+					self.cn2[name] = ( self.cn2[name][0] + long(l[2]), self.cn2[name][1] + long(l[3]) )
+				for set in self.vars:
+					if set in op.diskset.keys():
+						for disk in op.diskset[set]:
+							self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
+			break
 		for name in self.cn2.keys():
 			self.val[name] = (
-				(self.cn2[name][0] - self.cn1[name][0]) * 1024.0 / tick,
-				(self.cn2[name][1] - self.cn1[name][1]) * 1024.0 / tick,
+				(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
+				(self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
 			)
 		if step == op.delay:
 			self.cn1.update(self.cn2)
@@ -1581,8 +1582,7 @@ def main():
 		die(8, 'None of the stats you selected are available.')
 
 	if op.debug:
-		for o in totlist:
-			print o
+		for o in totlist: print str(o.__class__).split('.')[1], o.file
 
 	if op.output:
 		showcsvtitle(1, totlist)

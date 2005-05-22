@@ -18,7 +18,7 @@ except: count = 10
 stats = (dstat.dstat_time(), dstat.dstat_cpu(), dstat.dstat_mem(), dstat.dstat_load(), dstat.dstat_disk(), dstat.dstat_sys())
 
 ### Make time stats sub-second
-stats[0].format = ('t', 13, 0)
+stats[0].format = ('t', 14, 0)
 
 ### Print headers
 title1 = title2 = ''
@@ -33,7 +33,7 @@ for dstat.update in range(count):
 	for o in stats:
 		o.extract()
 		line = line + '  ' + o.show()
-	print line
+	print line + dstat.ansi['reset']
 	if dstat.update != count-1: time.sleep(delay)
 	dstat.tick = 1
 print dstat.ansi['reset']
