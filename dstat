@@ -1582,7 +1582,10 @@ def main():
 		die(8, 'None of the stats you selected are available.')
 
 	if op.debug:
-		for o in totlist: print str(o.__class__).split('.')[1], o.file
+		for o in totlist:
+			print str(o.__class__).split('.')[1],
+			if hasattr(o, 'file'): print 'requires', o.file,
+			print
 
 	if op.output:
 		showcsvtitle(1, totlist)
