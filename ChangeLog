@@ -27,8 +27,10 @@
 - Smaller fixes and overall improvements
 - Improved help output and manpage
 - Added README.examples, README.performance and README.stats
-- Added profiling code (--debug)
+- Added profiling/debuging code (--debug)
 - Rewrote cprint/cprintlist logic
+- Get rid of python-curses requirement for SLES9 (although it helps)
+- Fixed dstat_disk24old for newer 2.4 kernels without CONFIG_BLK_STATS support (Susan G. Kleinmann)
 
 * 0.5.10 - released 08/04/2005
 - Small fix to restore terminal for all exit paths (Dbt 303526, Modesto Alexandre)

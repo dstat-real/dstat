@@ -32,7 +32,7 @@ for dstat.update in range(count):
 	line = ''
 	for o in stats:
 		o.extract()
-		line = line + '  ' + repr(o)
+		line = line + '  ' + o.show()
 	print line
 	if dstat.update != count-1: time.sleep(delay)
 	dstat.tick = 1
