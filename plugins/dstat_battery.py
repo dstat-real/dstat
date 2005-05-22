@@ -16,11 +16,13 @@ class dstat_battery(dstat):
 				if len(l) < 4: continue
 				if l[0] == 'last':
 					full = int(l[3])
+					break
 			for line in dopen('/proc/acpi/battery/'+battery+'/state').readlines():
 				l = string.split(line)
 				if len(l) < 3: continue
 				if l[0] == 'remaining':
 					current = int(l[2])
+					break
 			self.val[battery] = current * 100.0 / full
 
 # vim:ts=4:sw=4

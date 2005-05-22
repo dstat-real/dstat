@@ -5,7 +5,6 @@ class dstat_postfix(dstat):
 		self.vars = ('incoming', 'active', 'deferred', 'bounce', 'defer')
 		self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
 		self.init(self.vars, 1)
-		self.check()
 
 	def check(self): 
 		if not os.access('/var/spool/postfix/active', os.R_OK):

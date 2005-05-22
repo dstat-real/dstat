@@ -5,7 +5,6 @@ class dstat_dbus(dstat):
 		self.nick = ('sys', 'ses')
 		self.vars = ('system', 'session')
 		self.init(self.vars, 1)
-		self.check()
 
 	def check(self): 
 #		dstat.info(1, 'The dbus module is an EXPERIMENTAL module.')

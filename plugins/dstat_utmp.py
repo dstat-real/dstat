@@ -5,7 +5,6 @@ class dstat_utmp(dstat):
 		self.nick = ('ses', 'usr', 'adm' )
 		self.vars = ('sessions', 'users', 'root')
 		self.init(self.vars, 1)
-		self.check()
 
 	def check(self): 
 		try:

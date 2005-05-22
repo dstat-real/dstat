@@ -801,7 +801,7 @@ class dstat_int(dstat):
 class dstat_int24(dstat):
 	def __init__(self):
 		self.name = 'interrupts'
-		self.format = ('f', 5, 1000)
+		self.format = ('d', 5, 1000)
 		self.open('/proc/interrupts')
 		self.vars = self.vars()
 		self.nick = self.vars
@@ -1039,20 +1039,16 @@ class dstat_page24(dstat):
 		self.vars = ('pswpin', 'pswpout')
 		self.init(self.vars, 1)
 
-#	def check(self):
-#		if self.fd and not os.path.exists('/proc/vmstat'):
-#			return True
-#		return False
-
 	def extract(self):
 		self.fd.seek(0)
 		for line in self.fd.readlines():
 			l = line.split()
 			if len(l) < 3: continue
 			name = l[0]
-			if name == 'swap':
-				self.cn2['pswpin'] = long(l[1])
-				self.cn2['pswpout'] = long(l[2])
+			if name != 'swap': continue
+			self.cn2['pswpin'] = long(l[1])
+			self.cn2['pswpout'] = long(l[2])
+			break
 		for name in self.vars:
 			self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / tick
 		if step == op.delay:
@@ -1568,15 +1564,15 @@ def main():
 					continue
 			try:
 				exec(compile('o = dstat_%s()' % mod, '<string>', 'exec'))
+
+				### Remove defect stat objects and calculate line length
+				if o.check():
+					linewidth = linewidth + o.statwidth() + 1
+					totlist.append(o)
+					break
 			except Exception, e:
 				info(1, 'Module "dstat_%s" has problems. (%s)' % (mod, e))
 				continue
-
-			### Remove defect stat objects and calculate line length
-			if o.check():
-				linewidth = linewidth + o.statwidth() + 1
-				totlist.append(o)
-				break
 
 	if not totlist:
 		die(8, 'None of the stats you selected are available.')

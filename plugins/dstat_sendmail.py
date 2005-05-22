@@ -9,7 +9,6 @@ class dstat_sendmail(dstat):
 		self.vars = ('queue',)
 		self.nick = ('queu',)
 		self.init(self.vars, 1)
-		self.check()
 
 	def check(self):
 		if not os.access('/var/spool/mqueue', os.R_OK):
