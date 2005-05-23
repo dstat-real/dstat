@@ -1,3 +1,6 @@
+global glob
+import glob
+
 class dstat_postfix(dstat):
 	def __init__(self):
 		self.name = 'postfix'

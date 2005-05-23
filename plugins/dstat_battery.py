@@ -6,7 +6,10 @@ class dstat_battery(dstat):
 		self.name = 'battery'
 		self.format = ('f', 4, 34)
 		self.vars = os.listdir('/proc/acpi/battery/')
-		self.nick = [string.lower(name) for name in self.vars]
+#		self.nick = [string.lower(name) for name in self.vars]
+		self.nick = []
+		for name in self.vars:
+			self.nick.append(string.lower(name))
 		self.init(self.vars, 1)
 
 	def extract(self):

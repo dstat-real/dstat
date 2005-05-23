@@ -6,7 +6,10 @@ class dstat_cpufreq(dstat):
 		self.name = 'frequency'
 		self.format = ('p', 4, 34)
 		self.vars = os.listdir('/sys/devices/system/cpu/')
-		self.nick = [string.lower(name) for name in self.vars]
+#		self.nick = [string.lower(name) for name in self.vars]
+		self.nick = []
+		for name in self.vars:
+			self.nick.append(string.lower(name))
 		self.init(self.vars, 1)
 
 	def check(self): 

@@ -596,7 +596,6 @@ class dstat_disk24(dstat):
 		self.vars = self.vars()
 		if self.fd and not self.discover():
 			raise Exception, 'kernel is not compiled with CONFIG_BLK_STATS'
-#			info(1, 'dstat_disk24: kernel is lacking disk stat support, please compile CONFIG_BLK_STATS into your kernel')
 		self.name = ['disk/'+sysfs_dev(name) for name in self.vars]
 		self.init(self.vars + ['total',], 2)
 
@@ -718,7 +717,8 @@ class dstat_disk24old(dstat):
 				for set in self.vars:
 					if set in op.diskset.keys():
 						for disk in op.diskset[set]:
-							self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
+							if re.match('^'+disk+'$', name):
+								self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
 			break
 		for name in self.cn2.keys():
 			self.val[name] = (
@@ -1286,8 +1286,8 @@ def ticks():
 def dopen(file):
 	global fds
 	if not os.path.exists(file): return None
-	if 'fds' not in globals(): fds = {}
-	if file not in fds:
+	if 'fds' not in globals().keys(): fds = {}
+	if file not in fds.keys():
 		fds[file] = open(file, 'r', 0)
 	else:
 		fds[file].seek(0)
@@ -1515,7 +1515,7 @@ def signaler(signum, frame):
 
 def exit(ret):
 	sys.stdout.write(ansi['reset'])
-	if 'signal' in sys.modules:
+	if 'signal' in sys.modules.keys():
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
 #	termios.tcsetattr(fd, termios.TCSADRAIN, old)
 	sys.exit(ret)
@@ -1547,7 +1547,7 @@ def main():
 
 	### Check terminal capabilities
 	if sys.stdout.isatty():
-		if 'curses' in sys.modules and curses.tigetnum('colors') < 0:
+		if 'curses' in sys.modules.keys() and hasattr(curses, 'tigetnum') and curses.tigetnum('colors') < 0:
 			op.color = False
 	else:
 		op.color = False
@@ -1577,16 +1577,19 @@ def main():
 		else: mods = ( module, )
 
 		for mod in mods:
-			if 'dstat_'+mod not in globals():
+			if 'dstat_'+mod not in globals().keys():
 				try:
 					import imp
 					file, pathname, description = imp.find_module('dstat_'+mod)
-					exec(compile(readfile(pathname), '<string>', 'exec'))
+#					exec compile(readfile(pathname), pathname, 'exec')
+					execfile(pathname)
 				except Exception, e:
-					info(1, 'Module "dstat_%s" failed to load. (%s)' % (mod, e))
+					info(1, 'Module dstat_%s failed to load. (%s)' % (mod, e))
 					continue
+
 			try:
-				exec(compile('o = dstat_%s()' % mod, '<string>', 'exec'))
+#				exec compile('o = dstat_%s()' % mod, '<string>', 'single')
+				exec 'o = dstat_%s()' % mod
 
 				### Remove defect stat objects and calculate line length
 				if o.check():

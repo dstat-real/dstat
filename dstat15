@@ -18,7 +18,7 @@
 
 try:
 	import sys, signal, os, re, time, string
-	import types, curses, signal, resource
+	import types, signal, resource
 	pwd = os.path.dirname(sys.argv[0])
 	sys.path.insert(0, '/usr/share/dstat/')
 	sys.path.insert(0, pwd + '/plugins/')
@@ -178,7 +178,7 @@ class Options:
 			print 'dstat: incorrect argument, try dstat -h for the correct syntax'
 			exit(1)
 
-		if self.delay == 0:
+		if self.delay <= 0:
 			print 'dstat: delay must be an integer, greater than zero'
 			exit(1)
 
@@ -196,7 +196,7 @@ class Options:
 		print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
 
 	def usage(self):
-		print 'Usage: dstat [-afv] [-cdgilmnpsty] [-C..] [-D..] [-I..] [-N..] [delay [count]]'
+		print 'Usage: dstat [-afv] [options..] [delay [count]]'
 
 	def help(self):
 		print '''Versatile tool for generating system resource statistics
@@ -255,20 +255,6 @@ class dstat:
 					self.val[name] = self.cn1[name] = self.cn2[name] = range(len)
 					for i in range(len):
 						self.val[name][i] = self.cn1[name][i] = self.cn2[name][i] = 0
-
-	def __repr__(self):
-		"Display stat results"
-		line = ''
-		for i, name in enumerate(self.vars):
-			if isinstance(self.val[name], types.TupleType) or isinstance(self.val[name], types.ListType):
-				line = line + cprintlist(self.val[name], self.format)
-				sep = ansi['default'] + char['colon']
-			else:
-				line = line + cprint(self.val[name], self.format)
-				sep = char['space']
-			if i + 1 != len(self.vars):
-				line = line + sep
-		return line
 
 	def open(self, file):
 		"Open stat file descriptor"
@@ -365,6 +351,20 @@ class dstat:
 
 	def discover(self):
 		return True
+
+	def show(self):
+		"Display stat results"
+		line = ''
+		for i, name in enumerate(self.vars):
+			if isinstance(self.val[name], types.TupleType) or isinstance(self.val[name], types.ListType):
+				line = line + cprintlist(self.val[name], self.format)
+				sep = ansi['default'] + char['colon']
+			else:
+				line = line + cprint(self.val[name], self.format)
+				sep = char['space']
+			if i + 1 != len(self.vars):
+				line = line + sep
+		return line
 
 	def showend(self, totlist, vislist):
 		if self is not vislist[-1]:
@@ -524,7 +524,9 @@ class dstat_disk(dstat):
 		self.regexp = re.compile('^(ram\d+|loop\d+)$')
 		self.nick = ('read', 'write')
 		self.vars = self.vars()
-		self.name = ['disk/'+name for name in self.vars]
+		self.name = []
+		for name in self.vars:
+			self.name.append('disk/' + name)
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -565,7 +567,7 @@ class dstat_disk(dstat):
 			name = l[2]
 			if self.regexp.match(name): continue
 			self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
-			if name in self.vars:
+			if name in self.vars and name != 'total':
 				self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
 			for set in self.vars:
 				if set in op.diskset.keys():
@@ -587,19 +589,22 @@ class dstat_disk24(dstat):
 		self.nick = ('read', 'write')
 		self.regexp = re.compile('^(ram\d+|loop\d+|name)$')
 		self.vars = self.vars()
-		self.name = ['disk/'+name for name in self.vars]
+		if self.fd and not self.discover():
+			raise Exception, 'kernel is not compiled with CONFIG_BLK_STATS'
+		self.name = []
+		for name in self.vars:
+			self.name.append('disk/' + sysfs_dev(name))
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
 		ret = []
-		if self.fd and not os.path.exists('/proc/diskstats'):
-			self.fd.seek(0)
-			for line in self.fd.readlines():
-				l = string.split(line)
-				if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
-				name = l[3]
-				if not self.regexp.match(name):
-					ret.append(name)	
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = string.split(line)
+			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
+			name = l[3]
+			if not self.regexp.match(name):
+				ret.append(name)	
 		for item in list: ret.append(item)
 		return ret
 
@@ -623,12 +628,12 @@ class dstat_disk24(dstat):
 		self.fd.seek(0)
 		for line in self.fd.readlines():
 			l = string.split(line)
-			if len(l) < 15: continue
+			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			if l[6] == '0' and l[10] == '0': continue
 			name = l[3]
 			if name == 'name': continue
 			if self.regexp.match(name): continue
-			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]))
+			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
 			if name in self.vars:
 				self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
 			for set in self.vars:
@@ -650,20 +655,30 @@ class dstat_disk24old(dstat):
 		self.format = ('f', 5, 1024)
 		self.open('/proc/stat')
 		self.nick = ('read', 'write')
-		self.vars = self.vars()
-		self.name = ['disk/'+name for name in self.vars]
-		self.init(self.vars + ['total',], 2)
 		self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
+		self.vars = self.vars()
+		self.name = []
+		for name in self.vars:
+			self.name.append('disk/' + name)
+		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
 		ret = []
-		if not os.path.exists('/proc/partitions') and not os.path.exists('/proc/diskstats'):
-			self.fd.seek(0)
-			for line in self.fd.readlines():
-				l = string.split(line)
-				if len(l) < 15: continue
-				ret.append(l[3])
-			for item in list: ret.append(item)
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = string.split(line, ':')
+			if len(l) < 3: continue
+			name = l[0]
+			if name != 'disk_io': continue
+			for pair in string.split(line)[1:]:
+				m = self.regexp.match(pair)
+				if not m: continue
+				l = m.groups()
+				if len(l) < 4: continue
+				name = dev(int(l[0]), int(l[1]))
+				ret.append(name)
+			break
+		for item in list: ret.append(item)
 		return ret
 
 	def vars(self):
@@ -688,20 +703,22 @@ class dstat_disk24old(dstat):
 			l = string.split(line, ':')
 			if len(l) < 3: continue
 			name = l[0]
-			if name == 'disk_io':
-				for pair in string.split(line)[1:]:
-					m = self.regexp.match(pair)
-					if m:
-						l = m.groups()
-						if len(l) < 4: continue
-						name = dev(int(l[0]), int(l[1]))
-						self.cn2[name] = ( long(l[2]), long(l[3]) )
-						self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
-						for set in self.vars:
-							if set in op.diskset.keys():
-								for disk in op.diskset[set]:
-									if re.match('^'+disk+'$', name):
-										self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
+			if name != 'disk_io': continue
+			for pair in string.split(line)[1:]:
+				m = self.regexp.match(pair)
+				if not m: continue
+				l = m.groups()
+				if len(l) < 4: continue
+				name = dev(int(l[0]), int(l[1]))
+				self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
+				if name in self.vars and name != 'total':
+					self.cn2[name] = ( self.cn2[name][0] + long(l[2]), self.cn2[name][1] + long(l[3]) )
+				for set in self.vars:
+					if set in op.diskset.keys():
+						for disk in op.diskset[set]:
+							if re.match('^'+disk+'$', name):
+								self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
+			break
 		for name in self.cn2.keys():
 			self.val[name] = (
 				(self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
@@ -784,7 +801,7 @@ class dstat_int(dstat):
 class dstat_int24(dstat):
 	def __init__(self):
 		self.name = 'interrupts'
-		self.format = ('f', 5, 1000)
+		self.format = ('d', 5, 1000)
 		self.open('/proc/interrupts')
 		self.vars = self.vars()
 		self.nick = self.vars
@@ -939,7 +956,9 @@ class dstat_net(dstat):
 		self.open('/proc/net/dev')
 		self.nick = ('recv', 'send')
 		self.vars = self.vars()
-		self.name = ['net/'+name for name in self.vars]
+		self.name = []
+		for name in self.vars:
+			self.name.append('net/' + name)
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -1023,20 +1042,16 @@ class dstat_page24(dstat):
 		self.vars = ('pswpin', 'pswpout')
 		self.init(self.vars, 1)
 
-#	def check(self):
-#		if self.fd and not os.path.exists('/proc/vmstat'):
-#			return True
-#		return False
-
 	def extract(self):
 		self.fd.seek(0)
 		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 3: continue
 			name = l[0]
-			if name == 'swap':
-				self.cn2['pswpin'] = long(l[1])
-				self.cn2['pswpout'] = long(l[2])
+			if name != 'swap': continue
+			self.cn2['pswpin'] = long(l[1])
+			self.cn2['pswpout'] = long(l[2])
+			break
 		for name in self.vars:
 			self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / tick
 		if step == op.delay:
@@ -1150,16 +1165,17 @@ class dstat_time(dstat):
 	def __init__(self):
 		self.name = 'time'
 		self.format = ('t', 10, 0)
-#		self.format = ('t', 15, 0)
+		if op.debug:
+			self.format = ('t', 14, 0)
 		self.nick = ('epoch',)
-		self.vars = ('epoch',)
+		self.vars = self.nick
 		self.init(self.vars, 1)
 
 	def extract(self):
 		self.val['epoch'] = time.time()
 
-#	def __repr__(self):
-#		return ansi['reset'] + self.format % self.val['epoch']
+#	def show(self):
+#		return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
 
 class dstat_udp(dstat):
 	def __init__(self):
@@ -1273,8 +1289,8 @@ def ticks():
 def dopen(file):
 	global fds
 	if not os.path.exists(file): return None
-	if 'fds' not in globals(): fds = {}
-	if file not in fds:
+	if 'fds' not in globals().keys(): fds = {}
+	if file not in fds.keys():
 		fds[file] = open(file, 'r', 0)
 	else:
 		fds[file].seek(0)
@@ -1302,17 +1318,17 @@ def dchg(var, max, base):
 def fchg(var, max, base):
 	c = 0
 	while True:
-#		ret = repr(round(var))
-#		ret = repr(long(round(var,max)))
-		ret = str(long(round(var,max)))
 		if var == 0:
 			ret = str('0')
 			break
+#		ret = repr(round(var))
+#		ret = repr(long(round(var,max)))
+		ret = str(long(round(var,max)))
 		if len(ret) <= max:
 			i = max - len(ret)
 			while i > 0:
 				ret = ('%.'+str(i)+'f') % var
-				if len(ret) <= max and ret != repr(round(var)):
+				if len(ret) < max and ret != repr(round(var)):
 					break
 				i = i - 1
 			else:
@@ -1348,7 +1364,7 @@ def cprint(var, format = ('f', 4, 1000)):
 
 	if var < 0:
 		if unit:
-			return ansi['default'] + string.rjust('- ', max)
+			return ansi['default'] + string.rjust('-', max) + ' '
 		else:
 			return ansi['default'] + string.rjust('-', max)
 
@@ -1364,8 +1380,10 @@ def cprint(var, format = ('f', 4, 1000)):
 		ret, c = dchg(var, max, base)
 	elif type in ('d', 'p'):
 		ret, c = dchg(var, max, base)
-	elif type in ('f', 't'):
+	elif type in ('f'):
 		ret, c = fchg(var, max, base)
+	elif type in ('t'):
+		ret, c = fchg(var, max+1, base)
 	else:
 		ret = str(var)
 
@@ -1381,7 +1399,7 @@ def cprint(var, format = ('f', 4, 1000)):
 	ret = ansi[color] + string.rjust(ret, max)
 
 	if unit:
-		if c != -1 and var != 0:
+		if c != -1 and round(var) != 0:
 			ret = ret + units[c]
 		else:
 			ret = ret + ' '
@@ -1417,6 +1435,7 @@ def die(ret, str):
 	exit(ret)
 
 def getwinsize():
+	"Return the terminal geometry using several methods"
 	if op.nolimit:
 		return 1024, 1024
 	try:
@@ -1435,25 +1454,47 @@ def getwinsize():
 				return 25, 80
 
 def getcpunr():
+	"Return the number of CPUs in the system"
 	cpunr = -1
 	for line in dopen('/proc/stat').readlines():
 		if line[0:3] == 'cpu':
 			cpunr = cpunr + 1
+	if cpunr < 0:
+		raise "Problem finding number of CPUs in system."
 	return cpunr
 
-def scsidev(nr):
+### FIXME: Add scsi support too and improve
+def sysfs_dev(device):
+	"Convert sysfs device names into device names"
+	ide_re = re.compile('ide/host([0-9])/bus([0-9])/target([0-9])/lun([0-9])/disc')
+	scsi_re = re.compile('placeholder')
+	m = ide_re.match(device)
+	if m:
+		l = m.groups()
+		# ide/host0/bus0/target0/lun0/disc -> 0 -> hda
+		# ide/host0/bus1/target0/lun0/disc -> 2 -> hdc
+		nr = int(l[1]) * 2 + int(l[3])
+		return 'hd' + chr(ord('a') + nr)
+	m = scsi_re.match(device)
+	if m:
+		return 'scsi'
+	return device
+
+def scsi_dev(nr):
+	"Convert sequential number into scsi device names"
 	if nr < 26:
 		return 'sd' + chr(ord('a') + nr)
 	else:
 		return 'sd' + chr(ord('a') - 1 + nr / 26) + chr(ord('a') + nr % 26)
 
 def dev(maj, min):
+	"Convert major/minor pairs into device names"
 	scsi = [8, 65, 66, 67, 68, 69, 70, 71, 128, 129, 130, 131, 132, 133, 134, 135]
 	ide = [3, 22, 33, 34, 56, 57, 88, 89, 90, 91]
 	if maj in scsi:
 		nr = scsi.index(maj) * 16 + min
 #		nr = scsi.index(maj) * 16 + min / 16
-		return scsidev(nr)
+		return scsi_dev(nr)
 	elif maj in ide:
 		nr = ide.index(maj) * 2 + min / 64
 		return 'hd' + chr(ord('a') + nr)
@@ -1477,7 +1518,7 @@ def signaler(signum, frame):
 
 def exit(ret):
 	sys.stdout.write(ansi['reset'])
-	if 'signal' in sys.modules:
+	if 'signal' in sys.modules.keys():
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
 #	termios.tcsetattr(fd, termios.TCSADRAIN, old)
 	sys.exit(ret)
@@ -1509,7 +1550,7 @@ def main():
 
 	### Check terminal capabilities
 	if sys.stdout.isatty():
-		if curses.tigetnum('colors') < 0:
+		if 'curses' in sys.modules.keys() and hasattr(curses, 'tigetnum') and curses.tigetnum('colors') < 0:
 			op.color = False
 	else:
 		op.color = False
@@ -1531,36 +1572,46 @@ def main():
 	linewidth = 0
 	oldvislist = []
 	totlist = []
-	for mod in op.modlist:
-		if mod == 'cpu':    objs = ( dstat_cpu(), dstat_cpu24() )
-		elif mod == 'disk': objs = ( dstat_disk(), dstat_disk24(), dstat_disk24old() )
-		elif mod == 'int':  objs = ( dstat_int(), dstat_int24() )
-		elif mod == 'page': objs = ( dstat_page(), dstat_page24() )
-		else:
-			if 'dstat_'+mod not in globals():
+	for module in op.modlist:
+		if module == 'cpu':    mods = ( 'cpu', 'cpu24' )
+		elif module == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
+		elif module == 'int':  mods = ( 'int', 'int24' )
+		elif module == 'page': mods = ( 'page', 'page24' )
+		else: mods = ( module, )
+
+		for mod in mods:
+			if 'dstat_'+mod not in globals().keys():
 				try:
-#					exec(compile('from dstat_%s import *' % mod, '<string>', 'exec'))
 					import imp
 					file, pathname, description = imp.find_module('dstat_'+mod)
-					exec(compile(readfile(pathname), '<string>', 'exec'))
+#					exec(compile(readfile(pathname), '<string>', 'exec'))
+					execfile(pathname)
 				except Exception, e:
-					info(1, 'Module "dstat_%s" failed to load. (%s)' % (mod, e))
+					info(1, 'Module dstat_%s failed to load. (%s)' % (mod, e))
 					continue
-			try:
-				exec(compile('objs = ( dstat_%s(), )' % mod, '<string>', 'exec'))
-			except Exception, e:
-				info(1, 'Class "dstat_%s" has problems. (%s)' % (mod, e))
-				continue
 
-		### Remove defect stat objects and calculate line length
-		for o in objs:
-			if o.check():
-				linewidth = linewidth + o.statwidth() + 1
-				totlist.append(o)
-				break
+			try:
+#				exec compile('o = dstat_%s()' % mod, '<string>', 'single')
+				exec 'o = dstat_%s()' % mod
+
+				### Remove defect stat objects and calculate line length
+				if o.check():
+					linewidth = linewidth + o.statwidth() + 1
+					totlist.append(o)
+					break
+
+			except Exception, e:
+				info(1, 'Module dstat_%s has problems. (%s)' % (mod, e))
+				continue
 
 	if not totlist:
 		die(8, 'None of the stats you selected are available.')
+
+	if op.debug:
+		for o in totlist:
+			print 'Module', string.split(str(o.__class__), '.')[1],
+			if hasattr(o, 'file'): print 'requires', o.file,
+			print
 
 	if op.output:
 		showcsvtitle(1, totlist)
@@ -1625,7 +1676,7 @@ def main():
 		for o in totlist:
 			o.extract()
 			if o in vislist:
-				line = line + repr(o) + o.showend(totlist, vislist)
+				line = line + o.show() + o.showend(totlist, vislist)
 			if op.output and step == op.delay:
 				oline = oline + o.showcsv() + o.showcsvend(totlist, vislist)
 
@@ -1665,7 +1716,11 @@ if __name__ == '__main__':
 		### Unbuffered sys.stdout
 		sys.stdout = os.fdopen(1, 'w', 0)
 
-		curses.setupterm()
+		try:
+			import curses
+			curses.setupterm()
+		except:
+			pass
 
 		### Prevent keyboard input
 #		fd = sys.stdin.fileno()

@@ -9,11 +9,11 @@
 + Allow for different types of export modules (only CSV now)
 
 ### Extending statistics (help welcome!)
-+ Add slab stats (see /proc/slabinfo and slabtop)
-+ Add xorg stats (xdpyinfo, xrestop)
-+ Add icmp, nfs, ntp stats ?
-+ Add application stats (-a or -A pid,cmd)
-+ Add user stats (number of users logged on, utmp is not that useful, /proc/key-users)
++ Add slab plugin (see /proc/slabinfo and slabtop)
++ Add xorg plugin (xdpyinfo, xrestop)
++ Add icmp, nfs, ntp plugin ?
++ Add application plugin (-a or -A pid,cmd)
++ Add user plugin (number of users logged on, utmp is not that useful, /proc/key-users)
 + Look into interfacing with apps (bind, sendmail, postfix, squid, amavisd, laus, samba)
 + Look into interfacing with specific HW counters in /proc
 + Look at /proc/meminfo, /proc/mdstat, /proc/netstat, /proc/snmp, /proc/vmstat
@@ -29,15 +29,16 @@
   (explaining the different uses of tools like dstat, iostat, pmap, strace, tcpdump)
 
 ### General bugs
-+ Timer is not accurate on 2.6 kernel, every 1 seconds there's a 0.8ms deviation (every 21mins -> 1sec)
++ Timer is not as accurate on 2.6 kernel as on 2.4, possibly scheduling differences
 + Python 1.5 prints 'L' for long, crashes when int()
 + If number of lines on terminal <= 1, division by zero
-
-### Stat bugs
 + Implement better (?) protection against counter rollovers
-+ tcp stat is very slow and generates lots of softirqs (on busy systems), to be confirmed
-+ proc stats (run and blk) does not work on 2.4.24+
-+ proc stats seem to be off-by-one compared to vmstat (some of the time, this is what I get from /proc/stat)
++ Plugins currently have to be written in python 1.5 to work for dstat15 (lowest common denominator)
+
+### Plugin bugs
++ tcp plugin is very slow and generates lots of softirqs (on busy systems), to be confirmed
++ proc plugin (run and blk) does not work on 2.4.24+, to be confirmed
++ proc plugin seem to be off-by-one compared to vmstat (some of the time, this is what I get from /proc/stat)
 + /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible?
 
 ### Redesign (v2.0)
@@ -53,3 +54,4 @@
 
 + Design proper object model and namespace for _all_ possible stats
 + Create a seperate screen-based tool, much like nmon (dstat is line-based)
++ Create client/server monitoring tool

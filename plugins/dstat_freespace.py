@@ -1,12 +1,19 @@
 ### FIXME: This module needs infrastructure to provide a list of mountpoints
 ### FIXME: Would be nice to have a total by default (half implemented)
 
+### FIXME: Apparently needs python 2.0, possibly python 2.2
+global string
+import string
+
 class dstat_freespace(dstat):
 	def __init__(self):
 		self.format = ('f', 5, 1024)
 		self.open('/etc/mtab')
 		self.vars = self.vars()
-		self.name = ['/' + os.path.basename(name) for name in self.vars]
+#		self.name = ['/' + os.path.basename(name) for name in self.vars]
+		self.name = []
+		for name in self.vars:
+			self.name.append('/' + os.path.basename(name))
 		self.nick = ('used', 'free')
 		self.init(self.vars + ['total',], 2)
 

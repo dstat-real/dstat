@@ -6,7 +6,10 @@ class dstat_thermal(dstat):
 		self.name = 'thermal'
 		self.format = ('d', 4, 20)
 		self.vars = os.listdir('/proc/acpi/thermal_zone/')
-		self.nick = [string.lower(name) for name in self.vars]
+#		self.nick = [string.lower(name) for name in self.vars]
+		self.nick = []
+		for name in self.vars:
+			self.nick.append(string.lower(name))
 		self.init(self.vars, 1)
 
 	def extract(self):

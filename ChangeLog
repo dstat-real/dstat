@@ -14,25 +14,25 @@
 - Added initial values (step=0) for disk, int, page, and sys stats
 - Allowed external tools to use the dstat classes
 - Added example scripts using the dstat classes (mstat.py and read.py)
-- Allowed external modules to be plugged in
-- Added external acpi module dstat_battery
-- Added external acpi module dstat_cpufreq
-- Added external acpi module dstat_thermal)
-- Added external app module dstat_postfix
-- Added external app module dstat_sendmail
-- Added external module dstat_dbus
-- Added external module dstat_freespace
-- Added external module dstat_utmp
-- Removed user stat (now in dstat_utmp module)
+- Allowed external plugins to be plugged in
+- Added external acpi plugin dstat_battery
+- Added external acpi plugin dstat_cpufreq
+- Added external acpi plugin dstat_thermal
+- Added external app plugin dstat_postfix
+- Added external app plugin dstat_sendmail
+- Added external plugin dstat_dbus
+- Added external plugin dstat_freespace
+- Added external plugin dstat_utmp
+- Removed user stat (now in external dstat_utmp plugin)
 - Smaller fixes and overall improvements
 - Improved help output and manpage
-- Added README.examples, README.performance and README.stats
+- Added README.examples, README.performance and README.plugins
 - Added profiling/debuging code (--debug)
 - Rewrote cprint/cprintlist logic
 - Get rid of python-curses requirement for SLES9 (although it helps)
 - Fixed dstat_disk24old for newer 2.4 kernels without CONFIG_BLK_STATS support (Susan G. Kleinmann)
 - Improved dstat_disk24 for newer 2.4 kernels with CONFIG_BLK_STATS support (Susan G. Kleinmann)
-- Allow for specifying compatible stats on command line (eg. -M disk24,page24)
+- Allow for specifying compatible stats on command line (eg. -M disk24,disk24old,page24)
 - Make time stat more detailed when --debug is used.
 
 * 0.5.10 - released 08/04/2005
