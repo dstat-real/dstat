@@ -1,0 +1,12 @@
+major minor  #blocks  name     rio rmerge rsect ruse wio wmerge wsect wuse running use aveq
+
+  22     0    4224150 ide/host0/bus1/target0/lun0/disc 24958 39400 473150 343900 53587 23309 500312 5447730 0 380490 5795870
+  22     1    1023876 ide/host0/bus1/target0/lun0/part1 3592 4076 61498 43970 27109 5490 261392 546010 0 110060 590040
+  22     2     130882 ide/host0/bus1/target0/lun0/part2 1 0 8 10 0 0 0 0 0 10 10
+  22     3    2047815 ide/host0/bus1/target0/lun0/part3 16859 32873 397730 253060 21988 2699 199512 3131240 0 277340 3388480
+  22     4    1021545 ide/host0/bus1/target0/lun0/part4 4505 2448 13906 46850 4490 15120 39408 1770480 0 73390 1817330
+   3     0    8257032 ide/host0/bus0/target0/lun0/disc 1 3 8 10 0 0 0 0 0 10 10
+   3     1    2048256 ide/host0/bus0/target0/lun0/part1 0 0 0 0 0 0 0 0 0 0 0
+   3     2    3068415 ide/host0/bus0/target0/lun0/part2 0 0 0 0 0 0 0 0 0 0 0
+   3     3    1534207 ide/host0/bus0/target0/lun0/part3 0 0 0 0 0 0 0 0 0 0 0
+   3     4    1598467 ide/host0/bus0/target0/lun0/part4 0 0 0 0 0 0 0 0 0 0 0

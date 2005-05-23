@@ -10,7 +10,8 @@ The following examples currently exist:
 Please send other examples or tools that make use of dstat classes
 or changes to extend the current infrastructure.
 
-I'm not particularly happy with how to interface with dstat from
-the outside, so any hints on how to improve it are welcome.
+I'm not particularly happy with the current interface to dstat,
+so any hints on how to improve it are welcome. Also look at the
+TODO for future changes.
 
 Please send feedback to: <dag@wieers.com>

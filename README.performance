@@ -2,16 +2,32 @@ Dstat performance
 """""""""""""""""
 Since dstat is written in python, it's not optimized for performance.
 
-When doing performance analysis, it's important to verify that the
-monitoring tool is not messing with the performance numbers.
+When doing performance analysis, it's always important to verify that
+the monitoring tool is not messing with the performance numbers.
+(eg. writing to disk, using cpu/memory/network, increasing load)
 
 Depending on the stats being used and the load on the server itself
-the impact Dstat has on the system you're monitoring might be
-considerable.
+the impact Dstat has on the system you are monitoring might be
+considerable. A lot of plugins are pretty fast (less than 0.1ms on
+an modest 1.2Ghz laptop, but some plugins may use up to 3ms using
+up to 2% of your CPU).
 
 Before performing any tests please verify for yourself what impact
 Dstat has on your test results and keep that in mind when analysing
 the results afterwards.
 
 In case the impact is higher than expected, reduce the number of stats
-and remove expensive stats.
+and remove expensive stats or even look at the plugin you're using and
+send me optimisations.
+
+Newer python versions are also faster than older ones, and hardware is
+only becoming faster at a pace that these considerations may not hold
+anylonger.
+
+If you need feedback about plugin performance, use the --debug option
+to profile different plugins. If you use -t together with --debug, you
+can see the time deviation on your system in relation to load/plugins.
+
+Remember that invisible plugins (that run out of your terminal window)
+do take up cycles because the information is still being collected and
+possibly written to CSV output.

@@ -597,7 +597,7 @@ class dstat_disk24(dstat):
 		if self.fd and not self.discover():
 			raise Exception, 'kernel is not compiled with CONFIG_BLK_STATS'
 #			info(1, 'dstat_disk24: kernel is lacking disk stat support, please compile CONFIG_BLK_STATS into your kernel')
-		self.name = ['disk/'+name for name in self.vars]
+		self.name = ['disk/'+sysfs_dev(name) for name in self.vars]
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -1162,7 +1162,8 @@ class dstat_time(dstat):
 	def __init__(self):
 		self.name = 'time'
 		self.format = ('t', 10, 0)
-#		self.format = ('t', 15, 0)
+		if op.debug:
+			self.format = ('t', 14, 0)
 		self.nick = ('epoch',)
 		self.vars = self.nick
 		self.init(self.vars, 1)
@@ -1314,12 +1315,12 @@ def dchg(var, max, base):
 def fchg(var, max, base):
 	c = 0
 	while True:
-#		ret = repr(round(var))
-#		ret = repr(long(round(var,max)))
-		ret = str(long(round(var,max)))
 		if var == 0:
 			ret = str('0')
 			break
+#		ret = repr(round(var))
+#		ret = repr(long(round(var,max)))
+		ret = str(long(round(var,max)))
 		if len(ret) <= max:
 			i = max - len(ret)
 			while i > 0:
@@ -1395,7 +1396,7 @@ def cprint(var, format = ('f', 4, 1000)):
 	ret = ansi[color] + ret.rjust(max)
 
 	if unit:
-		if c != -1 and var != 0:
+		if c != -1 and round(var) != 0:
 			ret = ret + units[c]
 		else:
 			ret = ret + ' '
@@ -1431,6 +1432,7 @@ def die(ret, str):
 	exit(ret)
 
 def getwinsize():
+	"Return the terminal geometry using several methods"
 	if op.nolimit:
 		return 1024, 1024
 	try:
@@ -1449,25 +1451,47 @@ def getwinsize():
 				return 25, 80
 
 def getcpunr():
+	"Return the number of CPUs in the system"
 	cpunr = -1
 	for line in dopen('/proc/stat').readlines():
 		if line[0:3] == 'cpu':
 			cpunr = cpunr + 1
+	if cpunr < 0:
+		raise "Problem finding number of CPUs in system."
 	return cpunr
 
-def scsidev(nr):
+### FIXME: Add scsi support too and improve
+def sysfs_dev(device):
+	"Convert sysfs device names into device names"
+	ide_re = re.compile('ide/host([0-9])/bus([0-9])/target([0-9])/lun([0-9])/disc')
+	scsi_re = re.compile('placeholder')
+	m = ide_re.match(device)
+	if m:
+		l = m.groups()
+		# ide/host0/bus0/target0/lun0/disc -> 0 -> hda
+		# ide/host0/bus1/target0/lun0/disc -> 2 -> hdc
+		nr = int(l[1]) * 2 + int(l[3])
+		return 'hd' + chr(ord('a') + nr)
+	m = scsi_re.match(device)
+	if m:
+		return 'scsi'
+	return device
+
+def scsi_dev(nr):
+	"Convert sequential number into scsi device names"
 	if nr < 26:
 		return 'sd' + chr(ord('a') + nr)
 	else:
 		return 'sd' + chr(ord('a') - 1 + nr / 26) + chr(ord('a') + nr % 26)
 
 def dev(maj, min):
+	"Convert major/minor pairs into device names"
 	scsi = [8, 65, 66, 67, 68, 69, 70, 71, 128, 129, 130, 131, 132, 133, 134, 135]
 	ide = [3, 22, 33, 34, 56, 57, 88, 89, 90, 91]
 	if maj in scsi:
 		nr = scsi.index(maj) * 16 + min
 #		nr = scsi.index(maj) * 16 + min / 16
-		return scsidev(nr)
+		return scsi_dev(nr)
 	elif maj in ide:
 		nr = ide.index(maj) * 2 + min / 64
 		return 'hd' + chr(ord('a') + nr)
@@ -1550,8 +1574,7 @@ def main():
 		elif module == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
 		elif module == 'int':  mods = ( 'int', 'int24' )
 		elif module == 'page': mods = ( 'page', 'page24' )
-		else:
-			mods = ( module, )
+		else: mods = ( module, )
 
 		for mod in mods:
 			if 'dstat_'+mod not in globals():
@@ -1570,8 +1593,9 @@ def main():
 					linewidth = linewidth + o.statwidth() + 1
 					totlist.append(o)
 					break
+
 			except Exception, e:
-				info(1, 'Module "dstat_%s" has problems. (%s)' % (mod, e))
+				info(1, 'Module dstat_%s has problems. (%s)' % (mod, e))
 				continue
 
 	if not totlist:
@@ -1579,7 +1603,7 @@ def main():
 
 	if op.debug:
 		for o in totlist:
-			print str(o.__class__).split('.')[1],
+			print 'Module', str(o.__class__).split('.')[1],
 			if hasattr(o, 'file'): print 'requires', o.file,
 			print
 

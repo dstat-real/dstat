@@ -36,9 +36,9 @@
 ### Stat bugs
 + Implement better (?) protection against counter rollovers
 + tcp stat is very slow and generates lots of softirqs (on busy systems), to be confirmed
-+ proc stats (run, blk and new) does not work on 2.4.30+ (possibly 2.4.x), to be confirmed
++ proc stats (run and blk) does not work on 2.4.24+
 + proc stats seem to be off-by-one compared to vmstat (some of the time, this is what I get from /proc/stat)
-+ /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible
++ /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible?
 
 ### Redesign (v2.0)
 + Create modules that can contain samples of different units
@@ -52,4 +52,4 @@
 	blk_read/sec, blk_wrtn/sec (kB/sec)
 
 + Design proper object model and namespace for _all_ possible stats
-+ Create a seperate tool, much like nmon
++ Create a seperate screen-based tool, much like nmon (dstat is line-based)

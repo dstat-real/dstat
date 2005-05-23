@@ -31,6 +31,9 @@
 - Rewrote cprint/cprintlist logic
 - Get rid of python-curses requirement for SLES9 (although it helps)
 - Fixed dstat_disk24old for newer 2.4 kernels without CONFIG_BLK_STATS support (Susan G. Kleinmann)
+- Improved dstat_disk24 for newer 2.4 kernels with CONFIG_BLK_STATS support (Susan G. Kleinmann)
+- Allow for specifying compatible stats on command line (eg. -M disk24,page24)
+- Make time stat more detailed when --debug is used.
 
 * 0.5.10 - released 08/04/2005
 - Small fix to restore terminal for all exit paths (Dbt 303526, Modesto Alexandre)
