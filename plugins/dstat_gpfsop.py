@@ -13,8 +13,6 @@ class dstat_gpfsop(dstat):
 		if os.access('/usr/lpp/mmfs/bin/mmpmon', os.X_OK):
 			try:
 				self.stdout, self.stdin, self.stderr = popen2.popen3('/usr/lpp/mmfs/bin/mmpmon', 0)
-#				self.stdin.write('fs_io_s\n')
-				self.stdin.write('io_s\n')
 			except IOError:
 				raise Exception, 'Module can not interface with gpfs mmpmon binary'
 			return True
@@ -24,16 +22,20 @@ class dstat_gpfsop(dstat):
 	def extract(self):
 		try:
 			self.stdout.flush()
-			for line in self.stdout.read(371).split('\n'):
+			self.stdin.write('io_s\n'); size = 290
+#			self.stdin.write('fs_io_s\n'); size = 370
+			for line in self.stdout.read(size).split('\n'):
 				l = line.split()
 				if len(l) < 2: continue
 				if len(l) > 3: continue
 				name = l[0].split(':')[0]
+				if len(l) > 3:  continue
 				if name in self.vars:
+#					print line
 					self.cn2[name] = long(l[1])
 				elif len(l) >= 3 and name == 'inode':
+#					print line
 					self.cn2['inodup'] = long(l[2])
-			self.stdin.write('fs_io_s\n')
 		except IOError, e:
 			print e
 		for name in self.vars:
