@@ -4,18 +4,18 @@ The core functionality of dstat is self-contained inside the dstat script,
 but it is possible to add your own dstat plugins. Currently only the
 following external plugins exist:
 
-	dstat_battery		- ACPI battery  in percentage
-	dstat_cpufreq		- ACPI CPU frequency in percentage
-	dstat_dbus		- dbus connections
-	dstat_freespace		- free space on mounted filesystems
-	dstat_gpfs		- GPFS I/O
-	dstat_gpfsop		- GPFS operations
-	dstat_postfix		- postfix queue size
-	dstat_sendmail		- sendmail queue size
-	dstat_thermal		- system temperature
-	dstat_utmp		- utmp connections
+	dstat_battery		- battery in percentage (needs ACPI)
+	dstat_cpufreq		- CPU frequency in percentage (needs ACPI)
+	dstat_dbus		- dbus connections (needs python-dbus)
+	dstat_freespace		- disk usage on per filesystems
+	dstat_gpfs		- GPFS read/write I/O (needs mmpmon)
+	dstat_gpfsop		- GPFS filesystem operations (needs mmpmon)
+	dstat_postfix		- postfix queue size (needs postfix)
+	dstat_sendmail		- sendmail queue size (needs sendmail)
+	dstat_thermal		- system temperature sesnors
+	dstat_utmp		- utmp connections (needs python-utmp)
 
-You can enable one of these stats by using the -M options:
+You can enable any of these stats by using the -M options:
 
 	dstat -a -M dbus,utmp
 
