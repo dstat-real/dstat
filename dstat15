@@ -1274,6 +1274,7 @@ char = {
 }
 
 def ticks():
+	"Return the number of 'ticks' since bootup"
 	try:
 		for line in open('/proc/uptime', 'r', 0).readlines():
 			l = string.split(line)
@@ -1287,6 +1288,7 @@ def ticks():
 				return time.time() - long(l[1])
 
 def dopen(file):
+	"Open a file ones, if already opened, return file descriptor"
 	global fds
 	if not os.path.exists(file): return None
 	if 'fds' not in globals().keys(): fds = {}
@@ -1297,6 +1299,7 @@ def dopen(file):
 	return fds[file]
 
 def dclose(file):
+	"Close an open file and remove file descriptor from list"
 	global fds
 	if not 'fds' in globals(): fds = {}
 	if file in fds:
@@ -1304,6 +1307,7 @@ def dclose(file):
 		del(fds[file])
 
 def dchg(var, max, base):
+	"Convert decimal to string given base and length"
 	c = 0
 	while True:
 		ret = str(int(round(var)))
@@ -1316,6 +1320,7 @@ def dchg(var, max, base):
 	return ret, c
 
 def fchg(var, max, base):
+	"Convert float to string given base and length"
 	c = 0
 	while True:
 		if var == 0:
@@ -1584,7 +1589,7 @@ def main():
 				try:
 					import imp
 					file, pathname, description = imp.find_module('dstat_'+mod)
-#					exec(compile(readfile(pathname), '<string>', 'exec'))
+#					exec compile(readfile(pathname), pathname, 'exec')
 					execfile(pathname)
 				except Exception, e:
 					info(1, 'Module dstat_%s failed to load. (%s)' % (mod, e))
