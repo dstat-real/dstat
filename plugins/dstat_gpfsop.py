@@ -3,7 +3,7 @@ import string, select
 
 class dstat_gpfsop(dstat):
 	def __init__(self):
-		self.name = 'gpfs operations'
+		self.name = 'gpfs file operations'
 		self.format = ('d', 4, 1000)
 		self.vars = ('_oc_', '_cc_', '_rdc_', '_wc_', '_dir_', '_iu_')
 		self.nick = ('open', 'clos', 'read', 'writ', 'rdir', 'inod')
@@ -12,14 +12,13 @@ class dstat_gpfsop(dstat):
 	def check(self): 
 		if os.access('/usr/lpp/mmfs/bin/mmpmon', os.X_OK):
 			try:
-				self.stdin, self.stdout, self.stderr = dpopen('/usr/lpp/mmfs/bin/mmpmon -p')
+				self.stdin, self.stdout, self.stderr = dpopen('/usr/lpp/mmfs/bin/mmpmon -p -s')
 				self.stdin.write('reset\n')
 				readpipe(self.stdout)
 			except IOError:
 				raise Exception, 'Module can not interface with gpfs mmpmon binary'
 			return True
 		raise Exception, 'Module needs gpfs mmpmon binary'
-		return false
 
 	def extract(self):
 		try:
@@ -30,15 +29,14 @@ class dstat_gpfsop(dstat):
 				l = line.split()
 				for name in self.vars:
 					self.cn2[name] = long(l[l.index(name)+1])
+			for name in self.vars:
+				self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
 		except IOError, e:
 			for name in self.vars: self.val[name] = -1
-			print 'dstat_gpfs: lost pipe to mmpmon,', e
+#			print 'dstat_gpfs: lost pipe to mmpmon,', e
 		except Exception, e:
 			for name in self.vars: self.val[name] = -1
-			print 'dstat_gpfs: exception', e
-
-		for name in self.vars:
-			self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+#			print 'dstat_gpfs: exception', e
 
 		if step == op.delay:
 			self.cn1.update(self.cn2)

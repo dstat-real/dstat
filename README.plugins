@@ -1,8 +1,8 @@
 External dstat plugins
 """"""""""""""""""""""
 The core functionality of dstat is self-contained inside the dstat script,
-but it is possible to add your own dstat plugins. Currently only the
-following external plugins exist:
+but it is possible to add your own dstat plugins. Currently the following
+external plugins exist:
 
 	dstat_battery		- battery in percentage (needs ACPI)
 	dstat_cpufreq		- CPU frequency in percentage (needs ACPI)
@@ -14,6 +14,7 @@ following external plugins exist:
 	dstat_sendmail		- sendmail queue size (needs sendmail)
 	dstat_thermal		- system temperature sesnors
 	dstat_utmp		- utmp connections (needs python-utmp)
+	dstat_wifi		- wireless link quality and signal to noise ratio
 
 You can enable any of these stats by using the -M options:
 
@@ -35,7 +36,7 @@ Future possible external plugins:
 	dstat_gfs
 	dstat_nfs
 	dstat_qla2300
-	dstat_samba (needs a python tdb implementation)
+	dstat_samba (needs a python tdb implementation ?)
 	dstat_squid
 
 Please send feedback to: <dag@wieers.com>

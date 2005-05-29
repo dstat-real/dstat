@@ -22,7 +22,7 @@ class dstat_freespace(dstat):
 		if self.fd:
 			self.fd.seek(0)
 			for line in self.fd.readlines():
-				l = line.split()
+				l = string.split(line)
 				if len(l) < 6: continue
 				if l[2] in ('binfmt_misc', 'devpts', 'iso9660', 'none', 'proc', 'sysfs', 'usbfs'): continue
 				### FIXME: Excluding 'none' here may not be what people want (/dev/shm)

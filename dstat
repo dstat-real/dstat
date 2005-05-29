@@ -1669,7 +1669,7 @@ def main():
 				curwidth = curwidth + o.statwidth() + 1
 
 		### Check when to display the header
-		if op.header:
+		if op.header and rows >= 6:
 			if oldvislist != vislist:
 				showheader = True
 			elif step == 1 and loop % (rows - 1) == 0:

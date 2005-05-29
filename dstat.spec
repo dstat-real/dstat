@@ -7,7 +7,7 @@
 %{?rh7:%define _with_python15 1}
 %{?el2:%define _with_python15 1}
 
-Summary: Versatile vmstat, iostat and ifstat replacement
+Summary: Versatile resource statistics tool
 Name: dstat
 Version: 0.6.0
 Release: 1
@@ -25,29 +25,33 @@ BuildArch: noarch
 Requires: python
 
 %description
-Dstat is a versatile replacement for vmstat, iostat and ifstat. Dstat
-overcomes some of the limitations and adds some extra features.
+Dstat is a versatile replacement for vmstat, iostat, netstat and ifstat.
+Dstat overcomes some of their limitations and adds some extra features,
+more counters and flexibility. Dstat is handy for monitoring systems
+during performance tuning tests, benchmarks or troubleshooting.
 
-Dstat allows you to view all of your system resources instantly,
-you can eg. compare disk usage in combination with interrupts from
-your IDE controller, or compare the network bandwidth numbers
-directly with the disk throughput (in the same interval).
+Dstat allows you to view all of your system resources instantly, you
+can eg. compare disk usage in combination with interrupts from your
+IDE controller, or compare the network bandwidth numbers directly
+with the disk throughput (in the same interval). 
 
-Dstat also cleverly gives you the most detailed information in
-columns and clearly indicates in what magnitude and unit the output
-is displayed. Less confusion, less mistakes.
+Dstat gives you detailed selective information in columns and clearly
+indicates in what magnitude and unit the output is displayed. Less
+confusion, less mistakes.
 
-Dstat is also unique in letting you aggregate block device throughput
-for a certain diskset or network bandwidth for a group of interfaces,
-ie. you can see the throughput for all the block devices that make up
-a single filesystem or storage system.
+Dstat is unique in letting you aggregate block device throughput for
+a certain diskset or networkset, ie. you can see the throughput for
+all the block devices that make up a single filesystem or storage
+system.
 
-You can customize your dstat output from /etc/dstat.conf and you can
-write your own dstat modules to plug into the dstat output.
+You can write your own dstat plugins to monitor whatever you like in
+just a few minutes based on provided examples and a little bit of
+Python knowledge.
 
-Dstat's output, in its current form, is not very useful to be post-
-processed by other tools. It's mostly meant for allowing humans to
-interprete real-time data as easy as possible.
+Dstat's output by default is designed for being interpreted by humans
+in real-time, however the new CSV output allows you to store CSV
+output in detail to a file to be imported later into Gnumeric or Excel
+to generate graphs.
 
 %prep
 %setup
@@ -72,7 +76,7 @@ interprete real-time data as easy as possible.
 %{_datadir}/dstat/
 
 %changelog
-* Sun Apr 24 2005 Dag Wieers <dag@wieers.com> - 0.6.0-1
+* Sun May 29 2005 Dag Wieers <dag@wieers.com> - 0.6.0-1
 - Updated to release 0.6.0.
 
 * Fri Apr 08 2005 Dag Wieers <dag@wieers.com> - 0.5.10-1

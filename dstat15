@@ -1288,7 +1288,7 @@ def ticks():
 				return time.time() - long(l[1])
 
 def dopen(file):
-	"Open a file ones, if already opened, return file descriptor"
+	"Open a file for reuse, if already opened, return file descriptor"
 	global fds
 	if not os.path.exists(file): return None
 	if 'fds' not in globals().keys(): fds = {}
@@ -1305,6 +1305,24 @@ def dclose(file):
 	if file in fds:
 		fds[file].close()
 		del(fds[file])
+
+def dpopen(cmd):
+	"Open a pipe for reuse, if already opened, return pipes"
+	global pipes
+	if 'pipes' not in globals().keys(): pipes = {}
+	if cmd not in pipes.keys():
+		pipes[cmd] = os.popen3('/usr/lpp/mmfs/bin/mmpmon -p', 't', 0)
+	return pipes[cmd]
+
+def readpipe(file, tmout = 0.001):
+	"Read available data from pipe in a non-blocking fasion"
+	ret = ''
+	while not select.select([file.fileno()], [], [], tmout)[0]:
+		pass
+	while select.select([file.fileno()], [], [], tmout)[0]:
+		ret = ret + file.read(1)
+	return string.split(ret, '\n')
+#	return ret
 
 def dchg(var, max, base):
 	"Convert decimal to string given base and length"
@@ -1654,7 +1672,7 @@ def main():
 				curwidth = curwidth + o.statwidth() + 1
 
 		### Check when to display the header
-		if op.header:
+		if op.header and rows >= 6:
 			if oldvislist != vislist:
 				showheader = True
 			elif step == 1 and loop % (rows - 1) == 0:
