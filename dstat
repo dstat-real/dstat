@@ -19,10 +19,12 @@ from __future__ import generators
 try:
 	import sys, signal, os, re, time
 	import types, signal, resource
-	pwd = os.path.dirname(sys.argv[0])
-	sys.path.insert(0, '/usr/share/dstat/')
-	sys.path.insert(0, pwd + '/plugins/')
-	sys.path.insert(0, pwd)
+	cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
+	sys.path.insert(0, os.getenv('HOME') + '/.dstat/')
+	if cwd in sys.path: sys.path.remove(cwd)
+	sys.path.insert(1, cwd)
+	sys.path.insert(2, cwd + '/plugins/')
+	sys.path.insert(3, '/usr/share/dstat/')
 except KeyboardInterrupt, e:
 	pass
 
@@ -61,7 +63,7 @@ except NameError:
 	True = 1
 	False = 0
 
-VERSION = '0.6.0'
+VERSION = '0.6.1'
 
 class Options:
 	def __init__(self, args):
@@ -1543,8 +1545,29 @@ def exit(ret):
 #	termios.tcsetattr(fd, termios.TCSADRAIN, old)
 	sys.exit(ret)
 
+def listmodules():
+	import glob
+	global cols
+	remod = re.compile('.+/dstat_(.+).py$')
+	for path in sys.path:
+		list = []
+		for file in glob.glob(path + '/dstat_*.py'):
+			list.append(remod.match(file).groups()[0])
+		if not list: continue
+		list.sort()
+		cols2 = cols - 8
+		print '%s:\n\t' % os.path.abspath(path),
+		for mod in list:
+			cols2 = cols2 - len(mod) - 2
+			if cols2 <= 0:
+				print '\n\t',
+				cols2 = cols - len(mod) - 10
+			print mod + ',',
+		print
+	exit(0)
+
 def main():
-	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick
+	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols
 
 	loop = update = 0
 	step = op.delay
@@ -1593,7 +1616,8 @@ def main():
 	oldvislist = []
 	totlist = []
 	for module in op.modlist:
-		if module == 'cpu':    mods = ( 'cpu', 'cpu24' )
+		if module == 'list' or module == 'help': listmodules()
+		elif module == 'cpu':  mods = ( 'cpu', 'cpu24' )
 		elif module == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
 		elif module == 'int':  mods = ( 'int', 'int24' )
 		elif module == 'page': mods = ( 'page', 'page24' )

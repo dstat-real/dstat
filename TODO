@@ -20,6 +20,7 @@
 + Look at /proc/fs/cifs/stats
 + Look at /proc/net/rpc/nfsd and /proc/net/rpc/nfs
 + Allow for SNMP counters to be added
++ Add LVM stats
 
 ### Documentation (help welcome!)
 + Improve manpage

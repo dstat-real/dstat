@@ -20,9 +20,10 @@ try:
 	import sys, signal, os, re, time, string
 	import types, signal, resource
 	pwd = os.path.dirname(sys.argv[0])
-	sys.path.insert(0, '/usr/share/dstat/')
-	sys.path.insert(0, pwd + '/plugins/')
-	sys.path.insert(0, pwd)
+	sys.path.insert(0, os.getenv('HOME') + '/.dstat/')
+	sys.path.insert(1, pwd)
+	sys.path.insert(2, pwd + '/plugins/')
+	sys.path.insert(3, '/usr/share/dstat/')
 except KeyboardInterrupt, e:
 	pass
 

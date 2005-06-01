@@ -95,7 +95,8 @@ Possible internal stats are:
   cpu, disk, int, ipc, load, lock, mem, net, page,
   proc, raw, swap, sys, tcp, time, udp, unix
 
-Also see /usr/share/dstat/ for external stats
+Possible external stats can be listed using:
+  dstat -M list
 .TP
 \fB\-a\fR, \fB\-\-all\fR
 equals \fB\-cdngy\fR (default)
@@ -131,15 +132,19 @@ The default delay is 1 and count is unspecified (unlimited)
 .SH INTERMEDIATE UPDATES
 When invoking dstat with a \fBdelay\fR greater than 1 and without the \fB--noupdate\fR option, it will show intermediate updates, ie. the first time a 1 sec average, the second update a 2 second average, etc. until the delay has been reached.
 
-\fBSo the 9 intermediate updates are NOT snapshots\fR, they are averages over the time that passed since the last final update. The end result is that you get a 10 second average on a new line, just like vmstat.      
+So in case you specified a delay of 10, \fBthe 9 intermediate updates are NOT snapshots\fR, they are averages over the time that passed since the last final update. The end result is that you get a 10 second average on a new line, just like with vmstat.
 
 .SH BUGS
-Since it's practically impossible to test dstat on every possible permutation of kernel , python or distribution version, I need your help and your feedback to fix the remaining problems. If you have improvements or bugreports, please send them to: dag@wieers.com
+Since it's practically impossible to test dstat on every possible permutation of kernel , python or distribution version, I need your help and your feedback to fix the remaining problems. If you have improvements or bugreports, please send them to: \fBdag@wieers.com\fR
 
 Please see the TODO file for known bugs and future plans.
 
 .SH FILES
-/usr/share/dstat/, contains extra external stats
+.SS ~/.dstat/
+.SS ./
+.SS ./plugins/
+.SS /usr/share/dstat/
+paths that may contain external dstat_* modules
 
 .SH SEE ALSO
 .SS Performance tools
