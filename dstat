@@ -203,6 +203,11 @@ class Options:
 		print 'Processors: %d' % getcpunr()
 		print 'Pagesize: %d' % resource.getpagesize()
 		print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
+		print
+
+		global op
+		op = self
+		listmodules()
 
 	def usage(self):
 		print 'Usage: dstat [-afv] [options..] [delay [count]]'
@@ -530,7 +535,6 @@ class dstat_disk(dstat):
 	def __init__(self):
 		self.format = ('f', 5, 1024)
 		self.open('/proc/diskstats')
-		self.regexp = re.compile('^(ram\d+|loop\d+)$')
 		self.nick = ('read', 'write')
 		self.vars = self.vars()
 		self.name = ['disk/'+name for name in self.vars]
@@ -542,10 +546,10 @@ class dstat_disk(dstat):
 			self.fd.seek(0)
 			for line in self.fd.readlines():
 				l = line.split()
-				if len(l) < 13 or l[3] == '0': continue
+				if len(l) < 13: continue
+				if l[3:] == ['0',] * 11: continue
 				name = l[2]
-				if not self.regexp.match(name):
-					ret.append(name)
+				ret.append(name)
 		for item in list: ret.append(item)
 		return ret
 
@@ -572,7 +576,7 @@ class dstat_disk(dstat):
 			if len(l) < 13: continue
 			if l[5] == '0' and l[9] == '0': continue
 			name = l[2]
-			if self.regexp.match(name): continue
+			if l[3:] == ['0',] * 11: continue
 			self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
 			if name in self.vars and name != 'total':
 				self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
@@ -594,7 +598,6 @@ class dstat_disk24(dstat):
 		self.format = ('f', 5, 1024)
 		self.open('/proc/partitions')
 		self.nick = ('read', 'write')
-		self.regexp = re.compile('^(ram\d+|loop\d+|name)$')
 		self.vars = self.vars()
 		if self.fd and not self.discover():
 			raise Exception, 'kernel is not compiled with CONFIG_BLK_STATS'
@@ -608,8 +611,7 @@ class dstat_disk24(dstat):
 			l = line.split()
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
-			if not self.regexp.match(name):
-				ret.append(name)	
+			ret.append(name)	
 		for item in list: ret.append(item)
 		return ret
 
@@ -634,10 +636,7 @@ class dstat_disk24(dstat):
 		for line in self.fd.readlines():
 			l = line.split()
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
-			if l[6] == '0' and l[10] == '0': continue
 			name = l[3]
-			if name == 'name': continue
-			if self.regexp.match(name): continue
 			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
 			if name in self.vars:
 				self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
@@ -1310,7 +1309,7 @@ def dpopen(cmd):
 	global pipes
 	if 'pipes' not in globals().keys(): pipes = {}
 	if cmd not in pipes.keys():
-		pipes[cmd] = os.popen3('/usr/lpp/mmfs/bin/mmpmon -p', 't', 0)
+		pipes[cmd] = os.popen3(cmd, 't', 0)
 	return pipes[cmd]
 
 def readpipe(file, tmout = 0.001):
@@ -1547,7 +1546,7 @@ def exit(ret):
 
 def listmodules():
 	import glob
-	global cols
+	rows, cols = getwinsize()
 	remod = re.compile('.+/dstat_(.+).py$')
 	for path in sys.path:
 		list = []
@@ -1564,7 +1563,6 @@ def listmodules():
 				cols2 = cols - len(mod) - 10
 			print mod + ',',
 		print
-	exit(0)
 
 def main():
 	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols
@@ -1616,7 +1614,9 @@ def main():
 	oldvislist = []
 	totlist = []
 	for module in op.modlist:
-		if module == 'list' or module == 'help': listmodules()
+		if module in ('list', 'help'):
+			listmodules()
+			exit(0)
 		elif module == 'cpu':  mods = ( 'cpu', 'cpu24' )
 		elif module == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
 		elif module == 'int':  mods = ( 'int', 'int24' )
@@ -1632,6 +1632,7 @@ def main():
 					execfile(pathname)
 				except Exception, e:
 					info(1, 'Module dstat_%s failed to load. (%s)' % (mod, e))
+#					tb = sys.exc_info()[2]
 					continue
 
 			try:
