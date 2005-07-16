@@ -25,6 +25,7 @@ try:
 	sys.path.insert(1, cwd)
 	sys.path.insert(2, cwd + '/plugins/')
 	sys.path.insert(3, '/usr/share/dstat/')
+	sys.path.insert(4, '/usr/local/share/dstat/')
 except KeyboardInterrupt, e:
 	pass
 
