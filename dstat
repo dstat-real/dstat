@@ -243,7 +243,7 @@ Dstat options:
      --mods stat1,stat2
 
   -a, --all              equals -cdngy (default)
-  -f, --full             expand -D, -I and -N discovery lists
+  -f, --full             expand -C, -D, -I and -N discovery lists
   -v, --vmstat           equals -pmgdsc -D total
 
   --integer              show integer values
@@ -452,7 +452,7 @@ class dstat_cpu(dstat):
 			while cpu < cpunr:
 				list.append(str(cpu))
 				cpu = cpu + 1
-			if len(list) > 2: list = list[0:2]
+#			if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
@@ -513,7 +513,7 @@ class dstat_cpu24(dstat):
 			while cpu < cpunr:
 				list.append(str(cpu))
 				cpu = cpu + 1
-			if len(list) > 2: list = list[0:2]
+#			if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
@@ -1488,18 +1488,16 @@ def getcpunr():
 ### FIXME: Add scsi support too and improve
 def sysfs_dev(device):
 	"Convert sysfs device names into device names"
-	ide_re = re.compile('ide/host([0-9])/bus([0-9])/target([0-9])/lun([0-9])/disc')
-	scsi_re = re.compile('placeholder')
-	m = ide_re.match(device)
+	m = re.match('ide/host([0-9])/bus([0-9])/target([0-9])/lun([0-9])/disc', device)
 	if m:
 		l = m.groups()
 		# ide/host0/bus0/target0/lun0/disc -> 0 -> hda
 		# ide/host0/bus1/target0/lun0/disc -> 2 -> hdc
 		nr = int(l[1]) * 2 + int(l[3])
 		return 'hd' + chr(ord('a') + nr)
-	m = scsi_re.match(device)
+	m = re.match('placeholder', device)
 	if m:
-		return 'scsi'
+		return 'sdX'
 	return device
 
 def scsi_dev(nr):
@@ -1542,7 +1540,6 @@ def exit(ret):
 	sys.stdout.write(ansi['reset'])
 	if 'signal' in sys.modules.keys():
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
-#	termios.tcsetattr(fd, termios.TCSADRAIN, old)
 	sys.exit(ret)
 
 def listmodules():
@@ -1579,7 +1576,7 @@ def main():
 	user = getpass.getuser()
 	hostname = os.uname()[1].split('.')[0]
 	if re.compile('(screen|xterm*)').match(os.getenv('TERM')):
-		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, 'dstat', ' '.join(op.args)))
+		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), ' '.join(op.args)))
 
 	if op.output:
 		if os.path.exists(op.output):
@@ -1770,13 +1767,6 @@ if __name__ == '__main__':
 			curses.setupterm()
 		except:
 			pass
-
-		### Prevent keyboard input
-#		fd = sys.stdin.fileno()
-#		old = termios.tcgetattr(fd)
-#		new = termios.tcgetattr(fd)
-#		new[3] = new[3] & ~termios.ECHO
-#		termios.tcsetattr(fd, termios.TCSADRAIN, new)
 
 		op = Options(sys.argv[1:])
 		main()

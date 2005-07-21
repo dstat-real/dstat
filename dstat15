@@ -18,11 +18,12 @@
 
 try:
 	import sys, signal, os, re, time, string
-	import types, signal, resource
-	pwd = os.path.dirname(sys.argv[0])
+	import types, signal, resource, getpass
+	cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
 	sys.path.insert(0, os.getenv('HOME') + '/.dstat/')
-	sys.path.insert(1, pwd)
-	sys.path.insert(2, pwd + '/plugins/')
+	if cwd in sys.path: sys.path.remove(cwd)
+	sys.path.insert(1, cwd)
+	sys.path.insert(2, cwd + '/plugins/')
 	sys.path.insert(3, '/usr/share/dstat/')
 	sys.path.insert(4, '/usr/local/share/dstat/')
 except KeyboardInterrupt, e:
@@ -56,7 +57,7 @@ except NameError:
 	True = 1
 	False = 0
 
-VERSION = '0.6.0'
+VERSION = '0.6.1'
 
 class Options:
 	def __init__(self, args):
@@ -196,6 +197,11 @@ class Options:
 		print 'Processors: %d' % getcpunr()
 		print 'Pagesize: %d' % resource.getpagesize()
 		print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
+		print
+
+		global op
+		op = self
+		listmodules()
 
 	def usage(self):
 		print 'Usage: dstat [-afv] [options..] [delay [count]]'
@@ -230,7 +236,7 @@ Dstat options:
      --mods stat1,stat2
 
   -a, --all              equals -cdngy (default)
-  -f, --full             expand -D, -I and -N discovery lists
+  -f, --full             expand -C, -D, -I and -N discovery lists
   -v, --vmstat           equals -pmgdsc -D total
 
   --integer              show integer values
@@ -439,7 +445,7 @@ class dstat_cpu(dstat):
 			while cpu < cpunr:
 				list.append(str(cpu))
 				cpu = cpu + 1
-			if len(list) > 2: list = list[0:2]
+#			if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
@@ -500,7 +506,7 @@ class dstat_cpu24(dstat):
 			while cpu < cpunr:
 				list.append(str(cpu))
 				cpu = cpu + 1
-			if len(list) > 2: list = list[0:2]
+#			if len(list) > 2: list = list[0:2]
 		for name in list:
 			if name in self.discover(''):
 				ret.append(name)
@@ -1313,7 +1319,7 @@ def dpopen(cmd):
 	global pipes
 	if 'pipes' not in globals().keys(): pipes = {}
 	if cmd not in pipes.keys():
-		pipes[cmd] = os.popen3('/usr/lpp/mmfs/bin/mmpmon -p', 't', 0)
+		pipes[cmd] = os.popen3(cmd, 't', 0)
 	return pipes[cmd]
 
 def readpipe(file, tmout = 0.001):
@@ -1491,18 +1497,16 @@ def getcpunr():
 ### FIXME: Add scsi support too and improve
 def sysfs_dev(device):
 	"Convert sysfs device names into device names"
-	ide_re = re.compile('ide/host([0-9])/bus([0-9])/target([0-9])/lun([0-9])/disc')
-	scsi_re = re.compile('placeholder')
-	m = ide_re.match(device)
+	m = re.match('ide/host([0-9])/bus([0-9])/target([0-9])/lun([0-9])/disc', device)
 	if m:
 		l = m.groups()
 		# ide/host0/bus0/target0/lun0/disc -> 0 -> hda
 		# ide/host0/bus1/target0/lun0/disc -> 2 -> hdc
 		nr = int(l[1]) * 2 + int(l[3])
 		return 'hd' + chr(ord('a') + nr)
-	m = scsi_re.match(device)
+	m = re.match('placeholder', device)
 	if m:
-		return 'scsi'
+		return 'sdX'
 	return device
 
 def scsi_dev(nr):
@@ -1545,7 +1549,6 @@ def exit(ret):
 	sys.stdout.write(ansi['reset'])
 	if 'signal' in sys.modules.keys():
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
-#	termios.tcsetattr(fd, termios.TCSADRAIN, old)
 	sys.exit(ret)
 
 def main():
@@ -1559,6 +1562,11 @@ def main():
 #	hz = os.sysconf('SC_CLK_TCK')
 	interval = 1
 
+	user = getpass.getuser()
+	hostname = string.split(os.uname()[1], '.')[0]
+	if re.compile('(screen|xterm*)').match(os.getenv('TERM')):
+		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), ' '.join(op.args)))
+
 	if op.output:
 		if os.path.exists(op.output):
 			outputfile = open(op.output, 'a', 0)
@@ -1568,9 +1576,7 @@ def main():
 			outputfile.write('"Dstat %s CSV output"\n' % VERSION)
 			outputfile.write('"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"\n')
 
-		### FIXME: Get rid of socket()
-		import socket
-		outputfile.write('"Host:","%s"\n' % (socket.gethostbyaddr(socket.gethostname())[0]))
+		outputfile.write('"Host:","%s",,,,"User:","%s"\n' % (hostname, user))
 		outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (' '.join(op.args), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
 
 	### Check terminal capabilities
@@ -1598,7 +1604,10 @@ def main():
 	oldvislist = []
 	totlist = []
 	for module in op.modlist:
-		if module == 'cpu':    mods = ( 'cpu', 'cpu24' )
+		if module in ('list', 'help'):
+			listmodules()
+			exit(0)
+		elif module == 'cpu':  mods = ( 'cpu', 'cpu24' )
 		elif module == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
 		elif module == 'int':  mods = ( 'int', 'int24' )
 		elif module == 'page': mods = ( 'page', 'page24' )
@@ -1746,13 +1755,6 @@ if __name__ == '__main__':
 			curses.setupterm()
 		except:
 			pass
-
-		### Prevent keyboard input
-#		fd = sys.stdin.fileno()
-#		old = termios.tcgetattr(fd)
-#		new = termios.tcgetattr(fd)
-#		new[3] = new[3] & ~termios.ECHO
-#		termios.tcsetattr(fd, termios.TCSADRAIN, new)
 
 		op = Options(sys.argv[1:])
 		main()
