@@ -148,7 +148,6 @@ class Options:
 				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys' ]
 			elif opt in ['-v', '--vmstat']:
 				self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
-				self.disklist = ('total',)
 			elif opt in ['-f', '--full']:
 				self.full = True
 
@@ -574,7 +573,8 @@ class dstat_disk(dstat):
 			if l[5] == '0' and l[9] == '0': continue
 			name = l[2]
 			if self.regexp.match(name): continue
-			self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
+			if not re.match('(md[0-9]+)', name):
+				self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
 			if name in self.vars and name != 'total':
 				self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
 			for set in self.vars:
@@ -641,7 +641,8 @@ class dstat_disk24(dstat):
 			name = l[3]
 			if name == 'name': continue
 			if self.regexp.match(name): continue
-			self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
+			if not re.match('(md[0-9]+)', name):
+				self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
 			if name in self.vars:
 				self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
 			for set in self.vars:
@@ -718,7 +719,8 @@ class dstat_disk24old(dstat):
 				l = m.groups()
 				if len(l) < 4: continue
 				name = dev(int(l[0]), int(l[1]))
-				self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
+				if not re.match('(md[0-9]+)', name):
+					self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
 				if name in self.vars and name != 'total':
 					self.cn2[name] = ( self.cn2[name][0] + long(l[2]), self.cn2[name][1] + long(l[3]) )
 				for set in self.vars:

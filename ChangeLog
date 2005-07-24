@@ -4,6 +4,7 @@
 - Fixed a bug in dpopen causing gpfs/gpfsop to fail after a while
 - Change terminal title (if terminal supports it)
 - Don't trim the cpulist to 2 items when -f (Sébastien Prud'homme)
+- Exclude md-devices from total (Peter Cordes)
 
 * 0.6.0 - Bettiesbaai - released 29/05/2005
 - Removed keyboard input prevention patch. (Dbt 304673, Marc Lehmann)
