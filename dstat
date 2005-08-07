@@ -16,16 +16,19 @@
 
 from __future__ import generators
 
+def inspath(path):
+	if os.path.isdir(path) and path not in sys.path:
+		sys.path.insert(1, path)
+
 try:
 	import sys, signal, os, re, time
 	import types, signal, resource, getpass
-	cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
-	sys.path.insert(0, os.getenv('HOME') + '/.dstat/')
-	if cwd in sys.path: sys.path.remove(cwd)
-	sys.path.insert(1, cwd)
-	sys.path.insert(2, cwd + '/plugins/')
-	sys.path.insert(3, '/usr/share/dstat/')
-	sys.path.insert(4, '/usr/local/share/dstat/')
+	inspath('/usr/local/share/dstat/')
+	inspath('/usr/share/dstat/')
+	inspath(os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/')	# binary path + /plugins/
+	inspath(os.getcwd() + '/plugins/')										# current path + /plugins/
+	inspath(os.getcwd())													# current path
+	inspath(os.getenv('HOME') + '/.dstat/')									# home + /.dstat/
 except KeyboardInterrupt, e:
 	pass
 
@@ -1583,7 +1586,7 @@ def main():
 	hostname = os.uname()[1].split('.')[0]
 
 	### Write term-title
-	if re.compile('(screen|xterm*)').match(os.getenv('TERM')):
+	if re.compile('(screen*|xterm*)').match(os.getenv('TERM')):
 		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), ' '.join(op.args)))
 
 	### Check terminal capabilities
@@ -1711,7 +1714,7 @@ def main():
 
 		if showheader:
 			if loop == 0 and totlist != vislist:
-				info(1, 'Screen width too small, trimming output.')
+				info(1, 'Terminal width too small, trimming output.')
 			showheader = False
 			showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
 			showtitle(2, totlist, vislist, ansi['silver'] + char['pipe'], ansi['darkblue'] + char['gt'])
