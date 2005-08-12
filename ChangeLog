@@ -7,6 +7,7 @@
 - Exclude md-devices from total (Peter Cordes)
 - Now accept 'total' keyword with -C (like -D and -N)
 - Rewrote the path-inserting code
+- Added asciidoc based manual page
 
 * 0.6.0 - Bettiesbaai - released 29/05/2005
 - Removed keyboard input prevention patch. (Dbt 304673, Marc Lehmann)

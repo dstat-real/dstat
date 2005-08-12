@@ -7,7 +7,15 @@ mandir = $(datadir)/man
 all:
 	@echo "No build phase."
 
-install:
+%.html: %.txt
+	asciidoc -b xhtml11 -d manpage $<
+%: %.xml
+	xmlto man $<
+
+%.xml: %.txt
+	asciidoc -b docbook -d manpage $<
+
+install: dstat.1 dstat.html
 #	-[ ! -f $(DESTDIR)$(sysconfdir)/dstat.conf ] && install -D -m0644 dstat.conf $(DESTDIR)$(sysconfdir)/dstat.conf
 	install -Dp -m0755 dstat $(DESTDIR)$(bindir)/dstat
 	install -Dp -m0644 dstat.1 $(DESTDIR)$(mandir)/man1/dstat.1
@@ -18,7 +26,7 @@ install:
 #	install -Dp -m0755 examples/*.py $(DESTDIR)$(datadir)/dstat/examples/
 
 clean:
-	rm -f dstat15.tr examples/*.pyc stats/*.pyc
+	rm -f dstat15.tr examples/*.pyc plugins/*.pyc dstat.1 dstat.1.html dstat.1.xml
 
 #### Imperfect translation to dstat15
 tr:

@@ -1,0 +1,206 @@
+dstat(1)
+========
+Dag Wieers <dag@wieers.com>
+v0.6.0, April 2005
+
+NAME
+----
+dstat - versatile tool for generating system resource statistics
+
+SYNOPSIS
+--------
+dstat [-afv] [-cdgilmnpsty] [-D..] [-I..] [-N..] [delay [count]]
+
+DESCRIPTION
+-----------
+Dstat is a versatile replacement for vmstat, iostat and ifstat. Dstat overcomes some of the limitations and adds some extra features.
+
+Dstat allows you to view all of your system resources instantly, you can eg. compare disk usage in combination with interrupts from your IDE controller, or compare the network bandwidth numbers directly with the disk throughput (in the same interval).
+
+Dstat also cleverly gives you the most detailed information in columns and clearly indicates in what magnitude and unit the output is displayed. Less confusion, less mistakes, more efficient.
+
+Dstat is unique in letting you aggregate block device throughput for a certain diskset or network bandwidth for a group of interfaces, ie.  you can see the throughput for all the block devices that make up a single filesystem or storage system.
+
+Dstat allows its data to be directly written to a CSV file to be imported and used by OpenOffice, Gnumeric or Excel to create graphs.
+
+[NOTE]
+Users of Sleuthkit might find Sleuthkit's dstat being renamed to datastat to avoid a name conflict. See Debian bug #283709 for more information.
+
+OPTIONS
+-------
+-c, --cpu::
+	enable cpu stats
+
+-C 0,3,total::
+	include cpu0, cpu3 and total
+
+-d, --disk::
+	enable disk stats
+
+-D total,hda::
+	include hda and total
+
+-g, --page::
+	enable page stats
+
+-i, --int::
+	enable interrupt stats
+
+-I 5,eth2::
+	include int5 and interrupt used by eth2
+
+-l, --load::
+	enable load stats
+
+-m, --mem::
+	enable memory stats
+
+-n, --net::
+	enable network stats
+
+-N eth1,total::
+	include eth1 and total
+
+-p, --proc::
+	enable process stats
+
+-s, --swap::
+	enable swap stats
+
+-t, --time::
+	enable time counter
+
+-u, --user::
+	enable user stats
+
+-y, --sys::
+	enable system stats
+
+--ipc::
+	enable ipc stats
+
+--lock::
+	enable lock stats
+
+--raw::
+	enable raw stats
+
+--tcp::
+	enable tcp stats
+
+--udp::
+	enable udp stats
+
+--unix::
+	enable unix stats
+
+-M stat1,stat2::
+	enable internal and external stats
+
+Possible internal stats are::
+  cpu, disk, int, ipc, load, lock, mem, net, page,
+  proc, raw, swap, sys, tcp, time, udp, unix
+
+Possible external stats can be listed using::
+  dstat -M list
+
+-a, --all::
+	equals -cdngy (default)
+
+-f, --full::
+	expand -D, -I and -N discovery lists
+
+-v, --vmstat::
+	equals -pmgdsc -D total
+
+--integer::
+	show integer values
+
+--nocolor::
+	disable colors (implies --noupdate)
+
+--noheaders::
+	disable repetitive headers
+
+--noupdate::
+	disable intermediate updates when delay > 1
+
+--output file::
+	write CSV output to file
+
+ARGUMENTS
+---------
+*delay* is the delay in seconds between each update
+
+*count* is the number of updates to display before exiting
+
+The default delay is 1 and count is unspecified (unlimited)
+
+INTERMEDIATE UPDATES
+--------------------
+When invoking dstat with a *delay* greater than 1 and without the *--noupdate* option, it will show intermediate updates, ie. the first time a 1 sec average, the second update a 2 second average, etc. until the delay has been reached.
+
+So in case you specified a delay of 10, *the 9 intermediate updates are NOT snapshots*, they are averages over the time that passed since the last final update. The end result is that you get a 10 second average on a new line, just like with vmstat.
+
+BUGS
+----
+Since it's practically impossible to test dstat on every possible permutation of kernel , python or distribution version, I need your help and your feedback to fix the remaining problems. If you have improvements or bugreports, please send them to: mailto:dag@wieers.com[]
+
+[NOTE]
+Please see the TODO file for known bugs and future plans.
+
+FILES
+-----
+Paths that may contain external dstat_* modules:
+
+~/.dstat/, ./, ./plugins/, /usr/share/dstat/
+
+SEE ALSO
+--------
+Performance tools
+~~~~~~~~~~~~~~~~~
+	ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, vmstat(1), xosview(1)
+
+Debugging tools
+~~~~~~~~~~~~~~~
+	htop, lslk(1), lsof(8), top(1)
+
+Process tracing
+~~~~~~~~~~~~~~~
+	ltrace(1), pmap(1), ps(1), pstack(1), strace(1)
+
+Binary debugging
+~~~~~~~~~~~~~~~~
+	ldd(1), file(1), nm(1), objdump(1), readelf(1)
+
+Memory usage tools
+~~~~~~~~~~~~~~~~~~
+	free(1), memusage, memusagestat, slabtop(1)
+
+Accounting tools
+~~~~~~~~~~~~~~~~
+	dump-acct, dump-utmp, sa(8)
+
+Hardware debugging tools
+~~~~~~~~~~~~~~~~~~~~~~~~
+	dmidecode, ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
+
+Application debugging
+~~~~~~~~~~~~~~~~~~~~~
+	mailstats(8), qshape(1)
+
+Xorg related tools
+~~~~~~~~~~~~~~~~~~
+	xdpyinfo(1), xrestop(1)
+
+Other useful info
+~~~~~~~~~~~~~~~~~
+	proc(5)
+
+AUTHOR
+------
+Written by Dag Wieers mailto:dag@wieers.com[]
+
+Homepage at http://dag.wieers.com/home-made/dstat/[]
+
+This manpage was initially written by Andrew Pollock mailto:apollock@debian.org[] for the Debian GNU/Linux system, and updated by Dag Wieers mailto:dag@wieers.com[]
