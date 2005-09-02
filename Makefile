@@ -7,15 +7,7 @@ mandir = $(datadir)/man
 all:
 	@echo "No build phase."
 
-%.html: %.txt
-	asciidoc -b xhtml11 -d manpage $<
-%: %.xml
-	xmlto man $<
-
-%.xml: %.txt
-	asciidoc -b docbook -d manpage $<
-
-install: dstat.1 dstat.html
+install: dstat.1 dstat.1.html
 #	-[ ! -f $(DESTDIR)$(sysconfdir)/dstat.conf ] && install -D -m0644 dstat.conf $(DESTDIR)$(sysconfdir)/dstat.conf
 	install -Dp -m0755 dstat $(DESTDIR)$(bindir)/dstat
 	install -Dp -m0644 dstat.1 $(DESTDIR)$(mandir)/man1/dstat.1
@@ -52,3 +44,12 @@ tr:
 			s|, time$$|, time, string|g; \
 		' >dstat15.tr
 	@chmod a+x dstat15.tr
+
+%.html: %.txt
+	asciidoc -b xhtml11 -d manpage $<
+
+%.1: %.1.xml
+	xmlto man $<
+
+%.xml: %.txt
+	asciidoc -b docbook -d manpage $<
