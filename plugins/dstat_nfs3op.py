@@ -9,7 +9,7 @@ class dstat_nfs3op(dstat):
 		self.vars = ('null', 'getattr', 'setattr', 'lookup', 'access', 'readlink', 'read', 'write', 'create', 'mkdir', 'symlink', 'mknod', 'remove', 'rmdir', 'rename', 'link', 'readdir', 'readdirplus', 'fsstat', 'fsinfo', 'pathconf', 'commit')
 		self.nick = ('null', 'gatr', 'satr', 'look', 'aces', 'rdln', 'read', 'writ', 'crea', 'mkdr', 'syml', 'mknd', 'rm', 'rmdr', 'ren', 'link', 'rdir', 'rdr+', 'fstt', 'fsnf', 'path', 'cmmt')
 		self.init(self.vars, 1)
-		print "Module dstat_nfs3op is still experimental."
+		info(1, 'Module dstat_nfs3op is still experimental.')
 
 	def extract(self):
 		self.fd.seek(0)

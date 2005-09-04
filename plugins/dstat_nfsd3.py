@@ -9,7 +9,7 @@ class dstat_nfsd3(dstat):
 		self.vars = ('read', 'write', 'readdir', 'inode', 'filesystem', 'commit')
 		self.nick = ('read', 'writ', 'rdir', 'inod', 'fs', 'cmmt')
 		self.init(self.vars, 1)
-		print "Module dstat_nfs3 is still experimental."
+		info(1, 'Module dstat_nfsd3 is still experimental.')
 
 	def extract(self):
 		self.fd.seek(0)
