@@ -801,8 +801,7 @@ class dstat_int(dstat):
 		self.fd.seek(0)
 		for line in self.fd.readlines():
 			l = line.split()
-			if not l: continue
-			if l[0] != 'intr': continue
+			if not l or l[0] != 'intr': continue
 			for name in self.vars:
 				self.cn2[name] = long(l[int(name) + 2])
 		for name in self.vars:
@@ -1655,13 +1654,14 @@ def main():
 				### Remove defect stat objects and calculate line length
 				if not o.check():
 					raise Exception, 'Unknown problem, please report'
-					
+
 				linewidth = linewidth + o.statwidth() + 1
 				totlist.append(o)
 				break
 
 			except Exception, e:
-				info(1, 'Module dstat_%s has problems. (%s)' % (mod, e))
+				if mod == mods[-1]:
+					info(1, 'Module dstat_%s has problems. (%s)' % (mod, e))
 				continue
 
 	if not totlist:

@@ -16,16 +16,19 @@
 
 #from __future__ import generators
 
+def inspath(path):
+	if os.path.isdir(path) and path not in sys.path:
+		sys.path.insert(1, path)
+
 try:
 	import sys, signal, os, re, time, string
 	import types, signal, resource, getpass
-	cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
-	sys.path.insert(0, os.getenv('HOME') + '/.dstat/')
-	if cwd in sys.path: sys.path.remove(cwd)
-	sys.path.insert(1, cwd)
-	sys.path.insert(2, cwd + '/plugins/')
-	sys.path.insert(3, '/usr/share/dstat/')
-	sys.path.insert(4, '/usr/local/share/dstat/')
+	inspath('/usr/local/share/dstat/')
+	inspath('/usr/share/dstat/')
+	inspath(os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/')	# binary path + /plugins/
+	inspath(os.getcwd() + '/plugins/')										# current path + /plugins/
+	inspath(os.getcwd())													# current path
+	inspath(os.getenv('HOME') + '/.dstat/')									# home + /.dstat/
 except KeyboardInterrupt, e:
 	pass
 
@@ -210,7 +213,7 @@ class Options:
 
 Dstat options:
   -c, --cpu              enable cpu stats
-     -C 0,3,                include cpu0, cpu3 and total
+     -C 0,3,total           include cpu0, cpu3 and total
   -d, --disk             enable disk stats
      -D total,hda           include hda and total
   -g, --page             enable page stats
@@ -349,12 +352,12 @@ class dstat:
 	def check(self):
 		"Check if stat is applicable"
 		if hasattr(self, 'fd') and not self.fd:
-			return False
+			raise Exception, 'File %s does not exist' % self.file
 		if not self.vars:
-			return False
+			raise Exception, 'No variables defined'
 		if self.discover() and self.width():
 			return True
-		return False
+		raise Exception, 'Unknown problem, please report'
 
 	def discover(self):
 		return True
@@ -412,13 +415,17 @@ class dstat_cpu(dstat):
 		self.open('/proc/stat')
 		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
 		self.vars = self.vars()
-		self.name = []
+		self.name = self.name()
+		self.init(self.vars + ['total',], 6)
+
+	def name(self):
+		ret = []
 		for name in self.vars:
-			if name:
-				self.name.append('cpu' + name + ' usage')
+			if name == 'total':
+				ret.append('total cpu usage')
 			else:
-				self.name.append('total cpu usage')
-		self.init(self.vars + ['',], 6)
+				ret.append('cpu' + name + ' usage')
+		return ret
 
 	def discover(self, *list):
 		ret = []
@@ -437,7 +444,7 @@ class dstat_cpu(dstat):
 		if op.cpulist:
 			list = op.cpulist
 		elif not op.full:
-			list = ('', )
+			list = ('total', )
 		else:
 			list = []
 			cpu = 0
@@ -446,7 +453,7 @@ class dstat_cpu(dstat):
 				cpu = cpu + 1
 #			if len(list) > 2: list = list[0:2]
 		for name in list:
-			if name in self.discover(''):
+			if name in self.discover('total'):
 				ret.append(name)
 		return ret
 
@@ -456,8 +463,8 @@ class dstat_cpu(dstat):
 			l = string.split(line)
 			if len(l) < 8: continue
 			for name in self.vars:
-				if l[0] != 'cpu' + name: continue
-				self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
+				if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
+					self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
 		for name in self.vars:
 			for i in range(6):
 				self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
@@ -471,7 +478,7 @@ class dstat_cpu24(dstat):
 		self.nick = ( 'usr', 'sys', 'idl')
 		self.vars = self.vars()
 		self.name = self.name()
-		self.init(self.vars + ['',], 3)
+		self.init(self.vars + ['total',], 3)
 
 	def name(self):
 		ret = []
@@ -498,7 +505,7 @@ class dstat_cpu24(dstat):
 		if op.cpulist:
 			list = op.cpulist
 		elif not op.full:
-			list = ('', )
+			list = ('total', )
 		else:
 			list = []
 			cpu = 0
@@ -507,7 +514,7 @@ class dstat_cpu24(dstat):
 				cpu = cpu + 1
 #			if len(list) > 2: list = list[0:2]
 		for name in list:
-			if name in self.discover(''):
+			if name in self.discover('total'):
 				ret.append(name)
 		return ret
 
@@ -516,8 +523,8 @@ class dstat_cpu24(dstat):
 		for line in self.fd.readlines():
 			l = string.split(line)
 			for name in self.vars:
-				if len(l) < 5 or l[0] != 'cpu' + name: continue
-				self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]) )
+				if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
+					self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]) )
 		for name in self.vars:
 			for i in range(3):
 				self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
@@ -528,7 +535,6 @@ class dstat_disk(dstat):
 	def __init__(self):
 		self.format = ('f', 5, 1024)
 		self.open('/proc/diskstats')
-		self.regexp = re.compile('^(ram\d+|loop\d+)$')
 		self.nick = ('read', 'write')
 		self.vars = self.vars()
 		self.name = []
@@ -542,10 +548,10 @@ class dstat_disk(dstat):
 			self.fd.seek(0)
 			for line in self.fd.readlines():
 				l = string.split(line)
-				if len(l) < 13 or l[3] == '0': continue
+				if len(l) < 13: continue
+				if l[3:] == ['0',] * 11: continue
 				name = l[2]
-				if not self.regexp.match(name):
-					ret.append(name)
+				ret.append(name)
 		for item in list: ret.append(item)
 		return ret
 
@@ -572,7 +578,7 @@ class dstat_disk(dstat):
 			if len(l) < 13: continue
 			if l[5] == '0' and l[9] == '0': continue
 			name = l[2]
-			if self.regexp.match(name): continue
+			if l[3:] == ['0',] * 11: continue
 			if not re.match('(md[0-9]+)', name):
 				self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
 			if name in self.vars and name != 'total':
@@ -595,7 +601,6 @@ class dstat_disk24(dstat):
 		self.format = ('f', 5, 1024)
 		self.open('/proc/partitions')
 		self.nick = ('read', 'write')
-		self.regexp = re.compile('^(ram\d+|loop\d+|name)$')
 		self.vars = self.vars()
 		if self.fd and not self.discover():
 			raise Exception, 'kernel is not compiled with CONFIG_BLK_STATS'
@@ -611,8 +616,7 @@ class dstat_disk24(dstat):
 			l = string.split(line)
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
-			if not self.regexp.match(name):
-				ret.append(name)	
+			ret.append(name)	
 		for item in list: ret.append(item)
 		return ret
 
@@ -637,10 +641,7 @@ class dstat_disk24(dstat):
 		for line in self.fd.readlines():
 			l = string.split(line)
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
-			if l[6] == '0' and l[10] == '0': continue
 			name = l[3]
-			if name == 'name': continue
-			if self.regexp.match(name): continue
 			if not re.match('(md[0-9]+)', name):
 				self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
 			if name in self.vars:
@@ -800,7 +801,7 @@ class dstat_int(dstat):
 		self.fd.seek(0)
 		for line in self.fd.readlines():
 			l = string.split(line)
-			if l[0] != 'intr': continue
+			if not l or l[0] != 'intr': continue
 			for name in self.vars:
 				self.cn2[name] = long(l[int(name) + 2])
 		for name in self.vars:
@@ -1325,7 +1326,7 @@ def dpopen(cmd):
 	return pipes[cmd]
 
 def readpipe(file, tmout = 0.001):
-	"Read available data from pipe in a non-blocking fasion"
+	"Read available data from pipe in a non-blocking fashion"
 	ret = ''
 	while not select.select([file.fileno()], [], [], tmout)[0]:
 		pass
@@ -1553,8 +1554,28 @@ def exit(ret):
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
 	sys.exit(ret)
 
+def listmodules():
+	import glob
+	rows, cols = getwinsize()
+	remod = re.compile('.+/dstat_(.+).py$')
+	for path in sys.path:
+		list = []
+		for file in glob.glob(path + '/dstat_*.py'):
+			list.append(remod.match(file).groups()[0])
+		if not list: continue
+		list.sort()
+		cols2 = cols - 8
+		print '%s:\n\t' % os.path.abspath(path),
+		for mod in list:
+			cols2 = cols2 - len(mod) - 2
+			if cols2 <= 0:
+				print '\n\t',
+				cols2 = cols - len(mod) - 10
+			print mod + ',',
+		print
+
 def main():
-	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick
+	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols
 
 	loop = update = 0
 	step = op.delay
@@ -1566,8 +1587,19 @@ def main():
 
 	user = getpass.getuser()
 	hostname = string.split(os.uname()[1], '.')[0]
-	if re.compile('(screen|xterm*)').match(os.getenv('TERM')):
+
+	### Write term-title
+	if re.compile('(screen*|xterm*)').match(os.getenv('TERM')):
 		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), ' '.join(op.args)))
+
+	### Check terminal capabilities
+	if sys.stdout.isatty():
+		if 'curses' in sys.modules.keys() and hasattr(curses, 'tigetnum') and curses.tigetnum('colors') < 0:
+			op.color = False
+	else:
+		op.color = False
+		op.nolimit = True
+		op.update = False
 
 	if op.output:
 		if os.path.exists(op.output):
@@ -1580,15 +1612,6 @@ def main():
 
 		outputfile.write('"Host:","%s",,,,"User:","%s"\n' % (hostname, user))
 		outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (' '.join(op.args), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
-
-	### Check terminal capabilities
-	if sys.stdout.isatty():
-		if 'curses' in sys.modules.keys() and hasattr(curses, 'tigetnum') and curses.tigetnum('colors') < 0:
-			op.color = False
-	else:
-		op.color = False
-		op.nolimit = True
-		op.update = False
 
 	rows, cols = getwinsize()
 
@@ -1631,13 +1654,16 @@ def main():
 				exec 'o = dstat_%s()' % mod
 
 				### Remove defect stat objects and calculate line length
-				if o.check():
-					linewidth = linewidth + o.statwidth() + 1
-					totlist.append(o)
-					break
+				if not o.check():
+					raise Exception, 'Unknown problem, please report'
+
+				linewidth = linewidth + o.statwidth() + 1
+				totlist.append(o)
+				break
 
 			except Exception, e:
-				info(1, 'Module dstat_%s has problems. (%s)' % (mod, e))
+				if mod == mods[-1]:
+					info(1, 'Module dstat_%s has problems. (%s)' % (mod, e))
 				continue
 
 	if not totlist:
@@ -1693,7 +1719,7 @@ def main():
 
 		if showheader:
 			if loop == 0 and totlist != vislist:
-				info(1, 'Screen width too small, trimming output.')
+				info(1, 'Terminal width too small, trimming output.')
 			showheader = False
 			showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
 			showtitle(2, totlist, vislist, ansi['silver'] + char['pipe'], ansi['darkblue'] + char['gt'])
