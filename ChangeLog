@@ -1,6 +1,6 @@
-* 0.6.1 - Fishkill - released ??/??/2005
+* 0.6.1 - Fishkill - released 05/09/2005
 - Look for plugins in ~/.dstat/ too
-- Added -M list to show the list of available modules per path
+- Added '-M list' to show the list of available modules per path
 - Fixed a bug in dpopen causing gpfs/gpfsop to fail after a while
 - Change terminal title (if terminal supports it)
 - Don't trim the cpulist to 2 items when -f (Sébastien Prud'homme)
@@ -14,6 +14,7 @@
 - Added external plugin dstat_nfs3op
 - Added external plugin dstat_nfsd3
 - Added external plugin dstat_nfsd3op
+- Improvements to plugin error handling
 
 * 0.6.0 - Bettiesbaai - released 29/05/2005
 - Removed keyboard input prevention patch. (Dbt 304673, Marc Lehmann)

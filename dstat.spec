@@ -60,7 +60,7 @@ confusion, less mistakes.
 %{_datadir}/dstat/
 
 %changelog
-* Sun Sep 04 2005 Dag Wieers <dag@wieers.com> - 0.6.1-1
+* Mon Sep 05 2005 Dag Wieers <dag@wieers.com> - 0.6.1-1
 - Updated to release 0.6.1.
 
 * Sun May 29 2005 Dag Wieers <dag@wieers.com> - 0.6.0-1

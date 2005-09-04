@@ -28,7 +28,7 @@ try:
 	inspath(os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/')	# binary path + /plugins/
 	inspath(os.getcwd() + '/plugins/')										# current path + /plugins/
 	inspath(os.getcwd())													# current path
-	inspath(os.getenv('HOME') + '/.dstat/')									# home + /.dstat/
+	inspath(os.path.expanduser('~/.dstat/'))								# home + /.dstat/
 except KeyboardInterrupt, e:
 	pass
 
@@ -1589,8 +1589,8 @@ def main():
 	hostname = string.split(os.uname()[1], '.')[0]
 
 	### Write term-title
-	if re.compile('(screen*|xterm*)').match(os.getenv('TERM')):
-		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), ' '.join(op.args)))
+	if re.compile('(screen*|xterm*)').match(os.environ['TERM']):
+		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), string.join(op.args, ' ')))
 
 	### Check terminal capabilities
 	if sys.stdout.isatty():
@@ -1611,7 +1611,7 @@ def main():
 			outputfile.write('"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"\n')
 
 		outputfile.write('"Host:","%s",,,,"User:","%s"\n' % (hostname, user))
-		outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (' '.join(op.args), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
+		outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (string.join(op.args, ' '), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
 
 	rows, cols = getwinsize()
 

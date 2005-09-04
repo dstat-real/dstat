@@ -18,13 +18,11 @@
 + Look into interfacing with specific HW counters in /proc
 + Look at /proc/meminfo, /proc/mdstat, /proc/netstat, /proc/snmp, /proc/vmstat
 + Look at /proc/fs/cifs/stats
-+ Look at /proc/net/rpc/nfsd and /proc/net/rpc/nfs
 + Add i2c plugin (see /sys/class/i2c-adapter/i2c-*/*/*/*/*/*)
 + Allow for SNMP counters to be added
 + Add LVM stats
 
 ### Documentation (help welcome!)
-+ Improve manpage
 + Create document on general system performance tuning
   (explaining the different values in /proc, especially the concerning ones)
 + Create document on general system performance tools
@@ -42,7 +40,6 @@
 + proc plugin (run and blk) does not work on 2.4.24+, to be confirmed
 + proc plugin seem to be off-by-one compared to vmstat (some of the time, this is what I get from /proc/stat)
 + /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible?
-+ gpfs plugin seems to loose pipe with mmpmon after some time, seems to be an mmpmon issue
 
 ### Redesign (v2.0)
 + Create modules that can contain samples of different units

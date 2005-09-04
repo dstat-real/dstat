@@ -28,7 +28,7 @@ try:
 	inspath(os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/')	# binary path + /plugins/
 	inspath(os.getcwd() + '/plugins/')										# current path + /plugins/
 	inspath(os.getcwd())													# current path
-	inspath(os.getenv('HOME') + '/.dstat/')									# home + /.dstat/
+	inspath(os.path.expanduser('~/.dstat/'))								# home + /.dstat/
 except KeyboardInterrupt, e:
 	pass
 

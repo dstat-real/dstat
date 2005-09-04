@@ -40,7 +40,6 @@ Future possible external plugins:
 	dstat_dhcpd
 	dstat_dnsmasq
 	dstat_gfs
-	dstat_nfs
 	dstat_qla2300
 	dstat_samba (needs a python tdb implementation ?)
 	dstat_squid
