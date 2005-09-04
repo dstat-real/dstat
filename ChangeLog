@@ -8,6 +8,12 @@
 - Now accept 'total' keyword with -C (like -D and -N)
 - Rewrote the path-inserting code
 - Added asciidoc based manual page
+- Added external plugin dstat_rpc
+- Added external plugin dstat_rpcd
+- Added external plugin dstat_nfs3
+- Added external plugin dstat_nfs3op
+- Added external plugin dstat_nfsd3
+- Added external plugin dstat_nfsd3op
 
 * 0.6.0 - Bettiesbaai - released 29/05/2005
 - Removed keyboard input prevention patch. (Dbt 304673, Marc Lehmann)

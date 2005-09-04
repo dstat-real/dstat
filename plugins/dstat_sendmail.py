@@ -13,7 +13,6 @@ class dstat_sendmail(dstat):
 	def check(self):
 		if not os.access('/var/spool/mqueue', os.R_OK):
 			raise Exception, 'Module cannot access sendmail queue'
-			return False
 		return True
 
 	def extract(self):

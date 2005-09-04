@@ -359,12 +359,12 @@ class dstat:
 	def check(self):
 		"Check if stat is applicable"
 		if hasattr(self, 'fd') and not self.fd:
-			return False
+			raise Exception, 'File %s does not exist' % self.file
 		if not self.vars:
-			return False
+			raise Exception, 'No variables defined'
 		if self.discover() and self.width():
 			return True
-		return False
+		raise Exception, 'Unknown problem, please report'
 
 	def discover(self):
 		return True
@@ -1653,10 +1653,12 @@ def main():
 				exec 'o = dstat_%s()' % mod
 
 				### Remove defect stat objects and calculate line length
-				if o.check():
-					linewidth = linewidth + o.statwidth() + 1
-					totlist.append(o)
-					break
+				if not o.check():
+					raise Exception, 'Unknown problem, please report'
+					
+				linewidth = linewidth + o.statwidth() + 1
+				totlist.append(o)
+				break
 
 			except Exception, e:
 				info(1, 'Module dstat_%s has problems. (%s)' % (mod, e))

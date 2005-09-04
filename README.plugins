@@ -10,7 +10,13 @@ external plugins exist:
 	dstat_freespace		- disk usage on per filesystems
 	dstat_gpfs		- GPFS read/write I/O (needs mmpmon)
 	dstat_gpfsop		- GPFS filesystem operations (needs mmpmon)
+	dstat_nfs3		- NFS v3 client operations
+	dstat_nfs3op		- Extended NFS v3 client operations
+	dstat_nfsd3		- NFS v3 server operations
+	dstat_nfsd3op		- Extended NFS v3 server operations
 	dstat_postfix		- postfix queue size (needs postfix)
+	dstat_rpc		- RPC client calls
+	dstat_rpcd		- RPC server calls
 	dstat_sendmail		- sendmail queue size (needs sendmail)
 	dstat_thermal		- system temperature sesnors
 	dstat_utmp		- utmp connections (needs python-utmp)
