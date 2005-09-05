@@ -3,9 +3,8 @@
 ### Example 1: Direct accessing stats
 ### This is a quick example showing how you can access dstat data
 ### If you're interested in this functionality, contact me at dag@wieers.com
-import sys
+import sys, dstat
 sys.path.insert(0, '/usr/share/dstat/')
-import dstat
 
 clear = dstat.ansi['reset']
 
@@ -13,8 +12,8 @@ c = dstat.dstat_cpu()
 print c.title1() + '\n' + c.title2()
 c.extract()
 print c.show(), clear
-print 'Percentage:', c.val['']
-print 'Raw:', c.cn2['']
+print 'Percentage:', c.val['total']
+print 'Raw:', c.cn2['total']
 print
 
 m = dstat.dstat_mem()
