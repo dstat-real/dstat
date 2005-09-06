@@ -1589,7 +1589,8 @@ def main():
 	hostname = string.split(os.uname()[1], '.')[0]
 
 	### Write term-title
-	if re.compile('(screen*|xterm*)').match(os.environ['TERM']):
+	term = os.environ['TERM']
+	if term and re.compile('(screen*|xterm*)').match(term):
 		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), string.join(op.args, ' ')))
 
 	### Check terminal capabilities
