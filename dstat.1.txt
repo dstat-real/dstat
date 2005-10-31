@@ -3,28 +3,44 @@ dstat(1)
 Dag Wieers <dag@wieers.com>
 v0.6.1, September 2005
 
+
 NAME
 ----
 dstat - versatile tool for generating system resource statistics
+
 
 SYNOPSIS
 --------
 dstat [-afv] [-cdgilmnpsty] [-D..] [-I..] [-N..] [delay [count]]
 
+
 DESCRIPTION
 -----------
-Dstat is a versatile replacement for vmstat, iostat and ifstat. Dstat overcomes some of the limitations and adds some extra features.
+Dstat is a versatile replacement for vmstat, iostat and ifstat. Dstat
+overcomes some of the limitations and adds some extra features.
 
-Dstat allows you to view all of your system resources instantly, you can eg. compare disk usage in combination with interrupts from your IDE controller, or compare the network bandwidth numbers directly with the disk throughput (in the same interval).
+Dstat allows you to view all of your system resources instantly, you
+can eg. compare disk usage in combination with interrupts from your
+IDE controller, or compare the network bandwidth numbers directly with
+the disk throughput (in the same interval).
 
-Dstat also cleverly gives you the most detailed information in columns and clearly indicates in what magnitude and unit the output is displayed. Less confusion, less mistakes, more efficient.
+Dstat also cleverly gives you the most detailed information in columns
+and clearly indicates in what magnitude and unit the output is displayed.
+Less confusion, less mistakes, more efficient.
 
-Dstat is unique in letting you aggregate block device throughput for a certain diskset or network bandwidth for a group of interfaces, ie.  you can see the throughput for all the block devices that make up a single filesystem or storage system.
+Dstat is unique in letting you aggregate block device throughput for a
+certain diskset or network bandwidth for a group of interfaces, ie. 
+you can see the throughput for all the block devices that make up a
+single filesystem or storage system.
 
-Dstat allows its data to be directly written to a CSV file to be imported and used by OpenOffice, Gnumeric or Excel to create graphs.
+Dstat allows its data to be directly written to a CSV file to be
+imported and used by OpenOffice, Gnumeric or Excel to create graphs.
 
 [NOTE]
-Users of Sleuthkit might find Sleuthkit's dstat being renamed to datastat to avoid a name conflict. See Debian bug #283709 for more information.
+Users of Sleuthkit might find Sleuthkit's dstat being renamed to
+datastat to avoid a name conflict. See Debian bug #283709 for more
+information.
+
 
 OPTIONS
 -------
@@ -128,6 +144,7 @@ Possible external stats can be listed using::
 --output file::
 	write CSV output to file
 
+
 ARGUMENTS
 ---------
 *delay* is the delay in seconds between each update
@@ -136,24 +153,51 @@ ARGUMENTS
 
 The default delay is 1 and count is unspecified (unlimited)
 
+
 INTERMEDIATE UPDATES
 --------------------
-When invoking dstat with a *delay* greater than 1 and without the *--noupdate* option, it will show intermediate updates, ie. the first time a 1 sec average, the second update a 2 second average, etc. until the delay has been reached.
+When invoking dstat with a *delay* greater than 1 and without the
+*--noupdate* option, it will show intermediate updates, ie. the first
+time a 1 sec average, the second update a 2 second average, etc. until
+the delay has been reached.
 
-So in case you specified a delay of 10, *the 9 intermediate updates are NOT snapshots*, they are averages over the time that passed since the last final update. The end result is that you get a 10 second average on a new line, just like with vmstat.
+So in case you specified a delay of 10, *the 9 intermediate updates
+are NOT snapshots*, they are averages over the time that passed since
+the last final update. The end result is that you get a 10 second
+average on a new line, just like with vmstat.
+
+
+USAGE
+-----
+Using dstat to relate disk-throughput with network-usage (eth0), total CPU-usage and system counters:::
+.....
+dstat -dnyc -n eth0 -C total -f 5
+.....
+
+Checking dstat's behaviour and the system's impact on dstat:::
+.....
+dstat -taf --debug
+.....
+
 
 BUGS
 ----
-Since it's practically impossible to test dstat on every possible permutation of kernel , python or distribution version, I need your help and your feedback to fix the remaining problems. If you have improvements or bugreports, please send them to: mailto:dag@wieers.com[]
+Since it's practically impossible to test dstat on every possible
+permutation of kernel, python or distribution version, I need your
+help and your feedback to fix the remaining problems. If you have
+improvements or bugreports, please send them to:
+mailto:dag@wieers.com[]
 
 [NOTE]
 Please see the TODO file for known bugs and future plans.
+
 
 FILES
 -----
 Paths that may contain external dstat_* modules:
 
 ~/.dstat/, ./, ./plugins/, /usr/share/dstat/
+
 
 SEE ALSO
 --------
@@ -197,10 +241,13 @@ Other useful info
 ~~~~~~~~~~~~~~~~~
 	proc(5)
 
+
 AUTHOR
 ------
 Written by Dag Wieers mailto:dag@wieers.com[]
 
 Homepage at http://dag.wieers.com/home-made/dstat/[]
 
-This manpage was initially written by Andrew Pollock mailto:apollock@debian.org[] for the Debian GNU/Linux system, and updated by Dag Wieers mailto:dag@wieers.com[]
+This manpage was initially written by Andrew Pollock
+mailto:apollock@debian.org[] for the Debian GNU/Linux system, and
+updated by Dag Wieers mailto:dag@wieers.com[]

@@ -203,9 +203,11 @@ class Options:
 		print 'Kernel %s' % os.uname()[2]
 		print 'Python %s' % sys.version
 		print
+		print 'Terminal: %d lines, %d columns' % getwinsize()
+		print
 		print 'Processors: %d' % getcpunr()
 		print 'Pagesize: %d' % resource.getpagesize()
-		print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
+#		print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
 		print
 
 		global op
@@ -956,8 +958,9 @@ class dstat_mem(dstat):
 			l = line.split()
 			if len(l) < 2: continue
 			name = l[0].split(':')[0]
-			if name in self.vars + ('MemTotal',):
+			if name in self.vars + ('MemTotal', 'SwapCached'):
 				self.val[name] = long(l[1]) * 1024.0
+		self.val['Cached'] += self.val['SwapCached']
 		self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
 
 class dstat_net(dstat):
@@ -1470,8 +1473,8 @@ def die(ret, str):
 
 def getwinsize():
 	"Return the terminal geometry using several methods"
-	if op.nolimit:
-		return 1024, 1024
+#	if op.nolimit:
+#		return 1024, 1024
 	try:
 		curses.setupterm()
 		return curses.tigetnum('lines'), curses.tigetnum('cols')
