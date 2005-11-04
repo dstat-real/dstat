@@ -1,0 +1,17 @@
+#!/usr/bin/python
+import sys, tdb
+
+db = tdb.tdb('/var/cache/samba/connections.tdb')
+print db.keys()
+
+key=db.firstkey()
+while key:
+	print db.fetch(key)
+	key=db.nextkey(key)
+
+db = tdb.tdb('/var/cache/samba/locking.tdb')
+print db.keys
+
+db = tdb.tdb('/var/cache/samba/sessionid.tdb')
+print db.keys
+

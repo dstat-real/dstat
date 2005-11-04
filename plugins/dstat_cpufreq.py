@@ -1,3 +1,8 @@
+### Dstat cpu frequency plugin
+### Displays CPU frequency information (from ACPI)
+###
+### Authority: dag@wieers.com
+
 global string
 import string
 

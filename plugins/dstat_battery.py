@@ -1,3 +1,8 @@
+### Dstat battery plugin
+### Displays battery information from ACPI
+###
+### Authority: dag@wieers.com
+
 global string
 import string
 
