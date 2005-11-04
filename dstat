@@ -203,7 +203,9 @@ class Options:
 		print 'Kernel %s' % os.uname()[2]
 		print 'Python %s' % sys.version
 		print
-		print 'Terminal: %d lines, %d columns' % getwinsize()
+		rows, cols = getwinsize()
+		print 'Terminal type:', os.getenv('TERM') + '/' + termtype
+		print 'Terminal: %d lines, %d columns' % (rows, cols)
 		print
 		print 'Processors: %d' % getcpunr()
 		print 'Pagesize: %d' % resource.getpagesize()
@@ -1475,19 +1477,24 @@ def getwinsize():
 	"Return the terminal geometry using several methods"
 #	if op.nolimit:
 #		return 1024, 1024
+	global termtype
+	termtype = 'curses'
 	try:
 		curses.setupterm()
 		return curses.tigetnum('lines'), curses.tigetnum('cols')
 	except:
+		termtype = 'fcntl'
 		try:
 			import fcntl, struct, termios
 			s = struct.pack('HHHH', 0, 0, 0, 0)
 			x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
 			return struct.unpack('HHHH', x)[:2]
 		except:
+			termtype = 'env'
 			try:
 				return int(os.getenv('LINES')), int(os.getenv('COLUMNS'))
 			except:
+				termtype = 'none'
 				return 25, 80
 
 def getcpunr():
@@ -1578,7 +1585,7 @@ def listmodules():
 		print
 
 def main():
-	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols
+	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols, termtype
 
 	loop = update = 0
 	step = op.delay
@@ -1591,19 +1598,20 @@ def main():
 	user = getpass.getuser()
 	hostname = os.uname()[1].split('.')[0]
 
+	rows, cols = getwinsize()
+
 	### Write term-title
 	term = os.getenv('TERM')
 	if term and re.compile('(screen*|xterm*)').match(term):
 		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), ' '.join(op.args)))
 
 	### Check terminal capabilities
-	if sys.stdout.isatty():
-		if 'curses' in sys.modules.keys() and hasattr(curses, 'tigetnum') and curses.tigetnum('colors') < 0:
-			op.color = False
-	else:
+	if not sys.stdout.isatty():
 		op.color = False
 		op.nolimit = True
 		op.update = False
+	elif termtype!='curses' or not hasattr(curses, 'tigetnum') or curses.tigetnum('colors') < 0:
+			op.color = False
 
 	if op.output:
 		if os.path.exists(op.output):
@@ -1616,8 +1624,6 @@ def main():
 
 		outputfile.write('"Host:","%s",,,,"User:","%s"\n' % (hostname, user))
 		outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (' '.join(op.args), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
-
-	rows, cols = getwinsize()
 
 	### Empty ansi database if no colors are requested
 	if not op.color:

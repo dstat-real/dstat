@@ -1,5 +1,6 @@
 * 0.6.2 - ? - released ??/??/2005
 - Fixed situation where no TERM environment variable was set (William Webber)
+- Print out terminal debug info (TERM env and terminal type)
 - Added SwapCached value to Cached (Bert de Bruijn)
 
 * 0.6.1 - Fishkill - released 05/09/2005
