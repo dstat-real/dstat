@@ -31,7 +31,7 @@
 ### General issues
 + Timer is not as accurate on 2.6 kernel as on 2.4, possibly scheduling differences
 + Python 1.5 prints 'L' for long, crashes when int()
-+ Implement better (?) protection against counter rollovers
++ Implement better (?) protection against counter rollovers (see mail from Sebastien Prud'homme)
 + Plugins currently have to be written in python 1.5 to work for dstat15 (lowest common denominator)
 + One of the plugins (or the main implementation) has a memory leak after days of running 200MB of memory is not uncommon (python 2.2.3 memory leak ?)
 

@@ -2,6 +2,7 @@
 - Fixed situation where no TERM environment variable was set (William Webber)
 - Print out terminal debug info (TERM env and terminal type)
 - Added SwapCached value to Cached (Bert de Bruijn)
+- Added external plugin dstat_clock, a human-readable alternative for dstat_time
 
 * 0.6.1 - Fishkill - released 05/09/2005
 - Look for plugins in ~/.dstat/ too
