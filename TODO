@@ -1,3 +1,15 @@
+### Disclaimer
+This is my TODO list. If you're interested in one of these features, there
+are 2 options. Either wait for someone to implement it or sponsor someone
+to implement it.
+
+If you want to implement something, please contact me first so that we can
+discuss acceptable implementations. In some cases I haven't thought about
+it too deeply, but for others I know exactly what I require.
+
+If you have other nice ideas that you think would improve Yam, please
+contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
+
 ### Usability
 + Add --config option and use /etc/dstat.conf and ~/.dstat to influence output (see example dstat.conf)
 + Allow to force to given magnitude (--unit=kilo)
