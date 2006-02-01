@@ -31,3 +31,10 @@ can see the time deviation on your system in relation to load/plugins.
 Remember that invisible plugins (that run out of your terminal window)
 do take up cycles because the information is still being collected and
 possibly written to CSV output.
+
+
+Performance tuning
+""""""""""""""""""
+The following documents may be useful to tune a system for performance:
+
+	http://people.redhat.com/alikins/system_tuning.html

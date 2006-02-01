@@ -1,0 +1,54 @@
+What you need to know about counter rollovers
+"""""""""""""""""""""""""""""""""""""""""""""
+Unfortunately, dstat is susceptible for counter rollovers, which may give
+you bogus performance output. Linux currently implements counters as 32bit
+values (not sure on 64bit platforms). This means a counter can go up to
+2^32 (= 4294967296 = 4G) values.
+
+Especially for network devices (which are calculated in bytes) this is too
+much as it means every 4GB, the counter is reset to 0. On a 1Gbps interface
+that is fully used, this happens every 32 seconds. On 2 bonded 10Gbps
+interfaces, this happens after 1.6 seconds.
+
+Since /proc is updated every second, this becomes almost impossible to catch.
+
+
+How does this impact dstat ?
+""""""""""""""""""""""""""""
+Currently dstat has a problem if you specify delays that are too big. I.e.
+using 60 or 120 seconds delay in dstat will make dstat check these counters
+only once per minute or every two minutes. In the case the value is reset,
+it might be lower than the previous value (which causes negative values) or
+worse, the value is actually higher (which will go unnoticed and you get
+bogus information and dstat won't know).
+
+This is very problematic, and it's important you are aware of this.
+
+
+What are the solutions ?
+""""""""""""""""""""""""
+The only fix for dstat is to check more often than the specified delay.
+Unfortunately, this requires a re-design (or an ugly hack).
+
+There are plans to use 64bit counters on Linux and/or changing the output from
+using bytes to kbytes. None of this is sure. (add pointers to threads)
+
+To work-around this problem, you could always use a delay of 1 second, and
+re-calculate averages in Excel. This will work fine as long as you also
+re-calculate the negative values (by adding 2^32 to them).
+
+If the rollovers happen only sporadically, you can just ignore those values.
+
+
+What can I do ?
+"""""""""""""""
+Since this is Open Source, you are free to fix this and send me the fix. Or
+help with a redesign of dstat to overcome this problem. Also look at the
+TODO file to see what other changes are expected in a redesign of dstat.
+
+Since I have a lot of other responsibilities and am currently not using dstat
+for something where this problem matters much, I will have no time to look at
+it closely (unless the fix or the redesign is made fairly simple). It all
+depends on how quick I think I can fix/redesign it and how much time I have.
+
+Your help could be to reduce the time it takes for me to fix it :)
