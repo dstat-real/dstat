@@ -1611,7 +1611,7 @@ def main():
 		op.nolimit = True
 		op.update = False
 	elif termtype!='curses' or not hasattr(curses, 'tigetnum') or curses.tigetnum('colors') < 0:
-			op.color = False
+		op.color = False
 
 	if op.output:
 		if os.path.exists(op.output):

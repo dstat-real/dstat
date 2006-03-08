@@ -196,9 +196,13 @@ class Options:
 		print 'Kernel %s' % os.uname()[2]
 		print 'Python %s' % sys.version
 		print
+		rows, cols = getwinsize()
+		print 'Terminal type:', os.getenv('TERM') + '/' + termtype
+		print 'Terminal: %d lines, %d columns' % (rows, cols)
+		print
 		print 'Processors: %d' % getcpunr()
 		print 'Pagesize: %d' % resource.getpagesize()
-		print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
+#		print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
 		print
 
 		global op
@@ -957,8 +961,9 @@ class dstat_mem(dstat):
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = string.split(l[0], ':')[0]
-			if name in self.vars + ('MemTotal',):
+			if name in self.vars + ('MemTotal', 'SwapCached'):
 				self.val[name] = long(l[1]) * 1024.0
+		self.val['Cached'] += self.val['SwapCached']
 		self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
 
 class dstat_net(dstat):
@@ -1272,6 +1277,9 @@ ansi = {
 	'restore': '\0338',
 
 	'up': '\033[1A',
+	'down': '\033[1B',
+	'right': '\033[1C',
+	'left': '\033[1D',
 
 	'default': '\033[0;0m',
 }
@@ -1470,21 +1478,26 @@ def die(ret, str):
 
 def getwinsize():
 	"Return the terminal geometry using several methods"
-	if op.nolimit:
-		return 1024, 1024
+#	if op.nolimit:
+#		return 1024, 1024
+	global termtype
+	termtype = 'curses'
 	try:
 		curses.setupterm()
 		return curses.tigetnum('lines'), curses.tigetnum('cols')
 	except:
+		termtype = 'fcntl'
 		try:
 			import fcntl, struct, termios
 			s = struct.pack('HHHH', 0, 0, 0, 0)
 			x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
 			return struct.unpack('HHHH', x)[:2]
 		except:
+			termtype = 'env'
 			try:
 				return int(os.environ['LINES']), int(os.environ['COLUMNS'])
 			except:
+				termtype = 'none'
 				return 25, 80
 
 def getcpunr():
@@ -1575,7 +1588,7 @@ def listmodules():
 		print
 
 def main():
-	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols
+	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols, termtype
 
 	loop = update = 0
 	step = op.delay
@@ -1588,19 +1601,20 @@ def main():
 	user = getpass.getuser()
 	hostname = string.split(os.uname()[1], '.')[0]
 
+	rows, cols = getwinsize()
+
 	### Write term-title
 	term = os.environ['TERM']
 	if term and re.compile('(screen*|xterm*)').match(term):
 		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), string.join(op.args, ' ')))
 
 	### Check terminal capabilities
-	if sys.stdout.isatty():
-		if 'curses' in sys.modules.keys() and hasattr(curses, 'tigetnum') and curses.tigetnum('colors') < 0:
-			op.color = False
-	else:
+	if not sys.stdout.isatty():
 		op.color = False
 		op.nolimit = True
 		op.update = False
+	elif termtype!='curses' or not hasattr(curses, 'tigetnum') or curses.tigetnum('colors') < 0:
+		op.color = False
 
 	if op.output:
 		if os.path.exists(op.output):
@@ -1612,9 +1626,7 @@ def main():
 			outputfile.write('"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"\n')
 
 		outputfile.write('"Host:","%s",,,,"User:","%s"\n' % (hostname, user))
-		outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (string.join(op.args, ' '), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
-
-	rows, cols = getwinsize()
+		outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (' '.join(op.args), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
 
 	### Empty ansi database if no colors are requested
 	if not op.color:
@@ -1648,6 +1660,7 @@ def main():
 					execfile(pathname)
 				except Exception, e:
 					info(1, 'Module dstat_%s failed to load. (%s)' % (mod, e))
+#					tb = sys.exc_info()[2]
 					continue
 
 			try:
