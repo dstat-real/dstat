@@ -44,4 +44,5 @@ Future possible external plugins:
 	dstat_samba (needs a python tdb implementation ?)
 	dstat_squid
 
-Please send feedback to: <dag@wieers.com>
+---
+Please send me improvements to this document.
