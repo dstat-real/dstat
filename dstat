@@ -1769,15 +1769,19 @@ def main():
 		### If intermediate results, update increases with 1 sec (=interval)
 		update = update + interval
 
+		if not op.update:
+			sys.stdout.write('\n')
+		
 		### Do not pause when this is the final loop
 		if update <= op.delay * op.count or op.count == -1:
 			signal.pause()
 
 		### The last step in a loop is to show the definitive line on its own line
-		if step == op.delay:
-			sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
-		else:
-			sys.stdout.write(ansi['clearline'] + ansi['restore'])
+		if op.update:
+			if step == op.delay:
+				sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
+			else:
+				sys.stdout.write(ansi['clearline'] + ansi['restore'])
 
 		loop = (update + op.delay - 1) / op.delay
 		step = ((update - 1) % op.delay) + 1
@@ -1799,6 +1803,11 @@ if __name__ == '__main__':
 		main()
 	except KeyboardInterrupt, e:
 		print
+	except IOError, e:
+		if e.errno != 32:		## [Errno 32] Broken pipe
+			print
+			print 'IOError: %s' % e
+			exit(7)
 	except OSError, e:
 		print
 		print 'OSError: %s' % e

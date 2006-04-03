@@ -3,6 +3,7 @@
 - Print out terminal debug info (TERM env and terminal type)
 - Added SwapCached value to Cached (Bert de Bruijn)
 - Added external plugin dstat_clock, a human-readable alternative for dstat_time
+- Fixed problem with Broken pipe when doing eg. dstat | head -1 (Eike Herzbach)
 
 * 0.6.1 - Fishkill - released 05/09/2005
 - Look for plugins in ~/.dstat/ too
