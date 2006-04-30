@@ -155,7 +155,7 @@ class Options:
 				self.modlist.append('sys')
 
 			elif opt in ['-a', '--all']:
-				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys' ]
+				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys', 'load' ]
 			elif opt in ['-v', '--vmstat']:
 				self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 			elif opt in ['-f', '--full']:
@@ -181,7 +181,7 @@ class Options:
 				exit(0)
 
 		if not self.modlist:
-			self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
+			self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys', 'load' ]
 
 		try:
 			if len(args) > 0: self.delay = int(args[0])
@@ -325,7 +325,7 @@ class dstat:
 				for j, nick in enumerate(self.nick):
 					ret = ret + ansi['blue'] + nick.center(self.format[1]).replace(' ', '_')
 					if j + 1 != len(self.nick): ret = ret + char['space']
-				if i + 1 != len(self.name): ret = ret + ansi['default'] + char['colon']
+				if i + 1 != len(self.name): ret = ret + ansi['gray'] + char['colon']
 			return ansi['blue'] + ret
 
 	def titlecsv(self, nr):
@@ -379,7 +379,7 @@ class dstat:
 		for i, name in enumerate(self.vars):
 			if isinstance(self.val[name], types.TupleType) or isinstance(self.val[name], types.ListType):
 				line = line + cprintlist(self.val[name], self.format)
-				sep = ansi['default'] + char['colon']
+				sep = ansi['gray'] + char['colon']
 			else:
 				line = line + cprint(self.val[name], self.format)
 				sep = char['space']
@@ -389,9 +389,9 @@ class dstat:
 
 	def showend(self, totlist, vislist):
 		if self is not vislist[-1]:
-			return ansi['default'] + char['pipe']
+			return ansi['gray'] + char['pipe']
 		elif totlist != vislist:
-			return ansi['default'] + char['gt']
+			return ansi['gray'] + char['gt']
 		return ''
 
 	def showcsv(self):
@@ -544,11 +544,11 @@ class dstat_cpu24(dstat):
 
 class dstat_disk(dstat):
 	def __init__(self):
-		self.format = ('f', 5, 1024)
+		self.format = ('f', 4, 1024)
 		self.open('/proc/diskstats')
-		self.nick = ('read', 'write')
+		self.nick = ('read', 'writ')
 		self.vars = self.vars()
-		self.name = ['disk/'+name for name in self.vars]
+		self.name = ['dsk/'+name for name in self.vars]
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -607,13 +607,13 @@ class dstat_disk(dstat):
 
 class dstat_disk24(dstat):
 	def __init__(self):
-		self.format = ('f', 5, 1024)
+		self.format = ('f', 4, 1024)
 		self.open('/proc/partitions')
-		self.nick = ('read', 'write')
+		self.nick = ('read', 'writ')
 		self.vars = self.vars()
 		if self.fd and not self.discover():
 			raise Exception, 'kernel is not compiled with CONFIG_BLK_STATS'
-		self.name = ['disk/'+sysfs_dev(name) for name in self.vars]
+		self.name = ['dsk/'+sysfs_dev(name) for name in self.vars]
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -669,12 +669,12 @@ class dstat_disk24(dstat):
 ### FIXME: Needs rework, does anyone care ?
 class dstat_disk24old(dstat):
 	def __init__(self):
-		self.format = ('f', 5, 1024)
+		self.format = ('f', 4, 1024)
 		self.open('/proc/stat')
-		self.nick = ('read', 'write')
+		self.nick = ('read', 'writ')
 		self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
 		self.vars = self.vars()
-		self.name = ['disk/'+name for name in self.vars]
+		self.name = ['dsk/'+name for name in self.vars]
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -746,7 +746,7 @@ class dstat_disk24old(dstat):
 class dstat_int(dstat):
 	def __init__(self):
 		self.name = 'interrupts'
-		self.format = ('d', 5, 1000)
+		self.format = ('d', 4, 1000)
 		self.open('/proc/stat')
 		self.intmap = self.intmap()
 		self.vars = self.vars()
@@ -816,7 +816,7 @@ class dstat_int(dstat):
 class dstat_int24(dstat):
 	def __init__(self):
 		self.name = 'interrupts'
-		self.format = ('d', 5, 1000)
+		self.format = ('d', 4, 1000)
 		self.open('/proc/interrupts')
 		self.vars = self.vars()
 		self.nick = self.vars
@@ -948,7 +948,7 @@ class dstat_lock(dstat):
 class dstat_mem(dstat):
 	def __init__(self):
 		self.name = 'memory usage'
-		self.format = ('f', 5, 1024)
+		self.format = ('f', 4, 1024)
 		self.open('/proc/meminfo')
 		self.nick = ('used', 'buff', 'cach', 'free')
 		self.vars = ('MemUsed', 'Buffers', 'Cached', 'MemFree')
@@ -967,7 +967,7 @@ class dstat_mem(dstat):
 
 class dstat_net(dstat):
 	def __init__(self):
-		self.format = ('f', 5, 1024)
+		self.format = ('f', 4, 1024)
 		self.open('/proc/net/dev')
 		self.nick = ('recv', 'send')
 		self.vars = self.vars()
@@ -1027,7 +1027,7 @@ class dstat_net(dstat):
 class dstat_page(dstat):
 	def __init__(self):
 		self.name = 'paging'
-		self.format = ('f', 5, 1024)
+		self.format = ('f', 4, 1024)
 		self.open('/proc/vmstat')
 		self.nick = ('in', 'out')
 		self.vars = ('pswpin', 'pswpout')
@@ -1049,7 +1049,7 @@ class dstat_page(dstat):
 class dstat_page24(dstat):
 	def __init__(self):
 		self.name = 'paging'
-		self.format = ('f', 5, 1024)
+		self.format = ('f', 4, 1024)
 		self.open('/proc/stat')
 		self.nick = ('in', 'out')
 		self.vars = ('pswpin', 'pswpout')
@@ -1116,7 +1116,7 @@ class dstat_raw(dstat):
 class dstat_swap(dstat):
 	def __init__(self):
 		self.name = 'swap'
-		self.format = ('f', 5, 1024)
+		self.format = ('f', 4, 1024)
 		self.open('/proc/meminfo')
 		self.nick = ('used', 'free')
 		self.vars = ('SwapUsed', 'SwapFree')
@@ -1135,7 +1135,7 @@ class dstat_swap(dstat):
 class dstat_sys(dstat):
 	def __init__(self):
 		self.name = 'system'
-		self.format = ('d', 5, 1000)
+		self.format = ('d', 4, 1000)
 		self.open('/proc/stat')
 		self.nick = ('int', 'csw')
 		self.vars = ('intr', 'ctxt')
@@ -1733,7 +1733,7 @@ def main():
 				info(1, 'Terminal width too small, trimming output.')
 			showheader = False
 			showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
-			showtitle(2, totlist, vislist, ansi['silver'] + char['pipe'], ansi['darkblue'] + char['gt'])
+			showtitle(2, totlist, vislist, ansi['gray'] + char['pipe'], ansi['darkblue'] + char['gt'])
 
 		oldvislist = vislist
 

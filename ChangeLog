@@ -1,3 +1,8 @@
+* 0.6.3 - ... - release ../../....
+- Reduced width for 1024 or 1000 base values from 4 to 3
+- Added load to default output (since we have extra space for it)
+- Changed default (silver) color of delimiter to gray
+
 * 0.6.2 - Cumbernauld - released 08/03/2006
 - Fixed situation where no TERM environment variable was set (William Webber)
 - Print out terminal debug info (TERM env and terminal type)

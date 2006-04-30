@@ -53,7 +53,7 @@ confusion, less mistakes.
 
 %files
 %defattr(-, root, root, 0755)
-%doc AUTHORS ChangeLog COPYING README* TODO examples/ *.conf
+%doc AUTHORS ChangeLog COPYING README* TODO *.conf *.html examples/
 %doc %{_mandir}/man1/dstat.1*
 #%config(noreplace) %{_sysconfdir}/dstat.conf
 %{_bindir}/dstat
