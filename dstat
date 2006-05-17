@@ -36,7 +36,7 @@ if sys.version_info < (2, 2):
 	sys.exit('error: Python 2.2 or later required, try dstat15 instead')
 
 ### Workaround for python < 2.3
-if not callable('enumerate'):
+if 'enumerate' not in __builtins__.__dict__.keys():
 	if sys.version_info < (2, 3) and sys.version_info >= (2, 2):
 		def enumerate(sequence):
 			index = 0
@@ -53,7 +53,7 @@ if not callable('enumerate'):
 			return list
 
 ### Workaround for python < 2.3
-if not callable('sum'):
+if 'sum' not in __builtins__.__dict__.keys():
 	def sum(sequence):
 		ret = 0
 		for i in sequence:
