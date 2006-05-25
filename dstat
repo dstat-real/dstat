@@ -1386,7 +1386,7 @@ def cprintlist(list, format):
 		sep = ' '
 	return ret
 
-def cprint(var, format = ('f', 4, 1000)):
+def cprint(var, format = ('f', 3, 1000)):
 	c = -1
 	type = format[0]
 	max = format[1]
