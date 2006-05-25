@@ -6,7 +6,7 @@
 class dstat_clock(dstat):
 	def __init__(self):
 		self.name = 'clock'
-		self.format = ('t', 14, 0)
+		self.format = ('s', 14, 0)
 		self.nick = ('date/time',)
 		self.vars = self.nick
 
