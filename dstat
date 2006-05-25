@@ -1435,7 +1435,10 @@ def cprint(var, format = ('f', 4, 1000)):
 	else:
 		color = 'default'
 
-	ret = ansi[color] + ret.rjust(max)
+	if type in ('s',):
+		ret = ansi['default'] + ret.ljust(max)
+	else:
+		ret = ansi[color] + ret.rjust(max)
 
 	if unit:
 		if c != -1 and round(var) != 0:
