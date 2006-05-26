@@ -3,8 +3,6 @@
 ###
 ### Authority: dag@wieers.com
 
-### FIXME: The val, cn1 and cn2 will only grow and consume more memory.
-
 global string
 import string
 
@@ -25,30 +23,33 @@ class dstat_app(dstat):
 				if not self.cn1.has_key(pid):
 					self.cn1[pid] = 0
 
-				for line in dopen('/proc/%s/stat' % pid).readlines():
-					l = string.split(line)
-					if len(l) < 15: continue
-					self.cn2[pid] = int(l[13]) + int(l[14])
-				self.val[pid] = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
+				l = string.split(dopen('/proc/%s/stat' % pid).read())
+				if len(l) < 15: continue
+				self.cn2[pid] = int(l[13]) + int(l[14])
+				usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
 
 				### Get the process that spends the most jiffies
-				if self.val[pid] > max:
-					max = self.val[pid]
+				if usage > max:
+					max = usage
 					self.val['process'] = l[1][1:-1]
 
-					### Debug
-#					self.val['process'] = self.val['process'] + ' ' + str(max)
-#					self.val['process'] = self.val['process'] + ' ' + l[13] + ':' + l[14]
+					### If the name is a known interpreter, take the second argument from the cmdline
+					if self.val['process'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
+						for line in dopen('/proc/%s/cmdline' % pid).readlines():
+							self.val['process'] = os.path.basename(string.split(line, '\0')[1])
+
+					### Debug (show PID)
+#					self.val['process'] = '%s %s' % (pid, self.val['process'])
+
+					### Debug (show CPU usage)
+#					self.val['process'] = '%s %d' % (self.val['process'], usage)
+
+					### Debug (show CPU kernel/user values)
+#					self.val['process'] = '%s %d:%d' % (self.val['process'], int(l[13]) / tick, int(l[14]) / tick)
 
 				### Garbage collect sort off
-#				if self.val[pid] == 0:
-#					del(self.cn1[pid]); del(self.cn2[pid]); del(self.val[pid])
-
-				### If the name is a known interpreter, take the second argument from the cmdline
-				if self.val['process'] in ('perl', 'python', 'sh', 'bash'):
-					for line in dopen('/proc/%s/cmdline' % pid).readlines():
-						l = string.split(line, '\0')
-						self.val['process'] = os.path.basename(l[1])
+#				if value == 0:
+#					del(self.cn1[pid]); del(self.cn2[pid])
 
 		if step == op.delay:
 			self.cn1.update(self.cn2)

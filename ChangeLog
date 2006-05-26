@@ -5,6 +5,8 @@
 - Fixed sum() and enumerate() only when it isn't there (Jesse Young)
 - Added external plugins dstat_app
 - Added ibm-acpi support to dstat_thermal
+- Exclude md-devices from total
+- Improved debug output somewhat
 
 * 0.6.2 - Cumbernauld - released 08/03/2006
 - Fixed situation where no TERM environment variable was set (William Webber)

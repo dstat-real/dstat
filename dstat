@@ -205,7 +205,7 @@ class Options:
 		print
 		rows, cols = getwinsize()
 		print 'Terminal type:', os.getenv('TERM') + '/' + termtype
-		print 'Terminal: %d lines, %d columns' % (rows, cols)
+		print 'Terminal size: %d lines, %d columns' % (rows, cols)
 		print
 		print 'Processors: %d' % getcpunr()
 		print 'Pagesize: %d' % resource.getpagesize()
@@ -588,7 +588,7 @@ class dstat_disk(dstat):
 			if l[5] == '0' and l[9] == '0': continue
 			name = l[2]
 			if l[3:] == ['0',] * 11: continue
-			if not re.match('(md[0-9]+)', name):
+			if not re.match('(md[0-9]+|dm-[0-9]+)', name):
 				self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
 			if name in self.vars and name != 'total':
 				self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
@@ -649,7 +649,7 @@ class dstat_disk24(dstat):
 			l = line.split()
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
-			if not re.match('(md[0-9]+)', name):
+			if not re.match('(md[0-9]+|dm-[0-9]+)', name):
 				self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
 			if name in self.vars:
 				self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
@@ -1763,11 +1763,11 @@ def main():
 
 		### Print debugging output
 		if op.debug: t2 = time.time(); tt = tt + (t2 - t1) * 1000
-		if op.debug:
+		if op.debug == 1:
 			if loop == 0: tt = tt * step
-			sys.stdout.write(' %6.3f' % (tt / step))
+			sys.stdout.write('%6.2fms' % (tt / step))
 		if op.debug > 1:
-			sys.stdout.write(' [%d:%d:%d] ' % (loop, update, step))
+			sys.stdout.write('%6.2f [%d:%d:%d]' % (tt/step, loop, update, step))
 
 		### If intermediate results, update increases with 1 sec (=interval)
 		update = update + interval
@@ -1784,7 +1784,7 @@ def main():
 			if step == op.delay:
 				sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
 			else:
-				sys.stdout.write(ansi['clearline'] + ansi['restore'])
+				sys.stdout.write(ansi['restore'])
 
 		loop = (update + op.delay - 1) / op.delay
 		step = ((update - 1) % op.delay) + 1
