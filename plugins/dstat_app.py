@@ -27,6 +27,7 @@ class dstat_app(dstat):
 
 				for line in dopen('/proc/%s/stat' % pid).readlines():
 					l = string.split(line)
+					if len(l) < 15: continue
 					self.cn2[pid] = int(l[13]) + int(l[14])
 				self.val[pid] = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
 
