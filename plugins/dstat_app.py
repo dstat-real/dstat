@@ -41,8 +41,9 @@ class dstat_app(dstat):
 		else:
 			### If the name is a known interpreter, take the second argument from the cmdline
 			if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
-				line = dopen('/proc/%s/cmdline' % pid).read()
-				self.val['name'] = os.path.basename(string.split(line, '\0')[1])
+				l = string.split(dopen('/proc/%s/cmdline' % pid).read(), '\0')
+				if len(l) > 2:
+					self.val['name'] = os.path.basename(l[1])
 
 			### Show yellow usage
 			self.val['process'] = '%-*s%s%3d' % (self.format[1]-3, self.val['name'], ansi['yellow'], round(max))
