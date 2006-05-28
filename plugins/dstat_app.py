@@ -26,7 +26,7 @@ class dstat_app(dstat):
 					self.cn1[pid] = 0
 
 				l = string.split(dopen('/proc/%s/stat' % pid).read())
-				if len(l) < 16: continue
+				if len(l) < 15: continue
 				self.cn2[pid] = int(l[13]) + int(l[14])
 				usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
 
@@ -41,7 +41,7 @@ class dstat_app(dstat):
 		else:
 			### If the name is a known interpreter, take the second argument from the cmdline
 			if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
-				l = string.split(dopen('/proc/%s/cmdline' % pid).read(), '\0')
+				l = string.split(dopen('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
 				if len(l) > 2:
 					self.val['name'] = os.path.basename(l[1])
 
