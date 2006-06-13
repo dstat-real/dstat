@@ -1,5 +1,8 @@
 Dstat performance
-"""""""""""""""""
+=================
+
+Introduction
+------------
 Since dstat is written in python, it's not optimized for performance.
 
 When doing performance analysis, it's always important to verify that
@@ -34,10 +37,10 @@ possibly written to CSV output.
 
 
 Performance tuning
-""""""""""""""""""
-The following documents may be useful to tune a system for performance:
+------------------
+The following documents may be useful to tune a system for performance
 
-	http://people.redhat.com/alikins/system_tuning.html
++ http://people.redhat.com/alikins/system_tuning.html[]
 
----
-Please send me improvements to this document.
+
+NOTE: Please send me improvements to this document.

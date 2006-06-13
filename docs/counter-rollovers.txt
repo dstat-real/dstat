@@ -1,5 +1,9 @@
+All you ever wanted to know about counter-rollovers and dstat
+=============================================================
+
+
 What you need to know about counter rollovers
-"""""""""""""""""""""""""""""""""""""""""""""
+---------------------------------------------
 Unfortunately, dstat is susceptible for counter rollovers, which may give
 you bogus performance output. Linux currently implements counters as 32bit
 values (not sure on 64bit platforms). This means a counter can go up to
@@ -14,7 +18,7 @@ Since /proc is updated every second, this becomes almost impossible to catch.
 
 
 How does this impact dstat ?
-""""""""""""""""""""""""""""
+----------------------------
 Currently dstat has a problem if you specify delays that are too big. I.e.
 using 60 or 120 seconds delay in dstat will make dstat check these counters
 only once per minute or every two minutes. In the case the value is reset,
@@ -26,7 +30,7 @@ This is very problematic, and it's important you are aware of this.
 
 
 What are the solutions ?
-""""""""""""""""""""""""
+------------------------
 The only fix for dstat is to check more often than the specified delay.
 Unfortunately, this requires a re-design (or an ugly hack).
 
@@ -41,7 +45,7 @@ If the rollovers happen only sporadically, you can just ignore those values.
 
 
 What can I do ?
-"""""""""""""""
+---------------
 Since this is Open Source, you are free to fix this and send me the fix. Or
 help with a redesign of dstat to overcome this problem. Also look at the
 TODO file to see what other changes are expected in a redesign of dstat.
@@ -53,5 +57,5 @@ depends on how quick I think I can fix/redesign it and how much time I have.
 
 Your help could be to reduce the time it takes for me to fix it :)
 
----
-Please send me improvements to this document.
+
+NOTE: Please send me improvements to this document.

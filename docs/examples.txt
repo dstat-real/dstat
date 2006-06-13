@@ -1,5 +1,6 @@
 Dstat examples
-""""""""""""""
+==============
+
 I've written a few examples that make use of the dstat classes.
 
 The following examples currently exist:
@@ -14,5 +15,5 @@ I'm not particularly happy with the current interface to dstat,
 so any hints on how to improve it are welcome. Also look at the
 TODO for future changes.
 
----
-Please send me improvements to this document.
+
+NOTE: Please send me improvements to this document.

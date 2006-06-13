@@ -4,7 +4,7 @@ import string, select
 class dstat_gpfs(dstat):
 	def __init__(self):
 		self.name = 'gpfs i/o'
-		self.format = ('f', 4, 1024)
+		self.format = ('f', 5, 1024)
 		self.vars = ('_br_', '_bw_')
 		self.nick = ('read', 'write')
 		self.init(self.vars, 1)

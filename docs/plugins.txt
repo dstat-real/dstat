@@ -1,10 +1,13 @@
 External dstat plugins
-""""""""""""""""""""""
+======================
+
 The core functionality of dstat is self-contained inside the dstat script,
 but it is possible to add your own dstat plugins. Currently the following
 external plugins exist:
 
+	dstat_app		- most expensive process
 	dstat_battery		- battery in percentage (needs ACPI)
+	dstat_clock		- human-readable clock
 	dstat_cpufreq		- CPU frequency in percentage (needs ACPI)
 	dstat_dbus		- dbus connections (needs python-dbus)
 	dstat_freespace		- disk usage on per filesystems
@@ -18,13 +21,15 @@ external plugins exist:
 	dstat_rpc		- RPC client calls
 	dstat_rpcd		- RPC server calls
 	dstat_sendmail		- sendmail queue size (needs sendmail)
-	dstat_thermal		- system temperature sesnors
+	dstat_thermal		- system temperature sensors
 	dstat_utmp		- utmp connections (needs python-utmp)
 	dstat_wifi		- wireless link quality and signal to noise ratio
 
 You can enable any of these stats by using the -M options:
 
-	dstat -a -M dbus,utmp
+----
+dstat -a -M dbus,utmp
+----
 
 Currently I foresee that all stats that depend on something else than
 just the kernel or the stock python modules are implemented as external
@@ -44,5 +49,5 @@ Future possible external plugins:
 	dstat_samba (needs a python tdb implementation ?)
 	dstat_squid
 
----
-Please send me improvements to this document.
+
+NOTE: Please send me improvements to this document.

@@ -4,7 +4,7 @@ import string
 class dstat_nfs3op(dstat):
 	def __init__(self):
 		self.name = 'extended nfs3 client operations'
-		self.format = ('d', 4, 1000)
+		self.format = ('d', 5, 1000)
 		self.open('/proc/net/rpc/nfs')
 		self.vars = ('null', 'getattr', 'setattr', 'lookup', 'access', 'readlink', 'read', 'write', 'create', 'mkdir', 'symlink', 'mknod', 'remove', 'rmdir', 'rename', 'link', 'readdir', 'readdirplus', 'fsstat', 'fsinfo', 'pathconf', 'commit')
 		self.nick = ('null', 'gatr', 'satr', 'look', 'aces', 'rdln', 'read', 'writ', 'crea', 'mkdr', 'syml', 'mknd', 'rm', 'rmdr', 'ren', 'link', 'rdir', 'rdr+', 'fstt', 'fsnf', 'path', 'cmmt')

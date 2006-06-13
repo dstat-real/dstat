@@ -4,7 +4,7 @@ import string
 class dstat_rpc(dstat):
 	def __init__(self):
 		self.name = 'rpc client'
-		self.format = ('d', 4, 1000)
+		self.format = ('d', 5, 1000)
 		self.open('/proc/net/rpc/nfs')
 		self.vars = ('calls', 'retransmits', 'autorefreshes')
 		self.nick = ('call', 'retr', 'refr')

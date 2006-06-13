@@ -4,7 +4,7 @@ import string
 class dstat_rpcd(dstat):
 	def __init__(self):
 		self.name = 'rpc server'
-		self.format = ('d', 4, 1000)
+		self.format = ('d', 5, 1000)
 		self.open('/proc/net/rpc/nfsd')
 		self.vars = ('calls', 'badcalls', 'badauth', 'badclnt', 'xdrcall')
 		self.nick = ('call', 'erca', 'erau', 'ercl', 'xdrc')

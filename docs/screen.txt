@@ -1,43 +1,52 @@
 Configuring screen to display multiple dstat for different systems
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+==================================================================
+
 Here is an example of how I monitor 5 nodes in a cluster with a minimum
 of effort using screen:
 
 Put the following content in a file called screenrc-5nodes:
 
-	startup_message off
-	defwrap off
-	split
-	split
-	split
-	split
-	screen -t node01 1 ssh -t 172.17.0.211 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
-	focus down
-	screen -t node02 2 ssh -t 172.17.0.212 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
-	focus down
-	screen -t node03 3 ssh -t 172.17.0.213 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
-	focus down
-	screen -t node04 4 ssh -t 172.17.0.214 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
-	focus down
-	screen -t node05 5 ssh -t 172.17.0.215 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
+----
+startup_message off
+defwrap off
+split
+split
+split
+split
+screen -t node01 1 ssh -t 172.17.0.211 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
+focus down
+screen -t node02 2 ssh -t 172.17.0.212 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
+focus down
+screen -t node03 3 ssh -t 172.17.0.213 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
+focus down
+screen -t node04 4 ssh -t 172.17.0.214 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
+focus down
+screen -t node05 5 ssh -t 172.17.0.215 'dstat -cdnyp --tcp --udp -l -D lores,hires -N bond0,eth0,eth2,eth3 10'
+----
 
 Then set the environment variable to tell screen to use this config-file
 for the next screen.
 
-	SCREENRC='screenrc-5nodes' screen
+----
+SCREENRC='screenrc-5nodes' screen
+----
 
 If you want to get out of this screen and end all dstats, the easiest way
 is to kill first all regions and then end each dstat. You can do this by:
 
-	ctrl-a X
+----
+ctrl-a X
+----
 
 Do that 5 times, and then quit each dstat by pressing:
 
-	ctrl-c
+----
+ctrl-c
+----
 
 5 times.
 
 If you have other tips or hints, please send them to: <dag@wieers.com>
 
---
-Please send me improvements to this document.
+
+NOTE: Please send me improvements to this document.

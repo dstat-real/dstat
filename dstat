@@ -544,7 +544,7 @@ class dstat_cpu24(dstat):
 
 class dstat_disk(dstat):
 	def __init__(self):
-		self.format = ('f', 4, 1024)
+		self.format = ('f', 5, 1024)
 		self.open('/proc/diskstats')
 		self.nick = ('read', 'writ')
 		self.vars = self.vars()
@@ -607,7 +607,7 @@ class dstat_disk(dstat):
 
 class dstat_disk24(dstat):
 	def __init__(self):
-		self.format = ('f', 4, 1024)
+		self.format = ('f', 5, 1024)
 		self.open('/proc/partitions')
 		self.nick = ('read', 'writ')
 		self.vars = self.vars()
@@ -669,7 +669,7 @@ class dstat_disk24(dstat):
 ### FIXME: Needs rework, does anyone care ?
 class dstat_disk24old(dstat):
 	def __init__(self):
-		self.format = ('f', 4, 1024)
+		self.format = ('f', 5, 1024)
 		self.open('/proc/stat')
 		self.nick = ('read', 'writ')
 		self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
@@ -746,7 +746,7 @@ class dstat_disk24old(dstat):
 class dstat_int(dstat):
 	def __init__(self):
 		self.name = 'interrupts'
-		self.format = ('d', 4, 1000)
+		self.format = ('d', 5, 1000)
 		self.open('/proc/stat')
 		self.intmap = self.intmap()
 		self.vars = self.vars()
@@ -816,7 +816,7 @@ class dstat_int(dstat):
 class dstat_int24(dstat):
 	def __init__(self):
 		self.name = 'interrupts'
-		self.format = ('d', 4, 1000)
+		self.format = ('d', 5, 1000)
 		self.open('/proc/interrupts')
 		self.vars = self.vars()
 		self.nick = self.vars
@@ -948,7 +948,7 @@ class dstat_lock(dstat):
 class dstat_mem(dstat):
 	def __init__(self):
 		self.name = 'memory usage'
-		self.format = ('f', 4, 1024)
+		self.format = ('f', 5, 1024)
 		self.open('/proc/meminfo')
 		self.nick = ('used', 'buff', 'cach', 'free')
 		self.vars = ('MemUsed', 'Buffers', 'Cached', 'MemFree')
@@ -967,7 +967,7 @@ class dstat_mem(dstat):
 
 class dstat_net(dstat):
 	def __init__(self):
-		self.format = ('f', 4, 1024)
+		self.format = ('f', 5, 1024)
 		self.open('/proc/net/dev')
 		self.nick = ('recv', 'send')
 		self.vars = self.vars()
@@ -1027,7 +1027,7 @@ class dstat_net(dstat):
 class dstat_page(dstat):
 	def __init__(self):
 		self.name = 'paging'
-		self.format = ('f', 4, 1024)
+		self.format = ('f', 5, 1024)
 		self.open('/proc/vmstat')
 		self.nick = ('in', 'out')
 		self.vars = ('pswpin', 'pswpout')
@@ -1049,7 +1049,7 @@ class dstat_page(dstat):
 class dstat_page24(dstat):
 	def __init__(self):
 		self.name = 'paging'
-		self.format = ('f', 4, 1024)
+		self.format = ('f', 5, 1024)
 		self.open('/proc/stat')
 		self.nick = ('in', 'out')
 		self.vars = ('pswpin', 'pswpout')
@@ -1116,7 +1116,7 @@ class dstat_raw(dstat):
 class dstat_swap(dstat):
 	def __init__(self):
 		self.name = 'swap'
-		self.format = ('f', 4, 1024)
+		self.format = ('f', 5, 1024)
 		self.open('/proc/meminfo')
 		self.nick = ('used', 'free')
 		self.vars = ('SwapUsed', 'SwapFree')
@@ -1135,7 +1135,7 @@ class dstat_swap(dstat):
 class dstat_sys(dstat):
 	def __init__(self):
 		self.name = 'system'
-		self.format = ('d', 4, 1000)
+		self.format = ('d', 5, 1000)
 		self.open('/proc/stat')
 		self.nick = ('int', 'csw')
 		self.vars = ('intr', 'ctxt')
@@ -1157,7 +1157,7 @@ class dstat_sys(dstat):
 class dstat_tcp(dstat):
 	def __init__(self):
 		self.name = 'tcp sockets'
-		self.format = ('f', 3, 1024)
+		self.format = ('f', 3, 100)
 		self.open('/proc/net/tcp')
 		self.nick = ('lis', 'act', 'syn', 'tim')
 		self.vars = ('listen', 'established', 'syn_sent', 'time_wait')
@@ -1193,7 +1193,7 @@ class dstat_time(dstat):
 class dstat_udp(dstat):
 	def __init__(self):
 		self.name = 'udp'
-		self.format = ('f', 3, 50)
+		self.format = ('f', 3, 100)
 		self.open('/proc/net/udp')
 		self.nick = ('lis', 'act')
 		self.vars = ('listen', 'established')
@@ -1386,7 +1386,7 @@ def cprintlist(list, format):
 		sep = ' '
 	return ret
 
-def cprint(var, format = ('f', 3, 1000)):
+def cprint(var, format = ('f', 4, 1000)):
 	c = -1
 	type = format[0]
 	max = format[1]
