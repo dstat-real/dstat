@@ -44,7 +44,7 @@ confusion, less mistakes.
 
 %install
 %{__rm} -rf %{buildroot}
-%makeinstall
+%{__make} install DESTDIR="%{buildroot}"
 
 %{?_with_python15:%{__install} -D -m0755 dstat15 %{buildroot}%{_bindir}/dstat}
 
@@ -53,7 +53,7 @@ confusion, less mistakes.
 
 %files
 %defattr(-, root, root, 0755)
-%doc AUTHORS ChangeLog COPYING README* TODO *.conf *.html examples/
+%doc AUTHORS ChangeLog COPYING README TODO *.conf docs/*.html docs/*.txt examples/
 %doc %{_mandir}/man1/dstat.1*
 #%config(noreplace) %{_sysconfdir}/dstat.conf
 %{_bindir}/dstat
