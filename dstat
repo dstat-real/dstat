@@ -81,6 +81,7 @@ class Options:
 		self.integer = False
 		self.intlist = None
 		self.netlist = None
+		self.swaplist = None
 		self.nolimit = False
 		self.color = True
 		self.update = True
@@ -96,7 +97,7 @@ class Options:
 
 		try:
 			import getopt
-			opts, args = getopt.getopt (args, 'acdfghilmno:pstvyC:D:I:M:N:V',
+			opts, args = getopt.getopt (args, 'acdfghilmno:pstvyC:D:I:M:N:S:V',
 				['all', 'cpu', 'disk', 'help', 'int', 'ipc', 'load', 'lock', 'mem', 'net', 'page',
 				'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 'version', 'vmstat',
 				'debug', 'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate', 'output='])
@@ -143,6 +144,8 @@ class Options:
 				self.modlist.append('raw')
 			elif opt in ['-s', '--swap']:
 				self.modlist.append('swap')
+			elif opt in ['-S']:
+				self.swaplist = arg.split(',')
 			elif opt in ['--tcp']:
 				self.modlist.append('tcp')
 			elif opt in ['-t', '--time']:
@@ -1117,6 +1120,55 @@ class dstat_swap(dstat):
 	def __init__(self):
 		self.name = 'swap'
 		self.format = ('f', 5, 1024)
+		self.open('/proc/swaps')
+		self.nick = ('used', 'free')
+		self.vars = self.vars()
+		self.name = ['swp/'+improve(name) for name in self.vars]
+		self.init(self.vars + ['total',], 2)
+
+	def discover(self, *list):
+		ret = []
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = line.split()
+			if len(l) < 5: continue
+			if l[0] == 'Filename': continue
+			ret.append(improve(l[0]))
+		ret.sort()
+		for item in list: ret.append(item)
+		return ret
+
+	def vars(self):
+		ret = []
+		if op.swaplist:
+			list = op.swaplist
+		elif not op.full:
+			list = ('total', )
+		else:
+			list = self.discover()
+#			if len(list) > 2: list = list[0:2]
+			list.sort()
+		for name in list:
+			if name in self.discover('total',):
+				ret.append(name)
+		return ret
+
+	def extract(self):
+		self.val['total'] = [0, 0]
+		self.fd.seek(0)
+		for line in self.fd.readlines():
+			l = line.split()
+			if len(l) < 5: continue
+			if l[0] == 'Filename': continue
+			name = improve(l[0])
+			if name in self.vars :
+				self.val[name] = ( long(l[3]) * 1024.0, (long(l[2]) - long(l[3])) * 1024.0 )
+			self.val['total'] = ( self.val['total'][0] + long(l[3]) * 1024.0, self.val['total'][1] + (long(l[2]) - long(l[3])) * 1024.0)
+
+class dstat_swapold(dstat):
+	def __init__(self):
+		self.name = 'swap'
+		self.format = ('f', 5, 1024)
 		self.open('/proc/meminfo')
 		self.nick = ('used', 'free')
 		self.vars = ('SwapUsed', 'SwapFree')
@@ -1302,6 +1354,14 @@ def ticks():
 			if len(l) < 2: continue
 			if l[0] == 'btime':
 				return time.time() - long(l[1])
+
+def improve(str):
+	"Improve a device name"
+	if str.startswith('/dev/mapper/'):
+		str = str.split('/')[3]
+	elif str.startswith('/dev/'):
+		str = str.split('/')[2]
+	return str
 
 def dopen(file):
 	"Open a file for reuse, if already opened, return file descriptor"
@@ -1649,6 +1709,7 @@ def main():
 		elif module == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
 		elif module == 'int':  mods = ( 'int', 'int24' )
 		elif module == 'page': mods = ( 'page', 'page24' )
+		elif module == 'swap': mods = ( 'swap', 'swapold' )
 		else: mods = ( module, )
 
 		for mod in mods:
