@@ -369,7 +369,7 @@ class dstat:
 			raise Exception, 'File %s does not exist' % self.file
 		if not self.vars:
 			raise Exception, 'No variables defined'
-		if self.discover() and self.width():
+		if self.discover and self.width():
 			return True
 		raise Exception, 'Unknown problem, please report'
 
@@ -428,6 +428,7 @@ class dstat_cpu(dstat):
 		self.format = ('p', 3, 34)
 		self.open('/proc/stat')
 		self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
+		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = self.name()
 		self.init(self.vars + ['total',], 6)
@@ -455,6 +456,7 @@ class dstat_cpu(dstat):
 
 	def vars(self):
 		ret = []
+		discover = self.discover
 		if op.cpulist:
 			list = op.cpulist
 		elif not op.full:
@@ -467,7 +469,7 @@ class dstat_cpu(dstat):
 				cpu = cpu + 1
 #			if len(list) > 2: list = list[0:2]
 		for name in list:
-			if name in self.discover('total'):
+			if name in discover + ['total']:
 				ret.append(name)
 		return ret
 
@@ -490,6 +492,7 @@ class dstat_cpu24(dstat):
 		self.format = ('p', 3, 34)
 		self.open('/proc/stat')
 		self.nick = ( 'usr', 'sys', 'idl')
+		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = self.name()
 		self.init(self.vars + ['total',], 3)
@@ -516,6 +519,7 @@ class dstat_cpu24(dstat):
 
 	def vars(self):
 		ret = []
+		discover = self.discover
 		if op.cpulist:
 			list = op.cpulist
 		elif not op.full:
@@ -528,7 +532,7 @@ class dstat_cpu24(dstat):
 				cpu = cpu + 1
 #			if len(list) > 2: list = list[0:2]
 		for name in list:
-			if name in self.discover('total'):
+			if name in discover + ['total']:
 				ret.append(name)
 		return ret
 
@@ -550,6 +554,7 @@ class dstat_disk(dstat):
 		self.format = ('f', 5, 1024)
 		self.open('/proc/diskstats')
 		self.nick = ('read', 'writ')
+		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = ['dsk/'+name for name in self.vars]
 		self.init(self.vars + ['total',], 2)
@@ -569,16 +574,17 @@ class dstat_disk(dstat):
 
 	def vars(self):
 		ret = []
+		discover = self.discover
 		if op.disklist:
 			list = op.disklist
 		elif not op.full:
 			list = ('total', )
 		else:
-			list = self.discover()
+			list = discover
 #			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
-			if name in self.discover('total') + op.diskset.keys():
+			if name in discover + ['total'] + op.diskset.keys():
 				ret.append(name)
 		return ret
 
@@ -613,8 +619,9 @@ class dstat_disk24(dstat):
 		self.format = ('f', 5, 1024)
 		self.open('/proc/partitions')
 		self.nick = ('read', 'writ')
+		self.discover = self.discover()
 		self.vars = self.vars()
-		if self.fd and not self.discover():
+		if self.fd and not self.discover:
 			raise Exception, 'kernel is not compiled with CONFIG_BLK_STATS'
 		self.name = ['dsk/'+sysfs_dev(name) for name in self.vars]
 		self.init(self.vars + ['total',], 2)
@@ -637,11 +644,11 @@ class dstat_disk24(dstat):
 		elif not op.full:
 			list = ('total', )
 		else:
-			list = self.discover()
+			list = self.discover
 #			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
-			if name in self.discover('total') + op.diskset.keys():
+			if name in self.discover + ['total'] + op.diskset.keys():
 				ret.append(name)
 		return ret
 
@@ -676,6 +683,7 @@ class dstat_disk24old(dstat):
 		self.open('/proc/stat')
 		self.nick = ('read', 'writ')
 		self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
+		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = ['dsk/'+name for name in self.vars]
 		self.init(self.vars + ['total',], 2)
@@ -706,7 +714,7 @@ class dstat_disk24old(dstat):
 		elif not op.full:
 			list = ('total', )
 		else:
-			list = self.discover()
+			list = self.discover
 #			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
@@ -792,13 +800,13 @@ class dstat_int(dstat):
 		if op.intlist:
 			list = op.intlist
 		else:
-			list = self.discover()
+			list = self.discover
 			for name in list:
 				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
 					list.remove(name)
 			if not op.full and len(list) > 3: list = list[-3:]
 		for name in list:
-			if name in self.discover():
+			if name in self.discover:
 				ret.append(name)
 			elif name.lower() in self.intmap.keys():
 				ret.append(self.intmap[name.lower()])
@@ -822,6 +830,7 @@ class dstat_int24(dstat):
 		self.format = ('d', 5, 1000)
 		self.open('/proc/interrupts')
 		self.vars = self.vars()
+		self.discover = self.discover()
 		self.nick = self.vars
 		self.init(self.vars, 1)
 
@@ -850,7 +859,7 @@ class dstat_int24(dstat):
 		return ret
 
 #	def check(self):
-#		if self.fd and self.discover():
+#		if self.fd and self.discover:
 #			self.fd.seek(0)
 #			for line in self.fd.readlines():
 #				l = line.split()
@@ -863,13 +872,13 @@ class dstat_int24(dstat):
 		if op.intlist:
 			list = op.intlist
 		else:
-			list = self.discover()
+			list = self.discover
 			for name in list:
 				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
 					list.remove(name)
 			if not op.full and len(list) > 3: list = list[-3:]
 		for name in list:
-			if name in self.discover():
+			if name in self.discover:
 				ret.append(name)
 			elif name.lower() in self.intmap.keys():
 				ret.append(self.intmap[name.lower()])
@@ -973,6 +982,7 @@ class dstat_net(dstat):
 		self.format = ('f', 5, 1024)
 		self.open('/proc/net/dev')
 		self.nick = ('recv', 'send')
+		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = ['net/'+name for name in self.vars]
 		self.init(self.vars + ['total',], 2)
@@ -998,7 +1008,7 @@ class dstat_net(dstat):
 		elif not op.full:
 			list = ('total', )
 		else:
-			list = self.discover()
+			list = self.discover
 #			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
@@ -1122,6 +1132,7 @@ class dstat_swap(dstat):
 		self.format = ('f', 5, 1024)
 		self.open('/proc/swaps')
 		self.nick = ('used', 'free')
+		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = ['swp/'+improve(name) for name in self.vars]
 		self.init(self.vars + ['total',], 2)
@@ -1133,23 +1144,25 @@ class dstat_swap(dstat):
 			l = line.split()
 			if len(l) < 5: continue
 			if l[0] == 'Filename': continue
-			ret.append(improve(l[0]))
+#			ret.append(improve(l[0]))
+			ret.append(l[0])
 		ret.sort()
 		for item in list: ret.append(item)
 		return ret
 
 	def vars(self):
 		ret = []
+		discover = self.discover
 		if op.swaplist:
 			list = op.swaplist
 		elif not op.full:
 			list = ('total', )
 		else:
-			list = self.discover()
+			list = discover
 #			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
-			if name in self.discover('total',):
+			if name in discover + ['total']:
 				ret.append(name)
 		return ret
 
@@ -1158,12 +1171,11 @@ class dstat_swap(dstat):
 		self.fd.seek(0)
 		for line in self.fd.readlines():
 			l = line.split()
-			if len(l) < 5: continue
-			if l[0] == 'Filename': continue
-			name = improve(l[0])
-			if name in self.vars :
+			if len(l) < 5 or l[0] == 'Filename': continue
+			name = l[0]
+			if name in self.vars:
 				self.val[name] = ( long(l[3]) * 1024.0, (long(l[2]) - long(l[3])) * 1024.0 )
-			self.val['total'] = ( self.val['total'][0] + long(l[3]) * 1024.0, self.val['total'][1] + (long(l[2]) - long(l[3])) * 1024.0)
+			self.val['total'] = ( self.val['total'][0] + self.val[name][0], self.val['total'][1] + self.val[name][1])
 
 class dstat_swapold(dstat):
 	def __init__(self):
