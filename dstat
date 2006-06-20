@@ -368,7 +368,7 @@ class dstat:
 		if hasattr(self, 'fd') and not self.fd:
 			raise Exception, 'File %s does not exist' % self.file
 		if not self.vars:
-			raise Exception, 'No variables defined'
+			raise Exception, 'No objects found, no stats available, module disabled'
 		if self.discover and self.width():
 			return True
 		raise Exception, 'Unknown problem, please report'
@@ -1751,6 +1751,8 @@ def main():
 			except Exception, e:
 				if mod == mods[-1]:
 					info(1, 'Module dstat_%s has problems. (%s)' % (mod, e))
+					if op.debug:
+						raise
 				continue
 
 	if not totlist:

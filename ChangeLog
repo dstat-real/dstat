@@ -8,6 +8,8 @@
 - Improved debug output somewhat
 - Moved documentation to asciidoc at last
 - Added individual swap monitoring (-s with -S)
+- Small performance improvements
+- Raise module exceptions when --debug is invoked
 
 * 0.6.2 - Cumbernauld - released 08/03/2006
 - Fixed situation where no TERM environment variable was set (William Webber)
