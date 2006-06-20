@@ -718,7 +718,7 @@ class dstat_disk24old(dstat):
 #			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
-			if name in self.discover('total') + op.diskset.keys():
+			if name in self.discover + ['total'] + op.diskset.keys():
 				ret.append(name)
 		return ret
 
@@ -1012,7 +1012,7 @@ class dstat_net(dstat):
 #			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
-			if name in self.discover('total', 'lo'):
+			if name in self.discover + ['total', 'lo']:
 				ret.append(name)
 		return ret
 
@@ -1862,6 +1862,7 @@ def main():
 		loop = (update + op.delay - 1) / op.delay
 		step = ((update - 1) % op.delay) + 1
 		tick = step
+
 
 ### Main entrance
 if __name__ == '__main__':
