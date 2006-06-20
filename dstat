@@ -829,8 +829,8 @@ class dstat_int24(dstat):
 		self.name = 'interrupts'
 		self.format = ('d', 5, 1000)
 		self.open('/proc/interrupts')
-		self.vars = self.vars()
 		self.discover = self.discover()
+		self.vars = self.vars()
 		self.nick = self.vars
 		self.init(self.vars, 1)
 
@@ -874,7 +874,7 @@ class dstat_int24(dstat):
 		else:
 			list = self.discover
 			for name in list:
-				if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
+				if name in ('0', '1', '2', '8', 'CPU0', 'ERR', 'LOC', 'MIS', 'NMI'):
 					list.remove(name)
 			if not op.full and len(list) > 3: list = list[-3:]
 		for name in list:
