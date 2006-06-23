@@ -1,5 +1,4 @@
-* 0.6.3 - ... - release ../../....
-- Added load to default output (since we have extra space for it)
+* 0.6.3 - Amsterdam - released 23/06/2006
 - Changed default (silver) color of delimiter to gray
 - Fixed sum() and enumerate() only when it isn't there (Jesse Young)
 - Added external plugins dstat_app
@@ -10,6 +9,7 @@
 - Added individual swap monitoring (-s with -S)
 - Small performance improvements
 - Raise module exceptions when --debug is invoked
+- Removed the memory-leaking curses implementation (supastuff@freenode)
 
 * 0.6.2 - Cumbernauld - released 08/03/2006
 - Fixed situation where no TERM environment variable was set (William Webber)

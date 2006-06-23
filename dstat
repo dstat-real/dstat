@@ -160,7 +160,7 @@ class Options:
 				self.modlist.append('sys')
 
 			elif opt in ['-a', '--all']:
-				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys', 'load' ]
+				self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys' ]
 			elif opt in ['-v', '--vmstat']:
 				self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
 			elif opt in ['-f', '--full']:
@@ -186,7 +186,7 @@ class Options:
 				exit(0)
 
 		if not self.modlist:
-			self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys', 'load' ]
+			self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
 
 		try:
 			if len(args) > 0: self.delay = int(args[0])
@@ -1174,8 +1174,7 @@ class dstat_swap(dstat):
 			l = line.split()
 			if len(l) < 5 or l[0] == 'Filename': continue
 			name = l[0]
-			if name in self.vars:
-				self.val[name] = ( long(l[3]) * 1024.0, (long(l[2]) - long(l[3])) * 1024.0 )
+			self.val[name] = ( long(l[3]) * 1024.0, (long(l[2]) - long(l[3])) * 1024.0 )
 			self.val['total'] = ( self.val['total'][0] + self.val[name][0], self.val['total'][1] + self.val[name][1])
 
 class dstat_swapold(dstat):
