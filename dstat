@@ -21,6 +21,7 @@ def inspath(path):
 		sys.path.insert(1, path)
 
 try:
+	import gc
 	import sys, signal, os, re, time
 	import types, signal, resource, getpass
 	inspath('/usr/local/share/dstat/')
@@ -1858,6 +1859,11 @@ def main():
 		if op.update:
 			if step == op.delay:
 				sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
+#				for object in gc.get_objects():
+#					if isinstance(object, dstat):
+#						print dir(object)
+#						for object2 in gc.get_referents(object):
+#							print object2
 			else:
 				sys.stdout.write(ansi['restore'])
 
