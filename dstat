@@ -209,7 +209,6 @@ class Options:
 		print 'Python %s' % sys.version
 		print
 		rows, cols = gettermsize()
-		print 'Terminal type:', os.getenv('TERM') + '/' + termtype[0]
 		print 'Terminal size: %d lines, %d columns' % (rows, cols)
 		print
 		print 'Processors: %d' % getcpunr()
@@ -1665,7 +1664,7 @@ def listmodules():
 		print
 
 def main():
-	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols, termtype
+	global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols
 
 	loop = update = 0
 	step = op.delay
