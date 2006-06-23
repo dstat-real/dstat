@@ -37,24 +37,25 @@ if sys.version_info < (2, 2):
 	sys.exit('error: Python 2.2 or later required, try dstat15 instead')
 
 ### Workaround for python < 2.3
-if 'enumerate' not in __builtins__.__dict__.keys():
-	if sys.version_info < (2, 3) and sys.version_info >= (2, 2):
-		def enumerate(sequence):
-			index = 0
-			for item in sequence:
-				yield index, item
-				index = index + 1
-	elif sys.version_info < (2, 2):
-		def enumerate(sequence):
-			index = 0
-			list = []
-			for item in sequence:
-				list.append((index, item))
-				index = index + 1
-			return list
+#if 'enumerate' not in __builtins__.__dict__.keys():
+if sys.version_info < (2, 3) and sys.version_info >= (2, 2):
+	def enumerate(sequence):
+		index = 0
+		for item in sequence:
+			yield index, item
+			index = index + 1
+elif sys.version_info < (2, 2):
+	def enumerate(sequence):
+		index = 0
+		list = []
+		for item in sequence:
+			list.append((index, item))
+			index = index + 1
+		return list
 
 ### Workaround for python < 2.3
-if 'sum' not in __builtins__.__dict__.keys():
+#if 'sum' not in __builtins__.__dict__.keys():
+if sys.version_info < (2, 3):
 	def sum(sequence):
 		ret = 0
 		for i in sequence:
@@ -207,8 +208,8 @@ class Options:
 		print 'Kernel %s' % os.uname()[2]
 		print 'Python %s' % sys.version
 		print
-		rows, cols = getwinsize()
-		print 'Terminal type:', os.getenv('TERM') + '/' + termtype
+		rows, cols = gettermsize()
+		print 'Terminal type:', os.getenv('TERM') + '/' + termtype[0]
 		print 'Terminal size: %d lines, %d columns' % (rows, cols)
 		print
 		print 'Processors: %d' % getcpunr()
@@ -1549,29 +1550,32 @@ def die(ret, str):
 	info(0, str)
 	exit(ret)
 
-def getwinsize():
-	"Return the terminal geometry using several methods"
-#	if op.nolimit:
-#		return 1024, 1024
-	global termtype
-	termtype = 'curses'
+def initterm():
+	"Return the terminal size if possible"
+	global termsize
+
+	### Unbuffered sys.stdout
+	sys.stdout = os.fdopen(1, 'w', 0)
+
 	try:
-		curses.setupterm()
-		return curses.tigetnum('lines'), curses.tigetnum('cols')
+		global fcntl, struct, termios
+		import fcntl, struct, termios
 	except:
-		termtype = 'fcntl'
 		try:
-			import fcntl, struct, termios
-			s = struct.pack('HHHH', 0, 0, 0, 0)
-			x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
-			return struct.unpack('HHHH', x)[:2]
+	 		termsize = (int(os.getenv('LINES')), int(os.getenv('COLUMNS')))
 		except:
-			termtype = 'env'
-			try:
-				return int(os.getenv('LINES')), int(os.getenv('COLUMNS'))
-			except:
-				termtype = 'none'
-				return 25, 80
+			termsize = 25, 80
+	else:
+		termsize = None
+
+def gettermsize():
+	"Return the terminal geometry"
+	if termsize:
+		return termsize
+	else:
+		s = struct.pack('HHHH', 0, 0, 0, 0)
+		x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
+		return struct.unpack('HHHH', x)[:2]
 
 def getcpunr():
 	"Return the number of CPUs in the system"
@@ -1642,7 +1646,7 @@ def exit(ret):
 
 def listmodules():
 	import glob
-	rows, cols = getwinsize()
+	rows, cols = gettermsize()
 	remod = re.compile('.+/dstat_(.+).py$')
 	for path in sys.path:
 		list = []
@@ -1674,7 +1678,7 @@ def main():
 	user = getpass.getuser()
 	hostname = os.uname()[1].split('.')[0]
 
-	rows, cols = getwinsize()
+	rows, cols = gettermsize()
 
 	### Write term-title
 	term = os.getenv('TERM')
@@ -1686,9 +1690,15 @@ def main():
 		op.color = False
 		op.nolimit = True
 		op.update = False
-	elif termtype!='curses' or not hasattr(curses, 'tigetnum') or curses.tigetnum('colors') < 0:
-		op.color = False
-
+	else:
+		try:
+			import curses
+			curses.setupterm()
+			if curses.tigetnum('colors') >= 0:
+				op.color = True
+		except:
+			op.color = False
+		
 	if op.output:
 		if os.path.exists(op.output):
 			outputfile = open(op.output, 'a', 0)
@@ -1789,7 +1799,7 @@ def main():
 		if op.debug: t1 = time.time()
 
 		### Trim object list to what is visible on screen
-		rows, cols = getwinsize()
+		rows, cols = gettermsize()
 		vislist = []
 		curwidth = 0
 		for o in totlist:
@@ -1875,14 +1885,7 @@ def main():
 ### Main entrance
 if __name__ == '__main__':
 	try:
-		### Unbuffered sys.stdout
-		sys.stdout = os.fdopen(1, 'w', 0)
-
-		try:
-			import curses
-			curses.setupterm()
-		except:
-			pass
+		initterm()
 
 		op = Options(sys.argv[1:])
 		main()

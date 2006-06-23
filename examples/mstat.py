@@ -15,7 +15,11 @@ try: count = int(sys.argv[2])
 except: count = 10
 
 ### Load stats
-stats = (dstat.dstat_time(), dstat.dstat_cpu(), dstat.dstat_mem(), dstat.dstat_load(), dstat.dstat_disk(), dstat.dstat_sys())
+stats = []
+for o in (dstat.dstat_time(), dstat.dstat_cpu(), dstat.dstat_mem(), dstat.dstat_load(), dstat.dstat_disk(), dstat.dstat_sys()):
+	try: o.check()
+	except Exception, e: print e
+	else: stats.append(o)
 
 ### Make time stats sub-second
 stats[0].format = ('t', 14, 0)
