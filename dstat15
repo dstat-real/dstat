@@ -43,13 +43,7 @@ except NameError:
 	False = 0
 
 ### Workaround for python < 2.3 (FIXME: check for sys.version_info existence)
-if False:
-	def enumerate(sequence):
-		index = 0
-		for item in sequence:
-			yield index, item
-			index = index + 1
-elif True:
+if True:
 	def enumerate(sequence):
 		index = 0
 		list = []
