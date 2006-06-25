@@ -1134,7 +1134,6 @@ class dstat_swap(dstat):
 		self.nick = ('used', 'free')
 		self.discover = self.discover()
 		self.vars = self.vars()
-		self.name = ['swp/'+improve(name) for name in self.vars]
 		self.name = []
 		for name in self.vars:
 			self.name.append('swp/'+improve(name))
@@ -1552,7 +1551,7 @@ def die(ret, str):
 	exit(ret)
 
 def initterm():
-	"Return the terminal size"
+	"Initialise terminal"
 	global termsize
 
 	### Unbuffered sys.stdout
@@ -1561,22 +1560,36 @@ def initterm():
 	try:
 		global fcntl, struct, termios
 		import fcntl, struct, termios
+		termios.TIOCGWINSZ
 	except:
 		try:
-			termsize = (int(os.environ['LINES']), int(os.environ['COLUMNS']))
+			curses.setupterm()
+			curses.tigetnum('lines'), curses.tigetnum('cols')
 		except:
-			termsize = 25, 80
+			pass
+		else:
+			termsize = None, 2
 	else:
-		termsize = None
+		termsize = None, 1
 
 def gettermsize():
-	"Return the terminal geometry"
-	if termsize:
-		return termsize
-	else:
-		s = struct.pack('HHHH', 0, 0, 0, 0)
-		x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
-		return struct.unpack('HHHH', x)[:2]
+	"Return the dynamic terminal geometry"
+	global termsize
+
+	if not termsize[0]:
+		try:
+			if termsize[1] == 1:
+				s = struct.pack('HHHH', 0, 0, 0, 0)
+				x = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
+				return struct.unpack('HHHH', x)[:2]
+			elif termsize[1] == 2:
+				curses.setupterm()
+				return curses.tigetnum('lines'), curses.tigetnum('cols')
+			else:
+				termsize = (int(os.environ['LINES']), int(os.environ['COLUMNS']))
+		except:
+			termsize = 25, 80
+	return termsize
 
 def getcpunr():
 	"Return the number of CPUs in the system"
