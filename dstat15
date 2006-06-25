@@ -1135,6 +1135,9 @@ class dstat_swap(dstat):
 		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = ['swp/'+improve(name) for name in self.vars]
+		self.name = []
+		for name in self.vars:
+			self.name.append('swp/'+improve(name))
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
