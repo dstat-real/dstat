@@ -231,6 +231,7 @@ Dstat options:
      -N eth1,total          include eth1 and total
   -p, --proc             enable process stats
   -s, --swap             enable swap stats
+     -S swap1,total         include swap1 and total
   -t, --time             enable time counter
   -y, --sys              enable system stats
   --ipc                  enable ipc stats
@@ -1554,6 +1555,8 @@ def initterm():
 	"Initialise terminal"
 	global termsize
 
+	termsize = None, None
+
 	### Unbuffered sys.stdout
 	sys.stdout = os.fdopen(1, 'w', 0)
 
@@ -1708,8 +1711,8 @@ def main():
 		try:
 			import curses
 			curses.setupterm()
-			if curses.tigetnum('colors') >= 0:
-				op.color = True
+			if curses.tigetnum('colors') < 0:
+				op.color = False
 		except:
 			op.color = False
 
