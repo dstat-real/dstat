@@ -1,3 +1,6 @@
+name = dstat
+version = $(shell awk '/^Version: / {print $$2}' $(name).spec)
+
 prefix = /usr
 sysconfdir = /etc
 bindir = $(prefix)/bin
@@ -7,10 +10,9 @@ mandir = $(datadir)/man
 .PHONY: all install docs clean
 
 all: docs
-	@echo "No build phase."
 
 docs:
-	$(MAKE) -C docs $(MAKECMDGOALS)
+	$(MAKE) -C docs docs
 
 install:
 #	-[ ! -f $(DESTDIR)$(sysconfdir)/dstat.conf ] && install -D -m0644 dstat.conf $(DESTDIR)$(sysconfdir)/dstat.conf
@@ -20,10 +22,22 @@ install:
 	install -Dp -m0755 plugins/dstat_*.py $(DESTDIR)$(datadir)/dstat/
 #	install -d -m0755 $(DESTDIR)$(datadir)/dstat/examples/
 #	install -Dp -m0755 examples/*.py $(DESTDIR)$(datadir)/dstat/examples/
-	$(MAKE) -C docs $(MAKECMDGOALS)
+	$(MAKE) -C docs install
 
 clean:
-	rm -f dstat15.tr examples/*.pyc plugins/*.pyc dstat.1 dstat.1.html dstat.1.xml
+	rm -f dstat15.tr examples/*.pyc plugins/*.pyc
+	$(MAKE) -C docs clean
+
+dist: clean
+	$(MAKE) -C docs dist
+	find . ! -wholename '*/.svn*' | pax -d -w -x ustar -s ,^,$(name)-$(version)/, | bzip2 >../$(name)-$(version).tar.bz2
+
+rpm: dist
+	rpmbuild -tb --clean --rmsource --rmspec --define "_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm" --define "_rpmdir ../" ../$(name)-$(version).tar.bz2
+
+srpm: dist
+	rpmbuild -ts --clean --rmsource --rmspec --define "_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm" --define "_srcrpmdir../" ../$(name)-$(version).tar.bz2
+
 
 #### Imperfect translation to dstat15
 tr:
@@ -49,12 +63,3 @@ tr:
 			s|, time$$|, time, string|g; \
 		' >dstat15.tr
 	@chmod a+x dstat15.tr
-
-%.html: %.txt
-	asciidoc -b xhtml11 -d manpage $<
-
-%.1: %.1.xml
-	xmlto man $<
-
-%.xml: %.txt
-	asciidoc -b docbook -d manpage $<

@@ -21,7 +21,6 @@ def inspath(path):
 		sys.path.insert(1, path)
 
 try:
-	import gc
 	import sys, signal, os, re, time
 	import types, signal, resource, getpass
 	inspath('/usr/local/share/dstat/')
@@ -35,6 +34,13 @@ except KeyboardInterrupt, e:
 
 if sys.version_info < (2, 2):
 	sys.exit('error: Python 2.2 or later required, try dstat15 instead')
+
+### Workaround for python <= 2.2.1
+try:
+	True, False
+except NameError:
+	True = 1
+	False = 0
 
 ### Workaround for python < 2.3
 #if 'enumerate' not in __builtins__.__dict__.keys():
@@ -62,14 +68,7 @@ if sys.version_info < (2, 3):
 			ret = ret + i
 		return ret
 
-### Workaround for python <= 2.2.1
-try:
-	True, False
-except NameError:
-	True = 1
-	False = 0
-
-VERSION = '0.6.2'
+VERSION = '0.6.3'
 
 class Options:
 	def __init__(self, args):
@@ -457,7 +456,6 @@ class dstat_cpu(dstat):
 
 	def vars(self):
 		ret = []
-		discover = self.discover
 		if op.cpulist:
 			list = op.cpulist
 		elif not op.full:
@@ -470,7 +468,7 @@ class dstat_cpu(dstat):
 				cpu = cpu + 1
 #			if len(list) > 2: list = list[0:2]
 		for name in list:
-			if name in discover + ['total']:
+			if name in self.discover + ['total']:
 				ret.append(name)
 		return ret
 
@@ -520,7 +518,6 @@ class dstat_cpu24(dstat):
 
 	def vars(self):
 		ret = []
-		discover = self.discover
 		if op.cpulist:
 			list = op.cpulist
 		elif not op.full:
@@ -533,7 +530,7 @@ class dstat_cpu24(dstat):
 				cpu = cpu + 1
 #			if len(list) > 2: list = list[0:2]
 		for name in list:
-			if name in discover + ['total']:
+			if name in self.discover + ['total']:
 				ret.append(name)
 		return ret
 
@@ -575,17 +572,16 @@ class dstat_disk(dstat):
 
 	def vars(self):
 		ret = []
-		discover = self.discover
 		if op.disklist:
 			list = op.disklist
 		elif not op.full:
 			list = ('total', )
 		else:
-			list = discover
+			list = self.discover
 #			if len(list) > 2: list = list[0:2]
 			list.sort()
 		for name in list:
-			if name in discover + ['total'] + op.diskset.keys():
+			if name in self.discover + ['total'] + op.diskset.keys():
 				ret.append(name)
 		return ret
 
@@ -760,6 +756,7 @@ class dstat_int(dstat):
 		self.name = 'interrupts'
 		self.format = ('d', 5, 1000)
 		self.open('/proc/stat')
+		self.discover = self.discover()
 		self.intmap = self.intmap()
 		self.vars = self.vars()
 		self.nick = self.vars
@@ -1153,17 +1150,16 @@ class dstat_swap(dstat):
 
 	def vars(self):
 		ret = []
-		discover = self.discover
 		if op.swaplist:
 			list = op.swaplist
 		elif not op.full:
 			list = ('total', )
 		else:
-			list = discover
+			list = self.discover
 #			if len(list) > 2: list = list[0:2]
-			list.sort()
+		list.sort()
 		for name in list:
-			if name in discover + ['total']:
+			if name in self.discover + ['total']:
 				ret.append(name)
 		return ret
 
@@ -1479,13 +1475,15 @@ def cprint(var, format = ('f', 4, 1000)):
 		else:
 			return ansi['default'] + '-'.rjust(max)
 
-	units = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 	if base == 1024:
 		units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+	else:
+		units = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 
-	colors = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
 	if step != op.delay:
 		colors = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'green')
+	else:
+		colors = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
 
 	if op.integer and type in ('d', 'p', 'f'):
 		ret, c = dchg(var, max, base)
@@ -1549,7 +1547,7 @@ def die(ret, str):
 	exit(ret)
 
 def initterm():
-	"Return the terminal size if possible"
+	"Return the terminal size"
 	global termsize
 
 	### Unbuffered sys.stdout
@@ -1696,7 +1694,7 @@ def main():
 				op.color = True
 		except:
 			op.color = False
-		
+
 	if op.output:
 		if os.path.exists(op.output):
 			outputfile = open(op.output, 'a', 0)
@@ -1793,20 +1791,21 @@ def main():
 	### Let the games begin
 	while update <= op.delay * op.count or op.count == -1:
 
-		if op.debug and step == 1: tt = 0
-		if op.debug: t1 = time.time()
+		if op.debug:
+			if step == 1: tt = 0
+			t1 = time.time()
+			curwidth = 8
+		else:
+			curwidth = 0
 
 		### Trim object list to what is visible on screen
 		rows, cols = gettermsize()
 		vislist = []
-		curwidth = 0
 		for o in totlist:
-			if curwidth + o.statwidth() + 1 <= cols:
+			newwidth = curwidth + o.statwidth() + 1
+			if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
 				vislist.append(o)
-				curwidth = curwidth + o.statwidth() + 1
-			elif vislist == totlist[:-1] and curwidth + o.statwidth() <= cols:
-				vislist.append(o)
-				curwidth = curwidth + o.statwidth() + 1
+				curwidth = newwidth
 
 		### Check when to display the header
 		if op.header and rows >= 6:
@@ -1815,14 +1814,14 @@ def main():
 			elif step == 1 and loop % (rows - 1) == 0:
 				showheader = True
 
+		oldvislist = vislist
+
 		if showheader:
 			if loop == 0 and totlist != vislist:
 				info(1, 'Terminal width too small, trimming output.')
 			showheader = False
 			showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
 			showtitle(2, totlist, vislist, ansi['gray'] + char['pipe'], ansi['darkblue'] + char['gt'])
-
-		oldvislist = vislist
 
 		### Prepare the colors for intermediate updates, last step in a loop is definitive
 		if step == op.delay:
@@ -1846,19 +1845,21 @@ def main():
 			outputfile.write(oline + '\n')
 
 		### Print debugging output
-		if op.debug: t2 = time.time(); tt = tt + (t2 - t1) * 1000
-		if op.debug == 1:
+		if op.debug:
+			t2 = time.time();
+			tt = tt + (t2 - t1) * 1000.0
 			if loop == 0: tt = tt * step
-			sys.stdout.write('%6.2fms' % (tt / step))
-		if op.debug > 1:
-			sys.stdout.write('%6.2f [%d:%d:%d]' % (tt/step, loop, update, step))
+			if op.debug == 1:
+				sys.stdout.write('%6.2fms' % (tt / step))
+			elif op.debug > 1:
+				sys.stdout.write('%6.2f [%d:%d:%d]' % (tt / step, loop, step, update))
 
 		### If intermediate results, update increases with 1 sec (=interval)
 		update = update + interval
 
 		if not op.update:
 			sys.stdout.write('\n')
-		
+
 		### Do not pause when this is the final loop
 		if update <= op.delay * op.count or op.count == -1:
 			signal.pause()
@@ -1867,6 +1868,7 @@ def main():
 		if op.update:
 			if step == op.delay:
 				sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
+#				import gc
 #				for object in gc.get_objects():
 #					if isinstance(object, dstat):
 #						print dir(object)
@@ -1879,18 +1881,16 @@ def main():
 		step = ((update - 1) % op.delay) + 1
 		tick = step
 
-
 ### Main entrance
 if __name__ == '__main__':
 	try:
 		initterm()
-
 		op = Options(sys.argv[1:])
 		main()
 	except KeyboardInterrupt, e:
 		print
 	except IOError, e:
-		if e.errno != 32:		## [Errno 32] Broken pipe
+		if e.errno != 32:				## [Errno 32] Broken pipe
 			print
 			print 'IOError: %s' % e
 			exit(7)

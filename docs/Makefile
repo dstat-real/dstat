@@ -1,25 +1,30 @@
 prefix = /usr
-sysconfdir = /etc
-bindir = $(prefix)/bin
 datadir = $(prefix)/share
 mandir = $(datadir)/man
 
-all: docs
+txttargets = $(shell echo *.txt)
+htmltargets = $(patsubst %.txt, %.html, $(txttargets))
 
-docs: dstat.1 dstat.1.html
-	echo "test"
+all:
 
-install:
+dist: docs
+
+docs: dstat.1 $(htmltargets)
+
+install: dstat.1
 	install -Dp -m0644 dstat.1 $(DESTDIR)$(mandir)/man1/dstat.1
 
 clean:
-	rm -f dstat.1 dstat.1.xml *.html
+	rm -f dstat.1 *.html *.xml
 
-%.html: %.txt
+%.1.html: %.1.txt
 	asciidoc -d manpage $<
 
 %.1: %.1.xml
 	xmlto man $<
 
-%.xml: %.txt
+%.html: %.txt
+	asciidoc $<
+
+%.1.xml: %.1.txt
 	asciidoc -b docbook -d manpage $<

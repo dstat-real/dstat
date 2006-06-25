@@ -25,6 +25,8 @@ class dstat_app(dstat):
 				if not self.cn1.has_key(pid):
 					self.cn1[pid] = 0
 
+				### Using dopen() will cause too many open files
+#				l = string.split(dopen('/proc/%s/stat' % pid).read())
 				l = string.split(open('/proc/%s/stat' % pid).read())
 				if len(l) < 15: continue
 				self.cn2[pid] = int(l[13]) + int(l[14])
@@ -41,9 +43,18 @@ class dstat_app(dstat):
 		else:
 			### If the name is a known interpreter, take the second argument from the cmdline
 			if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
+				### Using dopen() will cause too many open files
+#				l = string.split(dopen('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
 				l = string.split(open('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
 				if len(l) > 2:
 					self.val['name'] = os.path.basename(l[1])
+
+#				l = l.reverse()
+#				for x in l:
+#					print x
+#					if x[0] != '-':
+#						self.val['name'] = os.path.basename(x)
+#						break
 
 			### Show yellow usage
 			self.val['process'] = '%-*s%s%3d' % (self.format[1]-3, self.val['name'], ansi['yellow'], round(max))
