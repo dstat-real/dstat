@@ -1,7 +1,7 @@
 dstat(1)
 ========
 Dag Wieers <dag@wieers.com>
-v0.6.1, September 2005
+v0.6.3, Juni 2006
 
 
 NAME
@@ -11,7 +11,7 @@ dstat - versatile tool for generating system resource statistics
 
 SYNOPSIS
 --------
-dstat [-afv] [-cdgilmnpsty] [-D..] [-I..] [-N..] [delay [count]]
+dstat [-afv] [options..] [delay [count]]
 
 
 DESCRIPTION
@@ -62,8 +62,8 @@ OPTIONS
 -i, --int::
 	enable interrupt stats
 
--I 5,eth2::
-	include int5 and interrupt used by eth2
+-I 5,10::
+	include interrupt 5 and 10
 
 -l, --load::
 	enable load stats
@@ -83,11 +83,11 @@ OPTIONS
 -s, --swap::
 	enable swap stats
 
+-S swal1,total::
+	include swap1 and total
+
 -t, --time::
 	enable time counter
-
--u, --user::
-	enable user stats
 
 -y, --sys::
 	enable system stats
@@ -114,8 +114,8 @@ OPTIONS
 	enable internal and external stats
 
 Possible internal stats are::
-  cpu, disk, int, ipc, load, lock, mem, net, page,
-  proc, raw, swap, sys, tcp, time, udp, unix
+  cpu, cpu24, disk, disk24, disk24old, int, int24, ipc, load, lock, mem,
+  net, page, page24, proc, raw, swap, swapold, sys, tcp, time, udp, unix
 
 Possible external stats can be listed using::
   dstat -M list
@@ -124,7 +124,7 @@ Possible external stats can be listed using::
 	equals -cdngy (default)
 
 -f, --full::
-	expand -D, -I and -N discovery lists
+	expand -C, -D, -I, -N and -S discovery lists
 
 -v, --vmstat::
 	equals -pmgdsc -D total
@@ -196,7 +196,12 @@ FILES
 -----
 Paths that may contain external dstat_* modules:
 
-~/.dstat/, ./, ./plugins/, /usr/share/dstat/
+	~/.dstat/
+	./
+	./plugins/
+	(path of binary)/plugins/
+	/usr/share/dstat/
+	/usr/local/share/dstat/
 
 
 SEE ALSO

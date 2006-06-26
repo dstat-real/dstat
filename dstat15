@@ -60,7 +60,7 @@ if True:
 			ret = ret + i
 		return ret
 
-VERSION = '0.6.3'
+VERSION = '0.6.3svn'
 
 class Options:
 	def __init__(self, args):
@@ -245,7 +245,7 @@ Dstat options:
      --mods stat1,stat2
 
   -a, --all              equals -cdngy (default)
-  -f, --full             expand -C, -D, -I and -N discovery lists
+  -f, --full             expand -C, -D, -I, -N and -S discovery lists
   -v, --vmstat           equals -pmgdsc -D total
 
   --integer              show integer values
