@@ -1,3 +1,6 @@
+* 0.6.4 - ... - released ../../2006
+- Fixed dstat_clock to use localtime() instead of gmtime()
+
 * 0.6.3 - Amsterdam - released 25/06/2006
 - Changed default (silver) color of delimiter to gray
 - Fixed sum() and enumerate() only when it isn't there (Jesse Young)

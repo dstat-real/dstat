@@ -14,6 +14,6 @@ class dstat_clock(dstat):
 		pass
 
 	def show(self):
-		return time.strftime('%d-%m %H:%M:%S', time.gmtime())
+		return time.strftime('%d-%m %H:%M:%S', time.localtime())
 
 # vim:ts=4:sw=4
