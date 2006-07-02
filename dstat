@@ -16,6 +16,8 @@
 
 from __future__ import generators
 
+VERSION = '0.6.3svn'
+
 def inspath(path):
 	if os.path.isdir(path) and path not in sys.path:
 		sys.path.insert(1, path)
@@ -67,8 +69,6 @@ if sys.version_info < (2, 3):
 		for i in sequence:
 			ret = ret + i
 		return ret
-
-VERSION = '0.6.3svn'
 
 class Options:
 	def __init__(self, args):

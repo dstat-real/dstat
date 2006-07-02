@@ -3,8 +3,9 @@
 ### Example 1: Direct accessing stats
 ### This is a quick example showing how you can access dstat data
 ### If you're interested in this functionality, contact me at dag@wieers.com
-import sys, dstat
+import sys
 sys.path.insert(0, '/usr/share/dstat/')
+import dstat
 
 clear = dstat.ansi['reset']
 
