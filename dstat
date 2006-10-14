@@ -434,15 +434,6 @@ class dstat_cpu(dstat):
 		self.name = self.name()
 		self.init(self.vars + ['total',], 6)
 
-	def name(self):
-		ret = []
-		for name in self.vars:
-			if name == 'total':
-				ret.append('total cpu usage')
-			else:
-				ret.append('cpu' + name + ' usage')
-		return ret
-
 	def discover(self, *list):
 		ret = []
 		if self.fd:
@@ -453,6 +444,15 @@ class dstat_cpu(dstat):
 				ret.append(l[0][3:])
 			ret.sort()
 		for item in list: ret.append(item)
+		return ret
+
+	def name(self):
+		ret = []
+		for name in self.vars:
+			if name == 'total':
+				ret.append('total cpu usage')
+			else:
+				ret.append('cpu' + name + ' usage')
 		return ret
 
 	def vars(self):
