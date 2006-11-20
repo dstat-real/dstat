@@ -33,6 +33,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Add i2c plugin (see /sys/class/i2c-adapter/i2c-*/*/*/*/*/*)
 + Allow for SNMP counters to be added
 + Add LVM stats
++ Add number of (active) X sessions and X clients
 
 ### Documentation (help welcome!)
 + Create document on general system performance tuning
