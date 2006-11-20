@@ -320,14 +320,16 @@ class dstat:
 		if isinstance(self.name, types.StringType):
 			ret = ''
 			for i, nick in enumerate(self.nick):
-				ret = ret + nick.center(self.format[1]).replace(' ', '_')
+#				ret = ret + nick.center(self.format[1]).replace(' ', '_')
+				ret = ret + nick.center(self.format[1])
 				if i + 1 != len(self.nick): ret = ret + char['space']
 			return ansi['blue'] + ret
 		else:
 			ret = ''
 			for i, name in enumerate(self.name):
 				for j, nick in enumerate(self.nick):
-					ret = ret + ansi['blue'] + nick.center(self.format[1]).replace(' ', '_')
+#					ret = ret + ansi['blue'] + nick.center(self.format[1]).replace(' ', '_')
+					ret = ret + ansi['blue'] + nick.center(self.format[1])
 					if j + 1 != len(self.nick): ret = ret + char['space']
 				if i + 1 != len(self.name): ret = ret + ansi['gray'] + char['colon']
 			return ansi['blue'] + ret

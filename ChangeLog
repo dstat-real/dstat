@@ -1,6 +1,7 @@
 * 0.6.3svn - ... - released 14/10/2006
 - Fixed dstat_clock to use localtime() instead of gmtime()
 - Added external plugin dstat_vz for openvz cpu statistics
+- Removed the underscoring of the counter titles
 
 * 0.6.3 - Amsterdam - released 26/06/2006
 - Changed default (silver) color of delimiter to gray
