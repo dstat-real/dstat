@@ -306,10 +306,10 @@ class dstat:
 			return self.title2()
 
 	def title1(self):
+		ret = ansi['darkblue']
 		if isinstance(self.name, types.StringType):
 			max = self.statwidth()
-			return ansi['darkblue'] + self.name[0:max].center(max).replace(' ', '-') + ansi['default']
-		ret = ansi['darkblue']
+			return ret + self.name[0:max].center(max).replace(' ', '-') + ansi['default']
 		for i, name in enumerate(self.name):
 			max = self.width()
 			ret = ret + name[0:max].center(max).replace(' ', '-')
