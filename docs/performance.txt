@@ -35,6 +35,10 @@ Remember that invisible plugins (that run out of your terminal window)
 do take up cycles because the information is still being collected and
 possibly written to CSV output.
 
+It should be possible to write plugins in C to improve the impact on
+the system, but I have no experience with writing python modules in C.
+Any feedback on this is welcomed.
+
 
 Performance tuning
 ------------------

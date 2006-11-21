@@ -1,7 +1,7 @@
 dstat(1)
 ========
 Dag Wieers <dag@wieers.com>
-v0.6.3, Juni 2006
+v0.6.3svn, Juni 2006
 
 
 NAME
@@ -111,13 +111,13 @@ OPTIONS
 	enable unix stats
 
 -M stat1,stat2::
-	enable internal and external stats
+	enable internal stats and external plugin stats
 
 Possible internal stats are::
   cpu, cpu24, disk, disk24, disk24old, int, int24, ipc, load, lock, mem,
   net, page, page24, proc, raw, swap, swapold, sys, tcp, time, udp, unix
 
-Possible external stats can be listed using::
+Possible external plugin stats can be listed using::
   dstat -M list
 
 -a, --all::
@@ -179,6 +179,11 @@ Checking dstat's behaviour and the system's impact on dstat:::
 dstat -taf --debug
 .....
 
+Using the external clock and app plugins together with normal system resources:::
+....
+dstat -M clock,app -cndylp
+....
+
 
 BUGS
 ----
@@ -194,7 +199,7 @@ Please see the TODO file for known bugs and future plans.
 
 FILES
 -----
-Paths that may contain external dstat_* modules:
+Paths that may contain external dstat_* plugins:
 
 	~/.dstat/
 	./

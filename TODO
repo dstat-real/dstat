@@ -15,6 +15,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Allow to force to given magnitude (--unit=kilo)
 + Look at possibilities to show deviation (on second line ?)
 + Check for dark/light background color and change colors accordingly (see dstat.conf)
++ Show parts of counters in other colors (eg. color the 6 in 6134B in yellow to indicate it's kilobyte)
 
 ### Export/Graph
 + Interface with rrdtool (python-rrd ?)
@@ -40,6 +41,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
   (explaining the different values in /proc, especially the concerning ones)
 + Create document on general system performance tools
   (explaining the different uses of tools like dstat, iostat, pmap, strace, tcpdump)
++ Comply to PEP8: http://www.python.org/dev/peps/pep-0008/
 
 ### General issues
 + Timer is not as accurate on 2.6 kernel as on 2.4, possibly scheduling differences

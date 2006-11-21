@@ -1652,9 +1652,9 @@ def signaler(signum, frame):
 	signal.alarm(interval)
 
 def exit(ret):
-	sys.stdout.write(ansi['reset'])
 	if 'signal' in sys.modules.keys():
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
+	sys.stdout.write(ansi['reset'])
 	sys.exit(ret)
 
 def listmodules():
