@@ -309,30 +309,28 @@ class dstat:
 		if isinstance(self.name, types.StringType):
 			max = self.statwidth()
 			return ansi['darkblue'] + self.name[0:max].center(max).replace(' ', '-') + ansi['default']
-		ret = ''
+		ret = ansi['darkblue']
 		for i, name in enumerate(self.name):
 			max = self.width()
 			ret = ret + name[0:max].center(max).replace(' ', '-')
 			if i + 1 != len(self.name): ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
-		return ansi['darkblue'] + ret
+		return ret
 
 	def title2(self):
 		if isinstance(self.name, types.StringType):
 			ret = ''
 			for i, nick in enumerate(self.nick):
-#				ret = ret + nick.center(self.format[1]).replace(' ', '_')
-				ret = ret + nick.center(self.format[1])
+				ret = ret + ansi['blue'] + ansi['underline'] + nick.center(self.format[1]) + ansi['default']
 				if i + 1 != len(self.nick): ret = ret + char['space']
-			return ansi['blue'] + ret
+			return ret
 		else:
 			ret = ''
 			for i, name in enumerate(self.name):
 				for j, nick in enumerate(self.nick):
-#					ret = ret + ansi['blue'] + nick.center(self.format[1]).replace(' ', '_')
-					ret = ret + ansi['blue'] + nick.center(self.format[1])
+					ret = ret + ansi['blue'] + ansi['underline'] + nick.center(self.format[1]) + ansi['default']
 					if j + 1 != len(self.nick): ret = ret + char['space']
 				if i + 1 != len(self.name): ret = ret + ansi['gray'] + char['colon']
-			return ansi['blue'] + ret
+			return ret
 
 	def titlecsv(self, nr):
 		if nr == 1:
