@@ -6,7 +6,7 @@ import string
 #302    142926  0       10252    152896388  852779112954062  0      427034187248480 1048603937010  0       0       0
 #301    27188   0       7896     152899846  853267000490282  0      427043845492614 701812592320   0       0       0
 
-class dstat_vz(dstat):
+class dstat_vzcpu(dstat):
 	def __init__(self):
 		self.format = ('p', 3, 34)
 		self.open('/proc/vz/vestat')
@@ -15,7 +15,7 @@ class dstat_vz(dstat):
 		self.vars = self.vars()
 		self.name = self.name()
 		self.init(self.vars + ['total'], 4)
-		info(1, 'Module dstat_vz is still experimental.')
+		info(1, 'Module dstat_vzcpu is still experimental.')
 
 	def discover(self, *list):
 		ret = []
