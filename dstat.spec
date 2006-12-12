@@ -9,7 +9,7 @@
 
 Summary: Versatile resource statistics tool
 Name: dstat
-Version: 0.6.3svn
+Version: 0.6.4
 Release: 1
 License: GPL
 Group: System Environment/Base
@@ -60,8 +60,8 @@ confusion, less mistakes.
 %{_datadir}/dstat/
 
 %changelog
-* Mon Jun 26 2006 Dag Wieers <dag@wieers.com> - 0.6.3svn-1
-- Updated to release 0.6.3svn.
+* Tue Dec 12 2006 Dag Wieers <dag@wieers.com> - 0.6.4-1
+- Updated to release 0.6.4.
 
 * Mon Jun 26 2006 Dag Wieers <dag@wieers.com> - 0.6.3-1
 - Updated to release 0.6.3.

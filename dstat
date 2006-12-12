@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.3svn'
+VERSION = '0.6.4'
 
 def inspath(path):
 	if os.path.isdir(path) and path not in sys.path:
@@ -98,8 +98,8 @@ class Options:
 
 		try:
 			import getopt
-			opts, args = getopt.getopt (args, 'acdfghilmno:pstvyC:D:I:M:N:S:V',
-				['all', 'cpu', 'disk', 'help', 'int', 'ipc', 'load', 'lock', 'mem', 'net', 'page',
+			opts, args = getopt.getopt (args, 'acdfghilmno:pstTvyC:D:I:M:N:S:V',
+				['all', 'cpu', 'disk', 'epoch', 'help', 'int', 'ipc', 'load', 'lock', 'mem', 'net', 'page',
 				'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 'version', 'vmstat',
 				'debug', 'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate', 'output='])
 		except getopt.error, exc:
@@ -151,6 +151,8 @@ class Options:
 				self.modlist.append('tcp')
 			elif opt in ['-t', '--time']:
 				self.modlist.append('time')
+			elif opt in ['-T', '--epoch']:
+				self.modlist.append('epoch')
 			elif opt in ['--udp']:
 				self.modlist.append('udp')
 			elif opt in ['--unix']:
@@ -755,6 +757,22 @@ class dstat_disk24old(dstat):
 		if step == op.delay:
 			self.cn1.update(self.cn2)
 
+class dstat_epoch(dstat):
+	def __init__(self):
+		self.name = 'epoch'
+		self.format = ('t', 10, 0)
+		if op.debug:
+			self.format = ('t', 14, 0)
+		self.nick = ('epoch',)
+		self.vars = self.nick
+		self.init(self.vars, 1)
+
+	def extract(self):
+		self.val['epoch'] = time.time()
+
+#	def show(self):
+#		return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
+
 class dstat_int(dstat):
 	def __init__(self):
 		self.name = 'interrupts'
@@ -1241,18 +1259,19 @@ class dstat_tcp(dstat):
 class dstat_time(dstat):
 	def __init__(self):
 		self.name = 'time'
-		self.format = ('t', 10, 0)
-		if op.debug:
-			self.format = ('t', 14, 0)
-		self.nick = ('epoch',)
+		self.format = ('s', 14, 0)
+		self.nick = ('date/time',)
 		self.vars = self.nick
-		self.init(self.vars, 1)
 
 	def extract(self):
-		self.val['epoch'] = time.time()
+		pass
 
-#	def show(self):
-#		return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
+	def show(self):
+		if step == op.delay:
+			color = 'silver'
+		else:
+			color = 'gray'
+		return ansi[color] + time.strftime('%d-%m %H:%M:%S', time.localtime())
 
 class dstat_udp(dstat):
 	def __init__(self):
@@ -1484,10 +1503,10 @@ def cprint(var, format = ('f', 4, 1000)):
 	else:
 		units = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 
-	if step != op.delay:
-		colors = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'green')
-	else:
+	if step == op.delay:
 		colors = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
+	else:
+		colors = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'green')
 
 	if op.integer and type in ('d', 'p', 'f'):
 		ret, c = dchg(var, max, base)

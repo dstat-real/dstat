@@ -14,6 +14,10 @@ class dstat_clock(dstat):
 		pass
 
 	def show(self):
-		return time.strftime('%d-%m %H:%M:%S', time.localtime())
+		if step == op.delay:
+			color = 'silver'
+		else:
+			color = 'gray'
+		return ansi[color] + time.strftime('%d-%m %H:%M:%S', time.localtime())
 
 # vim:ts=4:sw=4

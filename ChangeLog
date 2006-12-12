@@ -1,9 +1,11 @@
-* 0.6.3svn - ... - released 14/10/2006
+* 0.6.4 - Ahoy - released 12/12/2006
 - Fixed dstat_clock to use localtime() instead of gmtime()
 - Added external plugin dstat_vz for openvz cpu statistics
 - Removed the underscoring of the counter titles
 - Added underlining for the counter titles
 - Do not return md and dm devices during disk discovery
+- Renamed dstat_time plugin to dstat_epoch (-T/--epoch)
+- Moved dstat_clock plugin into main dstat program as dstat_time (-t/--time)
 
 * 0.6.3 - Amsterdam - released 26/06/2006
 - Changed default (silver) color of delimiter to gray

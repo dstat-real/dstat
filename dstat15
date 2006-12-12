@@ -16,7 +16,7 @@
 
 #from __future__ import generators
 
-VERSION = '0.6.3svn'
+VERSION = '0.6.4'
 
 def inspath(path):
 	if os.path.isdir(path) and path not in sys.path:
@@ -90,8 +90,8 @@ class Options:
 
 		try:
 			import getopt
-			opts, args = getopt.getopt (args, 'acdfghilmno:pstvyC:D:I:M:N:S:V',
-				['all', 'cpu', 'disk', 'help', 'int', 'ipc', 'load', 'lock', 'mem', 'net', 'page',
+			opts, args = getopt.getopt (args, 'acdfghilmno:pstTvyC:D:I:M:N:S:V',
+				['all', 'cpu', 'disk', 'epoch', 'help', 'int', 'ipc', 'load', 'lock', 'mem', 'net', 'page',
 				'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 'version', 'vmstat',
 				'debug', 'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate', 'output='])
 		except getopt.error, exc:
@@ -143,6 +143,8 @@ class Options:
 				self.modlist.append('tcp')
 			elif opt in ['-t', '--time']:
 				self.modlist.append('time')
+			elif opt in ['-T', '--epoch']:
+				self.modlist.append('epoch')
 			elif opt in ['--udp']:
 				self.modlist.append('udp')
 			elif opt in ['--unix']:
@@ -298,31 +300,31 @@ class dstat:
 			return self.title2()
 
 	def title1(self):
+		ret = ansi['darkblue']
 		if isinstance(self.name, types.StringType):
 			max = self.statwidth()
-			return ansi['darkblue'] + string.replace(string.center(self.name[0:max], max), ' ', '-') + ansi['default']
-		ret = ''
+			return ret + string.replace(string.center(self.name[0:max], max), ' ', '-') + ansi['default']
 		for i, name in enumerate(self.name):
 			max = self.width()
 			ret = ret + string.replace(string.center(name[0:max], max), ' ', '-')
 			if i + 1 != len(self.name): ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
-		return ansi['darkblue'] + ret
+		return ret
 
 	def title2(self):
 		if isinstance(self.name, types.StringType):
 			ret = ''
 			for i, nick in enumerate(self.nick):
-				ret = ret + string.replace(string.center(nick, self.format[1]), ' ', '_')
+				ret = ret + ansi['blue'] + ansi['underline'] + string.center(nick, self.format[1]) + ansi['default']
 				if i + 1 != len(self.nick): ret = ret + char['space']
-			return ansi['blue'] + ret
+			return ret
 		else:
 			ret = ''
 			for i, name in enumerate(self.name):
 				for j, nick in enumerate(self.nick):
-					ret = ret + ansi['blue'] + string.replace(string.center(nick, self.format[1]), ' ', '_')
+					ret = ret + ansi['blue'] + ansi['underline'] + string.center(nick, self.format[1]) + ansi['default']
 					if j + 1 != len(self.nick): ret = ret + char['space']
 				if i + 1 != len(self.name): ret = ret + ansi['gray'] + char['colon']
-			return ansi['blue'] + ret
+			return ret
 
 	def titlecsv(self, nr):
 		if nr == 1:
@@ -561,6 +563,7 @@ class dstat_disk(dstat):
 				if len(l) < 13: continue
 				if l[3:] == ['0',] * 11: continue
 				name = l[2]
+				if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
 				ret.append(name)
 		for item in list: ret.append(item)
 		return ret
@@ -627,6 +630,7 @@ class dstat_disk24(dstat):
 			l = string.split(line)
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
+			if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
 			ret.append(name)	
 		for item in list: ret.append(item)
 		return ret
@@ -749,6 +753,22 @@ class dstat_disk24old(dstat):
 			)
 		if step == op.delay:
 			self.cn1.update(self.cn2)
+
+class dstat_epoch(dstat):
+	def __init__(self):
+		self.name = 'epoch'
+		self.format = ('t', 10, 0)
+		if op.debug:
+			self.format = ('t', 14, 0)
+		self.nick = ('epoch',)
+		self.vars = self.nick
+		self.init(self.vars, 1)
+ 
+		def extract(self):
+			self.val['epoch'] = time.time()
+ 
+#		def show(self):
+#			return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
 
 class dstat_int(dstat):
 	def __init__(self):
@@ -1242,18 +1262,19 @@ class dstat_tcp(dstat):
 class dstat_time(dstat):
 	def __init__(self):
 		self.name = 'time'
-		self.format = ('t', 10, 0)
-		if op.debug:
-			self.format = ('t', 14, 0)
-		self.nick = ('epoch',)
+		self.format = ('s', 14, 0)
+		self.nick = ('date/time',)
 		self.vars = self.nick
-		self.init(self.vars, 1)
 
 	def extract(self):
-		self.val['epoch'] = time.time()
+		pass
 
-#	def show(self):
-#		return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
+	def show(self):
+		if step == op.delay:
+			color = 'silver'
+		else:
+			color = 'gray'
+		return ansi[color] + time.strftime('%d-%m %H:%M:%S', time.localtime())
 
 class dstat_udp(dstat):
 	def __init__(self):
@@ -1485,10 +1506,10 @@ def cprint(var, format = ('f', 4, 1000)):
 	else:
 		units = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 
-	if step != op.delay:
-		colors = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'green')
-	else:
+	if step == op.delay:
 		colors = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
+	else:
+		colors = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'green')
 
 	if op.integer and type in ('d', 'p', 'f'):
 		ret, c = dchg(var, max, base)
@@ -1511,7 +1532,7 @@ def cprint(var, format = ('f', 4, 1000)):
 		color = 'default'
 
 	if type in ('s',):
-		ret = ansi['default'] + ret.ljust(max)
+		ret = ansi['default'] + string.ljust(ret, max)
 	else:
 		ret = ansi[color] + string.rjust(ret, max)
 
@@ -1656,9 +1677,9 @@ def signaler(signum, frame):
 	signal.alarm(interval)
 
 def exit(ret):
-	sys.stdout.write(ansi['reset'])
 	if 'signal' in sys.modules.keys():
 		signal.signal(signal.SIGALRM, signal.SIG_DFL)
+	sys.stdout.write(ansi['reset'])
 	sys.exit(ret)
 
 def listmodules():
