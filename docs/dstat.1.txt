@@ -1,7 +1,7 @@
 dstat(1)
 ========
 Dag Wieers <dag@wieers.com>
-v0.6.3svn, Juni 2006
+v0.6.4, December 2006
 
 
 NAME
