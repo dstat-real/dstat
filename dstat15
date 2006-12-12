@@ -1274,7 +1274,8 @@ class dstat_time(dstat):
 			color = 'silver'
 		else:
 			color = 'gray'
-		return ansi[color] + time.strftime('%d-%m %H:%M:%S', time.localtime())
+		t = time.time()
+		return ansi[color] + time.strftime('%d-%m %H:%M:%S', time.localtime(t))
 
 class dstat_udp(dstat):
 	def __init__(self):

@@ -18,6 +18,7 @@ class dstat_clock(dstat):
 			color = 'silver'
 		else:
 			color = 'gray'
-		return ansi[color] + time.strftime('%d-%m %H:%M:%S', time.localtime())
+		t = time.time()
+		return ansi[color] + time.strftime('%d-%m %H:%M:%S', time.localtime(t))
 
 # vim:ts=4:sw=4
