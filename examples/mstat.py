@@ -16,7 +16,7 @@ except: count = 10
 
 ### Load stats
 stats = []
-for o in (dstat.dstat_time(), dstat.dstat_cpu(), dstat.dstat_mem(), dstat.dstat_load(), dstat.dstat_disk(), dstat.dstat_sys()):
+for o in (dstat.dstat_epoch(), dstat.dstat_cpu(), dstat.dstat_mem(), dstat.dstat_load(), dstat.dstat_disk(), dstat.dstat_sys()):
 	try: o.check()
 	except Exception, e: print e
 	else: stats.append(o)

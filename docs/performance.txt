@@ -3,9 +3,9 @@ Dstat performance
 
 Introduction
 ------------
-Since dstat is written in python, it's not optimized for performance.
+Since dstat is written in python, it is not optimized for performance.
 
-When doing performance analysis, it's always important to verify that
+When doing performance analysis, it is always important to verify that
 the monitoring tool is not messing with the performance numbers.
 (eg. writing to disk, using cpu/memory/network, increasing load)
 

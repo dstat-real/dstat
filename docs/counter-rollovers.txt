@@ -1,7 +1,6 @@
 All you ever wanted to know about counter-rollovers and dstat
 =============================================================
 
-
 What you need to know about counter rollovers
 ---------------------------------------------
 Unfortunately, dstat is susceptible for counter rollovers, which may give

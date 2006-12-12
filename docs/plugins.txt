@@ -7,7 +7,6 @@ external plugins exist:
 
 	dstat_app		- most expensive process
 	dstat_battery		- battery in percentage (needs ACPI)
-	dstat_clock		- human-readable clock
 	dstat_cpufreq		- CPU frequency in percentage (needs ACPI)
 	dstat_dbus		- dbus connections (needs python-dbus)
 	dstat_freespace		- disk usage on per filesystems
