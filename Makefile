@@ -22,6 +22,8 @@ install:
 	install -Dp -m0755 plugins/dstat_*.py $(DESTDIR)$(datadir)/dstat/
 #	install -d -m0755 $(DESTDIR)$(datadir)/dstat/examples/
 #	install -Dp -m0755 examples/*.py $(DESTDIR)$(datadir)/dstat/examples/
+
+docs-install:
 	$(MAKE) -C docs install
 
 clean:
