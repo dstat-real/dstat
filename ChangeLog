@@ -1,3 +1,6 @@
+* 0.6.5 - ... - released 28/12/2006
+- Added VMware ESX plugins (Bert de Bruijn)
+
 * 0.6.4 - Ahoy - released 12/12/2006
 - Fixed dstat_clock to use localtime() instead of gmtime()
 - Added external plugin dstat_vz for openvz cpu statistics
