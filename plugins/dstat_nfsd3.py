@@ -12,8 +12,7 @@ class dstat_nfsd3(dstat):
 		info(1, 'Module dstat_nfsd3 is still experimental.')
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = line.split()
 			if not l or l[0] != 'proc3': continue
 			self.cn2['read'] = long(l[8])

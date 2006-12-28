@@ -11,7 +11,7 @@ class dstat_postfix(dstat):
 
 	def check(self): 
 		if not os.access('/var/spool/postfix/active', os.R_OK):
-			raise Exception, 'Module cannot access postfix queues'
+			raise Exception, 'Cannot access postfix queues'
 		return True
 
 	def extract(self):

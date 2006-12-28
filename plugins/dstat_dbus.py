@@ -23,10 +23,10 @@ class dstat_dbus(dstat):
 				except:
 					self.sesbus = None
 			except:
-				raise Exception, 'Module is unable to connect to dbus message bus.'
+				raise Exception, 'Unable to connect to dbus message bus'
 			return True
 		except:
-			raise Exception, 'Module needs the python-dbus module.'
+			raise Exception, 'Needs python-dbus module'
 
 	def extract(self):
 		self.val['system'] = len(self.sysbus.ListServices()) - 1

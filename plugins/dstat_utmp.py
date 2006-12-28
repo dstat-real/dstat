@@ -12,7 +12,7 @@ class dstat_utmp(dstat):
 			import utmp
 			return True
 		except:
-			raise Exception, 'Module needs the python-utmp module.'
+			raise Exception, 'Needs python-utmp module'
 
 	def extract(self):
 		for name in self.vars: self.val[name] = 0

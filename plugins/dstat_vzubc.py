@@ -14,13 +14,11 @@ class dstat_vzubc(dstat):
 
 	def discover(self, *list):
 		ret = []
-		if self.fd:
-			self.fd.seek(0)
-			for line in self.fd.readlines():
-				l = line.split()
-				if len(l) < 7 or l[0] in ('uid', '0:'): continue
-				ret.append(l[0][0:-1])
-			ret.sort()
+		for line in self.readlines():
+			l = line.split()
+			if len(l) < 7 or l[0] in ('uid', '0:'): continue
+			ret.append(l[0][0:-1])
+		ret.sort()
 		for item in list: ret.append(item)
 		return ret
 
@@ -47,8 +45,7 @@ class dstat_vzubc(dstat):
 	def extract(self):
 		for name in self.vars + ['total']:
 			self.cn2[name] = 0
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = line.split() 
 			if len(l) < 6 or l[0] == 'uid':
 				continue

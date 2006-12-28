@@ -19,13 +19,11 @@ class dstat_vzcpu(dstat):
 
 	def discover(self, *list):
 		ret = []
-		if self.fd:
-			self.fd.seek(0)
-			for line in self.fd.readlines():
-				l = line.split()
-				if len(l) < 6 or l[0] == 'VEID': continue
-				ret.append(l[0])
-			ret.sort()
+		for line in self.readlines():
+			l = line.split()
+			if len(l) < 6 or l[0] == 'VEID': continue
+			ret.append(l[0])
+		ret.sort()
 		for item in list: ret.append(item)
 		return ret
 
@@ -51,8 +49,7 @@ class dstat_vzcpu(dstat):
 
 	def extract(self):
 		self.cn2['total'] = [0, 0, 0, 0]
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = line.split() 
 			if len(l) < 6 or l[0] == 'VEID': continue
 			name = l[0]

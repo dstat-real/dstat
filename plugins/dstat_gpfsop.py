@@ -16,9 +16,9 @@ class dstat_gpfsop(dstat):
 				self.stdin.write('reset\n')
 				readpipe(self.stdout)
 			except IOError:
-				raise Exception, 'Module can not interface with gpfs mmpmon binary'
+				raise Exception, 'Cannot interface with gpfs mmpmon binary'
 			return True
-		raise Exception, 'Module needs gpfs mmpmon binary'
+		raise Exception, 'Needs GPFS mmpmon binary'
 
 	def extract(self):
 		try:

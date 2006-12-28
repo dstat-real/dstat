@@ -26,7 +26,10 @@ class dstat_vmkhba(dstat):
 	# discover will list all vmhba's found.
 	# we might want to filter out the unused vmhba's (read stats, compare with ['0', ] * 13)
 		ret = []
-		list = os.listdir('/proc/vmware/scsi/')
+		try:
+			list = os.listdir('/proc/vmware/scsi/')
+		except:
+			raise Exception, 'Needs VMware ESX'
 		for name in list:
 			for line in dopen('/proc/vmware/scsi/%s/stats' % name).readlines():
 				l = line.split()
@@ -57,8 +60,7 @@ class dstat_vmkhba(dstat):
 		try:
 			os.listdir('/proc/vmware')
 		except:
-			ret = False
-			raise Exception, 'Module vmkhba can only run on VMware ESX.'
+			raise Exception, 'Needs VMware ESX'
 		return ret
 
 	def extract(self):

@@ -21,7 +21,7 @@ class dstat_thermal(dstat):
 			for name in self.vars:
 				self.nick.append(string.lower(name))
 		else:
-			raise Exception, 'Module needs kernel ACPI or IBM-ACPI support.'
+			raise Exception, 'Needs kernel ACPI or IBM-ACPI support'
 		self.init(self.vars, 1)
 
 	def extract(self):

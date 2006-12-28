@@ -19,18 +19,16 @@ class dstat_freespace(dstat):
 
 	def vars(self):
 		ret = []
-		if self.fd:
-			self.fd.seek(0)
-			for line in self.fd.readlines():
-				l = string.split(line)
-				if len(l) < 6: continue
-				if l[2] in ('binfmt_misc', 'devpts', 'iso9660', 'none', 'proc', 'sysfs', 'usbfs'): continue
-				### FIXME: Excluding 'none' here may not be what people want (/dev/shm)
-				if l[0] in ('devpts', 'none', 'proc', 'sunrpc', 'usbfs'): continue
-				name = l[1] 
-				res = os.statvfs(name)
-				if res[0] == 0: continue ### Skip zero block filesystems
-				ret.append(name)
+		for line in self.readlines():
+			l = string.split(line)
+			if len(l) < 6: continue
+			if l[2] in ('binfmt_misc', 'devpts', 'iso9660', 'none', 'proc', 'sysfs', 'usbfs'): continue
+			### FIXME: Excluding 'none' here may not be what people want (/dev/shm)
+			if l[0] in ('devpts', 'none', 'proc', 'sunrpc', 'usbfs'): continue
+			name = l[1] 
+			res = os.statvfs(name)
+			if res[0] == 0: continue ### Skip zero block filesystems
+			ret.append(name)
 		return ret
 
 	def extract(self):

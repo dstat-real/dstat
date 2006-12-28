@@ -12,8 +12,7 @@ class dstat_nfs3op(dstat):
 		info(1, 'Module dstat_nfs3op is still experimental.')
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = line.split()
 			if not l or l[0] != 'proc3': continue
 			for i, name in enumerate(self.vars):

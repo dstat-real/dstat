@@ -14,9 +14,9 @@
 class dstat_vmkint(dstat):
 	def __init__(self):
 		self.name = 'vmkint'
+		self.open('/proc/vmware/interrupts')
 		self.discover = self.discover()
 		self.format = ('d', 4, 1000)
-		self.open('/proc/vmware/interrupts')
 #		self.intmap = self.intmap()
 		self.vars = self.vars()
 		self.nick = self.vars
@@ -39,7 +39,8 @@ class dstat_vmkint(dstat):
 		ret = []
 		# default cpu number is 2
 		ret = 2
-		for line in dopen('/proc/vmware/interrupts').readlines():
+		self.fd[0].seek(0)
+		for line in self.fd[0].readlines():
 			l = line.split()
 			if l[0] == 'Vector': 
 				ret = int( int( l[-1] ) + 1 )
@@ -48,7 +49,8 @@ class dstat_vmkint(dstat):
 	def discover(self):
 		#interrupt names are not decimal numbers, but rather hexadecimal numbers like 0x7e
 		ret = []
-		for line in dopen('/proc/vmware/interrupts').readlines():
+		self.fd[0].seek(0)
+		for line in self.fd[0].readlines():
 			l = line.split()
 			if l[0] == 'Vector': continue
 			if len(l) < self.vmkcpunr()+1: continue
@@ -80,11 +82,12 @@ class dstat_vmkint(dstat):
 			os.listdir('/proc/vmware')
 		except:
 			ret = False
-			raise Exception, 'Module vmkint can only run on VMware ESX.'
+			raise Exception, 'Needs VMware ESX'
 		return ret
 
 	def extract(self):
-		for line in dopen('/proc/vmware/interrupts').readlines():
+		self.fd[0].seek(0)
+		for line in self.fd[0].readlines():
 			l = line.split()
 			if len(l) < self.vmkcpunr()+1: continue
 			name = l[0].split(':')[0]

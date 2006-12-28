@@ -16,7 +16,7 @@ class dstat_wifi(dstat):
 		try:
 			from pythonwifi import iwlibs
 		except:
-			raise Exception, 'Module needs the python-wifi module.'
+			raise Exception, 'Needs python-wifi module'
 		return True
 
 	def extract(self):
