@@ -91,9 +91,10 @@ class Options:
 		try:
 			import getopt
 			opts, args = getopt.getopt (args, 'acdfghilmno:pstTvyC:D:I:M:N:S:V',
-				['all', 'cpu', 'disk', 'epoch', 'help', 'int', 'ipc', 'load', 'lock', 'mem', 'net', 'page',
-				'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 'version', 'vmstat',
-				'debug', 'full', 'integer', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate', 'output='])
+				['cpu', 'disk', 'epoch', 'int', 'ipc', 'load', 'lock', 'mem', 'net',
+				'page', 'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 
+				'all', 'debug', 'full', 'help', 'integer', 'mods', 'modules', 'nocolor',
+				'noheaders', 'noupdate', 'output=', 'version', 'vmstat'])
 		except getopt.error, exc:
 			print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
 			exit(1)
@@ -275,10 +276,22 @@ class dstat:
 					for i in range(len):
 						self.val[name][i] = self.cn1[name][i] = self.cn2[name][i] = 0
 
-	def open(self, file):
+	def open(self, *files):
 		"Open stat file descriptor"
-		self.file = file
-		self.fd = dopen(file)
+		self.file = []
+		self.fd = []
+		for file in files:
+			self.file.append(file)
+			self.fd.append(dopen(file))
+		if not self.fd:
+			raise Exception, 'Cannot open file %s.' % file
+
+	def readlines(self):
+		ret = []
+		for fd in self.fd:
+			fd.seek(0)
+			ret = ret + fd.readlines()
+		return ret
 
 	def statwidth(self):
 		"Return complete stat width"
@@ -439,13 +452,11 @@ class dstat_cpu(dstat):
 
 	def discover(self, *list):
 		ret = []
-		if self.fd:
-			self.fd.seek(0)
-			for line in self.fd.readlines():
-				l = string.split(line)
-				if len(l) < 8 or l[0][0:3] != 'cpu': continue
-				ret.append(l[0][3:])
-			ret.sort()
+		for line in self.readlines():
+			l = string.split(line)
+			if len(l) < 8 or l[0][0:3] != 'cpu': continue
+			ret.append(l[0][3:])
+		ret.sort()
 		for item in list: ret.append(item)
 		return ret
 
@@ -468,8 +479,7 @@ class dstat_cpu(dstat):
 		return ret
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 8: continue
 			for name in self.vars:
@@ -502,8 +512,7 @@ class dstat_cpu24(dstat):
 
 	def discover(self, *list):
 		ret = []
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) != 5 or l[0][0:3] != 'cpu': continue
 			ret.append(l[0][3:])
@@ -530,8 +539,7 @@ class dstat_cpu24(dstat):
 		return ret
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			for name in self.vars:
 				if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
@@ -556,15 +564,13 @@ class dstat_disk(dstat):
 
 	def discover(self, *list):
 		ret = []
-		if self.fd:
-			self.fd.seek(0)
-			for line in self.fd.readlines():
-				l = string.split(line)
-				if len(l) < 13: continue
-				if l[3:] == ['0',] * 11: continue
-				name = l[2]
-				if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
-				ret.append(name)
+		for line in self.readlines():
+			l = string.split(line)
+			if len(l) < 13: continue
+			if l[3:] == ['0',] * 11: continue
+			name = l[2]
+			if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
+			ret.append(name)
 		for item in list: ret.append(item)
 		return ret
 
@@ -585,8 +591,7 @@ class dstat_disk(dstat):
 
 	def extract(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 13: continue
 			if l[5] == '0' and l[9] == '0': continue
@@ -625,8 +630,7 @@ class dstat_disk24(dstat):
 
 	def discover(self, *list):
 		ret = []
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
@@ -652,8 +656,7 @@ class dstat_disk24(dstat):
 
 	def extract(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
 			name = l[3]
@@ -690,8 +693,7 @@ class dstat_disk24old(dstat):
 
 	def discover(self, *list):
 		ret = []
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line, ':')
 			if len(l) < 3: continue
 			name = l[0]
@@ -724,8 +726,7 @@ class dstat_disk24old(dstat):
 
 	def extract(self):
 		for name in self.vars: self.cn2[name] = (0, 0)
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line, ':')
 			if len(l) < 3: continue
 			name = l[0]
@@ -796,8 +797,7 @@ class dstat_int(dstat):
 
 	def discover(self):
 		ret = []
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if l[0] != 'intr': continue
 			for name, i in enumerate(l[2:]):
@@ -806,8 +806,7 @@ class dstat_int(dstat):
 
 #	def check(self):
 #		if self.fd and self.vars:
-#			self.fd.seek(0)
-#			for line in self.fd.readlines():
+#			for line in self.readlines():
 #				l = string.split(line)
 #				if l[0] != 'intr': continue
 #				return True
@@ -831,8 +830,7 @@ class dstat_int(dstat):
 		return ret
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if not l or l[0] != 'intr': continue
 			for name in self.vars:
@@ -854,8 +852,7 @@ class dstat_int24(dstat):
 
 	def intmap(self):
 		ret = {}
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) <= cpunr: continue
 			l1 = string.split(l[0], ':')[0]
@@ -868,8 +865,7 @@ class dstat_int24(dstat):
 
 	def discover(self):
 		ret = []
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < cpunr+1: continue
 			name = string.split(l[0], ':')[0]
@@ -879,8 +875,7 @@ class dstat_int24(dstat):
 
 #	def check(self):
 #		if self.fd and self.discover:
-#			self.fd.seek(0)
-#			for line in self.fd.readlines():
+#			for line in self.readlines():
 #				l = string.split(line)
 #				if l[0] != 'intr' or len(l) > 2: continue
 #				return True
@@ -904,8 +899,7 @@ class dstat_int24(dstat):
 		return ret
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < cpunr+1: continue
 			name = string.split(l[0], ':')[0]
@@ -944,8 +938,7 @@ class dstat_load(dstat):
 		self.init(self.vars, 1)
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 3: continue
 			self.val['load1'] = float(l[0])
@@ -963,8 +956,7 @@ class dstat_lock(dstat):
 
 	def extract(self):
 		for name in self.vars: self.val[name] = 0
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 4: continue
 			if l[1] == 'POSIX':
@@ -986,8 +978,7 @@ class dstat_mem(dstat):
 		self.init(self.vars, 1)
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = string.split(l[0], ':')[0]
@@ -1010,8 +1001,7 @@ class dstat_net(dstat):
 
 	def discover(self, *list):
 		ret = []
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(string.replace(line, ':', ' '))
 			if len(l) < 17: continue
 			if l[2] == '0' and l[10] == '0': continue
@@ -1039,8 +1029,7 @@ class dstat_net(dstat):
 
 	def extract(self):
 		self.cn2['total'] = [0, 0]
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(string.replace(line, ':', ' '))
 			if len(l) < 17: continue
 			if l[2] == '0' and l[10] == '0': continue
@@ -1068,8 +1057,7 @@ class dstat_page(dstat):
 		self.init(self.vars, 1)
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = l[0]
@@ -1090,8 +1078,7 @@ class dstat_page24(dstat):
 		self.init(self.vars, 1)
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 3: continue
 			name = l[0]
@@ -1114,8 +1101,7 @@ class dstat_proc(dstat):
 		self.init(self.vars, 1)
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = l[0]
@@ -1144,8 +1130,7 @@ class dstat_raw(dstat):
 		self.init(self.vars, 1)
 
 	def extract(self):
-		self.fd.seek(0)
-		self.val['sockets'] = len(self.fd.readlines()) - 1
+		self.val['sockets'] = len(self.readlines()) - 1
 
 class dstat_swap(dstat):
 	def __init__(self):
@@ -1162,8 +1147,7 @@ class dstat_swap(dstat):
 
 	def discover(self, *list):
 		ret = []
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 5: continue
 			if l[0] == 'Filename': continue
@@ -1190,8 +1174,7 @@ class dstat_swap(dstat):
 
 	def extract(self):
 		self.val['total'] = [0, 0]
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 5 or l[0] == 'Filename': continue
 			name = l[0]
@@ -1208,8 +1191,7 @@ class dstat_swapold(dstat):
 		self.init(self.vars, 1)
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = string.split(l[0], ':')[0]
@@ -1227,8 +1209,7 @@ class dstat_sys(dstat):
 		self.init(self.vars, 1)
 
 	def extract(self):
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = l[0]
@@ -1243,15 +1224,14 @@ class dstat_tcp(dstat):
 	def __init__(self):
 		self.name = 'tcp sockets'
 		self.format = ('f', 3, 100)
-		self.open('/proc/net/tcp')
+		self.open('/proc/net/tcp', '/proc/net/tcp6')
 		self.nick = ('lis', 'act', 'syn', 'tim')
 		self.vars = ('listen', 'established', 'syn_sent', 'time_wait')
 		self.init(self.vars, 1)
 
 	def extract(self):
 		for name in self.vars: self.val[name] = 0
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 12: continue
 			if l[3] == '0A': self.val['listen'] = self.val['listen'] + 1
@@ -1281,15 +1261,14 @@ class dstat_udp(dstat):
 	def __init__(self):
 		self.name = 'udp'
 		self.format = ('f', 3, 100)
-		self.open('/proc/net/udp')
+		self.open('/proc/net/udp', '/proc/net/udp6')
 		self.nick = ('lis', 'act')
 		self.vars = ('listen', 'established')
 		self.init(self.vars, 1)
 
 	def extract(self):
 		for name in self.vars: self.val[name] = 0
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if l[3] == '07': self.val['listen'] = self.val['listen'] + 1
 			elif l[3] == '01': self.val['established'] = self.val['established'] + 1
@@ -1305,8 +1284,7 @@ class dstat_unix(dstat):
 
 	def extract(self):
 		for name in self.vars: self.val[name] = 0
-		self.fd.seek(0)
-		for line in self.fd.readlines():
+		for line in self.readlines():
 			l = string.split(line)
 			if l[4] == '0002':
 				self.val['datagram'] = self.val['datagram'] + 1
