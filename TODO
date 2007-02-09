@@ -53,6 +53,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + app plugin: reasonably slow
 + app plugin: has problem opening too many files [Errno 24]
 + app plugin: takes second argument when finding known interpreter (is wrong when second argument
++ app plugin: prints ANSI characters to CSV
 + disk plugin: /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible?
 + proc plugin: (run and blk) does not work on 2.4.24+, to be confirmed
 + proc plugin: seem to be off-by-one compared to vmstat (some of the time, this is what I get from /proc/stat)
