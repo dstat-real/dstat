@@ -3,6 +3,7 @@
 - Added tcp6 and udp6 statistics within dstat_tcp and dstat_udp
 - Added module readlines() taking care of seek() and multiple files
 - Improved module exception messages
+- Fixed a problem with strings and CSV output in dstat_time and dstat_app (Vinod Kutty)
 
 * 0.6.4 - Ahoy - released 12/12/2006
 - Fixed dstat_clock to use localtime() instead of gmtime()

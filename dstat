@@ -425,6 +425,8 @@ class dstat:
 					line = line + printcsv(val)
 					if j + 1 != len(self.val[name]):
 						line = line + ','
+			elif isinstance(self.val[name], types.StringType):
+				line = line + self.val[name]
 			else:
 				line = line + printcsv(self.val[name])
 			if i + 1 != len(self.vars):
@@ -1246,17 +1248,18 @@ class dstat_time(dstat):
 		self.name = 'time'
 		self.format = ('s', 14, 0)
 		self.nick = ('date/time',)
-		self.vars = self.nick
+		self.vars = ('time',)
+		self.init(self.vars, 1)
 
 	def extract(self):
-		pass
+		self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime())
 
 	def show(self):
 		if step == op.delay:
 			color = 'silver'
 		else:
 			color = 'gray'
-		return ansi[color] + time.strftime('%d-%m %H:%M:%S', time.localtime())
+		return ansi[color] + self.val['time']
 
 class dstat_udp(dstat):
 	def __init__(self):
