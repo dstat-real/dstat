@@ -4,6 +4,7 @@
 - Added module readlines() taking care of seek() and multiple files
 - Improved module exception messages
 - Fixed a problem with strings and CSV output in dstat_time and dstat_app (Vinod Kutty)
+- Removed broken dstat_clock plugin (use dstat_time or dstat_epoch)
 
 * 0.6.4 - Ahoy - released 12/12/2006
 - Fixed dstat_clock to use localtime() instead of gmtime()
