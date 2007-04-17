@@ -243,7 +243,8 @@ Dstat options:
   -p, --proc             enable process stats
   -s, --swap             enable swap stats
      -S swap1,total         include swap1 and total
-  -t, --time             enable time counter
+  -t, --time             enable time/date output
+  -T, --epoch            enable time counter (seconds since epoch)
   -y, --sys              enable system stats
   --ipc                  enable ipc stats
   --lock                 enable lock stats
