@@ -16,7 +16,7 @@
 
 #from __future__ import generators
 
-VERSION = '0.6.4'
+VERSION = '0.6.5'
 
 def inspath(path):
 	if os.path.isdir(path) and path not in sys.path:
@@ -373,11 +373,13 @@ class dstat:
 
 	def check(self):
 		"Check if stat is applicable"
-		if hasattr(self, 'fd') and not self.fd:
-			raise Exception, 'File %s does not exist' % self.file
+#		if hasattr(self, 'fd') and not self.fd:
+#			raise Exception, 'File %s does not exist' % self.file
 		if not self.vars:
-			raise Exception, 'No objects found, no stats available, module disabled'
-		if self.discover and self.width():
+			raise Exception, 'No objects found, no stats available'
+		if not self.discover:
+			raise Exception, 'No objects discovered, no stats available'
+		if self.width():
 			return True
 		raise Exception, 'Unknown problem, please report'
 
@@ -441,15 +443,6 @@ class dstat_cpu(dstat):
 		self.name = self.name()
 		self.init(self.vars + ['total',], 6)
 
-	def name(self):
-		ret = []
-		for name in self.vars:
-			if name == 'total':
-				ret.append('total cpu usage')
-			else:
-				ret.append('cpu' + name + ' usage')
-		return ret
-
 	def discover(self, *list):
 		ret = []
 		for line in self.readlines():
@@ -458,6 +451,15 @@ class dstat_cpu(dstat):
 			ret.append(l[0][3:])
 		ret.sort()
 		for item in list: ret.append(item)
+		return ret
+
+	def name(self):
+		ret = []
+		for name in self.vars:
+			if name == 'total':
+				ret.append('total cpu usage')
+			else:
+				ret.append('cpu' + name + ' usage')
 		return ret
 
 	def vars(self):
@@ -622,7 +624,7 @@ class dstat_disk24(dstat):
 		self.discover = self.discover()
 		self.vars = self.vars()
 		if self.fd and not self.discover:
-			raise Exception, 'kernel is not compiled with CONFIG_BLK_STATS'
+			raise Exception, 'Kernel is not compiled with CONFIG_BLK_STATS'
 		self.name = []
 		for name in self.vars:
 			self.name.append('disk/' + sysfs_dev(name))
@@ -764,12 +766,12 @@ class dstat_epoch(dstat):
 		self.nick = ('epoch',)
 		self.vars = self.nick
 		self.init(self.vars, 1)
- 
-		def extract(self):
-			self.val['epoch'] = time.time()
- 
-#		def show(self):
-#			return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
+
+	def extract(self):
+		self.val['epoch'] = time.time()
+
+#	def show(self):
+#		return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
 
 class dstat_int(dstat):
 	def __init__(self):
@@ -1225,8 +1227,8 @@ class dstat_tcp(dstat):
 		self.name = 'tcp sockets'
 		self.format = ('f', 3, 100)
 		self.open('/proc/net/tcp', '/proc/net/tcp6')
-		self.nick = ('lis', 'act', 'syn', 'tim')
-		self.vars = ('listen', 'established', 'syn_sent', 'time_wait')
+		self.nick = ('lis', 'act', 'syn', 'tim', 'clo')
+		self.vars = ('listen', 'established', 'syn', 'wait', 'close')
 		self.init(self.vars, 1)
 
 	def extract(self):
@@ -1234,28 +1236,32 @@ class dstat_tcp(dstat):
 		for line in self.readlines():
 			l = string.split(line)
 			if len(l) < 12: continue
-			if l[3] == '0A': self.val['listen'] = self.val['listen'] + 1
-			elif l[3] == '01': self.val['established'] = self.val['established'] + 1
-			elif l[3] == '02': self.val['syn_sent'] = self.val['syn_sent'] + 1
-			elif l[3] == '06': self.val['time_wait'] = self.val['time_wait'] + 1
+			### 01: established, 02: syn_sent,  03: syn_recv, 04: fin_wait1,
+			### 05: fin_wait2,   06: time_wait, 07: close,    08: close_wait,
+			### 09: last_ack,    0A: listen,    0B: closing
+			if l[3] in ('0A',): self.val['listen'] = self.val['listen'] + 1
+			elif l[3] in ('01',): self.val['established'] = self.val['established'] + 1
+			elif l[3] in ('02', '03', '09',): self.val['syn'] = self.val['syn'] + 1
+			elif l[3] in ('06',): self.val['wait'] = self.val['wait'] + 1
+			elif l[3] in ('04', '05', '07', '08', '0B',): self.val['close'] = self.val['close'] + 1
 
 class dstat_time(dstat):
 	def __init__(self):
 		self.name = 'time'
 		self.format = ('s', 14, 0)
 		self.nick = ('date/time',)
-		self.vars = self.nick
+		self.vars = ('time',)
+		self.init(self.vars, 1)
 
 	def extract(self):
-		pass
+		self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime())
 
 	def show(self):
 		if step == op.delay:
 			color = 'silver'
 		else:
 			color = 'gray'
-		t = time.time()
-		return ansi[color] + time.strftime('%d-%m %H:%M:%S', time.localtime(t))
+		return ansi[color] + self.val['time']
 
 class dstat_udp(dstat):
 	def __init__(self):
@@ -1760,7 +1766,7 @@ def main():
 #					exec compile(readfile(pathname), pathname, 'exec')
 					execfile(pathname)
 				except Exception, e:
-					info(1, 'Module dstat_%s failed to load. (%s)' % (mod, e))
+					info(1, 'Module %s failed to load. (%s)' % (mod, e))
 #					tb = sys.exc_info()[2]
 					continue
 
@@ -1778,7 +1784,7 @@ def main():
 
 			except Exception, e:
 				if mod == mods[-1]:
-					info(1, 'Module dstat_%s has problems. (%s)' % (mod, e))
+					info(1, 'Module %s has problems. (%s)' % (mod, e))
 					if op.debug:
 						raise
 				continue
@@ -1904,15 +1910,15 @@ if __name__ == '__main__':
 		main()
 	except KeyboardInterrupt, e:
 		print
-	except IOError, e:
-		if e.errno != 32:				## [Errno 32] Broken pipe
-			print
-			print 'IOError: %s' % e
-			exit(7)
-	except OSError, e:
-		print
-		print 'OSError: %s' % e
-		exit(7)
+#	except IOError, e:
+#		if e.errno != 32:				## [Errno 32] Broken pipe
+#			print
+#			print 'IOError: %s' % e
+#			exit(7)
+#	except OSError, e:
+#		print
+#		print 'OSError: %s' % e
+#		exit(7)
 	exit(0)
 else:
 	op = Options('')

@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.4'
+VERSION = '0.6.5'
 
 def inspath(path):
 	if os.path.isdir(path) and path not in sys.path:
