@@ -1,3 +1,6 @@
+* 0.6.6 - ... - released 18/04/2007
+- Removed SwapCached from the Cached counter. (Peter Rabbitson)
+
 * 0.6.5 - Torrox - released 17/04/2007
 - Added VMware ESX plugins (Bert de Bruijn)
 - Added tcp6 and udp6 statistics within dstat_tcp and dstat_udp

@@ -985,9 +985,8 @@ class dstat_mem(dstat):
 			l = string.split(line)
 			if len(l) < 2: continue
 			name = string.split(l[0], ':')[0]
-			if name in self.vars + ('MemTotal', 'SwapCached'):
+			if name in self.vars + ('MemTotal', ):
 				self.val[name] = long(l[1]) * 1024.0
-		self.val['Cached'] = self.val['Cached'] + self.val['SwapCached']
 		self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
 
 class dstat_net(dstat):
