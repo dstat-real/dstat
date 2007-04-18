@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.5'
+VERSION = '0.6.5svn'
 
 def inspath(path):
 	if os.path.isdir(path) and path not in sys.path:
@@ -290,10 +290,12 @@ class dstat:
 		self.file = []
 		self.fd = []
 		for file in files:
-			self.file.append(file)
-			self.fd.append(dopen(file))
-		if not self.fd:
-			raise Exception, 'Cannot open file %s.' % file
+			fd = dopen(file)
+			if fd:
+				self.file.append(file)
+				self.fd.append(fd)
+			else:
+				raise Exception, 'Cannot open file %s.' % file
 
 	def readlines(self):
 		for fd in self.fd:
