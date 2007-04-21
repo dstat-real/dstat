@@ -1254,6 +1254,7 @@ class dstat_time(dstat):
 		self.init(self.vars, 1)
 
 	def extract(self):
+		### FIXME: Add milliseconds when using --debug (see dstat_epoch)
 		self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime())
 
 	def show(self):
@@ -1662,8 +1663,7 @@ def signaler(signum, frame):
 	signal.alarm(interval)
 
 def exit(ret):
-	if 'signal' in sys.modules.keys():
-		signal.signal(signal.SIGALRM, signal.SIG_DFL)
+	signal.signal(signal.SIGALRM, signal.SIG_IGN)
 	sys.stdout.write(ansi['reset'])
 	sys.exit(ret)
 
@@ -1919,6 +1919,8 @@ def main():
 		loop = (update + op.delay - 1) / op.delay
 		step = ((update - 1) % op.delay) + 1
 		tick = step
+
+	signal.signal(signal.SIGALRM, signal.SIG_IGN)
 
 ### Main entrance
 if __name__ == '__main__':

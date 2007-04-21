@@ -1,7 +1,8 @@
-* 0.6.5svn - ... - released 18/04/2007
+* 0.6.5svn - ... - released 21/04/2007
 - Removed SwapCached from the Cached counter. (Peter Rabbitson)
 - Fixed a file descriptor problem on kernel 2.4. (Liviu Daia)
 - Install manpage as part of the make install phase. (Scott Baker)
+- Use SIG_IGN instead of SIG_DFL to disable alarm signal.
 
 * 0.6.5 - Torrox - released 17/04/2007
 - Added VMware ESX plugins (Bert de Bruijn)
