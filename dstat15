@@ -423,6 +423,8 @@ class dstat:
 					line = line + printcsv(val)
 					if j + 1 != len(self.val[name]):
 						line = line + ','
+			elif isinstance(self.val[name], types.StringType):
+				line = line + self.val[name]
 			else:
 				line = line + printcsv(self.val[name])
 			if i + 1 != len(self.vars):
@@ -563,8 +565,7 @@ class dstat_disk(dstat):
 		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = []
-		for name in self.vars:
-			self.name.append('disk/' + name)
+		for name in self.vars: self.name.append('dsk/' + name)
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -629,8 +630,7 @@ class dstat_disk24(dstat):
 		if self.fd and not self.discover:
 			raise Exception, 'Kernel is not compiled with CONFIG_BLK_STATS'
 		self.name = []
-		for name in self.vars:
-			self.name.append('disk/' + sysfs_dev(name))
+		for name in self.vars: self.name.append('dsk/' + sysfs_dev(name))
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -692,8 +692,7 @@ class dstat_disk24old(dstat):
 		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = []
-		for name in self.vars:
-			self.name.append('disk/' + name)
+		for name in self.vars: self.name.append('dsk/' + name)
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -810,8 +809,9 @@ class dstat_int(dstat):
 		return ret
 
 #	def check(self):
-#		if self.fd and self.vars:
-#			for line in self.readlines():
+#		if self.fd[0] and self.vars:
+#			self.fd[0].seek(0)
+#			for line in self.fd[0].readlines():
 #				l = string.split(line)
 #				if l[0] != 'intr': continue
 #				return True
@@ -880,7 +880,8 @@ class dstat_int24(dstat):
 
 #	def check(self):
 #		if self.fd and self.discover:
-#			for line in self.readlines():
+#			self.fd[0].seek(0)
+#			for line in self.fd[0].readlines():
 #				l = string.split(line)
 #				if l[0] != 'intr' or len(l) > 2: continue
 #				return True
@@ -999,8 +1000,7 @@ class dstat_net(dstat):
 		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = []
-		for name in self.vars:
-			self.name.append('net/' + name)
+		for name in self.vars: self.name.append('net/' + name)
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -1145,8 +1145,7 @@ class dstat_swap(dstat):
 		self.discover = self.discover()
 		self.vars = self.vars()
 		self.name = []
-		for name in self.vars:
-			self.name.append('swp/'+improve(name))
+		for name in self.vars: self.name.append('swp/'+improve(name))
 		self.init(self.vars + ['total',], 2)
 
 	def discover(self, *list):
@@ -1627,24 +1626,53 @@ def sysfs_dev(device):
 		return 'sdX'
 	return device
 
-def scsi_dev(nr):
-	"Convert sequential number into scsi device names"
-	if nr < 26:
-		return 'sd' + chr(ord('a') + nr)
-	else:
-		return 'sd' + chr(ord('a') - 1 + nr / 26) + chr(ord('a') + nr % 26)
-
 def dev(maj, min):
 	"Convert major/minor pairs into device names"
-	scsi = [8, 65, 66, 67, 68, 69, 70, 71, 128, 129, 130, 131, 132, 133, 134, 135]
+	ram = [1, ]
 	ide = [3, 22, 33, 34, 56, 57, 88, 89, 90, 91]
+	loop = [7, ]
+	scsi = [8, 65, 66, 67, 68, 69, 70, 71, 128, 129, 130, 131, 132, 133, 134, 135]
+	md = [9, ]
+	ida = [72, 73, 74, 75, 76, 77, 78, 79]
+	ubd = [98,]
+	cciss = [104,]
+	dm =  [253,]
 	if maj in scsi:
-		nr = scsi.index(maj) * 16 + min
-#		nr = scsi.index(maj) * 16 + min / 16
-		return scsi_dev(nr)
+		disc = chr(ord('a') + scsi.index(maj) * 16 + min / 16)
+		part = min % 16
+		if not part: return 'sd%s' % disc
+		return 'sd%s%d' % (disc, part)
 	elif maj in ide:
-		nr = ide.index(maj) * 2 + min / 64
-		return 'hd' + chr(ord('a') + nr)
+		disc = chr(ord('a') + ide.index(maj) * 2 + min / 64)
+		part = min % 64
+		if not part: return 'hd%s' % disc
+		return 'hd%s%d' % (disc, part)
+	elif maj in dm:
+		return 'dm-%d' % min
+	elif maj in md:
+		return 'md%d' % min
+	elif maj in loop:
+		return 'loop%d' % min
+	elif maj in ram:
+		return 'ram%d' % min
+	elif maj in cciss:
+		disc = cciss.index(maj) * 16 + min / 16
+		part = min % 16
+		if not part: return 'c0d%d' % disc
+		return 'c0d%dp%d' % (disc, part)
+	elif maj in ida:
+		cont = ida.index(maj)
+		disc = min / 16
+		part = min % 16
+		if not part: return 'ida%d-%d' % (cont, disc)
+		return 'ida%d-%d-%d' % (cont, disc, part)
+	elif maj in ubd:
+		disc = ubd.index(maj) * 16 + min / 16
+		part = min % 16
+		if not part: return 'ubd%d' % disc
+		return 'ubd%d-%d' % (disc, part)
+	else:
+		return 'dev%d-%d' % (maj, min)
 
 #def mountpoint(dev):
 #	"Return the mountpoint of a mounted device/file"
