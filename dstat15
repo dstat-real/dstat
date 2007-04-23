@@ -305,9 +305,7 @@ class dstat:
 		if isinstance(self.name, types.StringType):
 			return self.format[1]
 		else:
-			for name in self.cn2.keys():
-				return len(self.cn2[name]) * self.format[1] + len(self.cn2[name]) - 1
-			return 0
+			return len(self.nick) * self.format[1] + len(self.nick) - 1
 
 	def title(self, nr):
 		if nr == 1:
@@ -323,7 +321,11 @@ class dstat:
 		for i, name in enumerate(self.name):
 			max = self.width()
 			ret = ret + string.replace(string.center(name[0:max], max), ' ', '-')
-			if i + 1 != len(self.name): ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
+			if i + 1 != len(self.name):
+				if op.color:
+					ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
+				else:
+					ret = ret + char['space']
 		return ret
 
 	def title2(self):
@@ -1692,8 +1694,7 @@ def signaler(signum, frame):
 	signal.alarm(interval)
 
 def exit(ret):
-	if 'signal' in sys.modules.keys():
-		signal.signal(signal.SIGALRM, signal.SIG_DFL)
+	signal.signal(signal.SIGALRM, signal.SIG_IGN)
 	sys.stdout.write(ansi['reset'])
 	sys.exit(ret)
 
@@ -1931,6 +1932,8 @@ def main():
 		loop = (update + op.delay - 1) / op.delay
 		step = ((update - 1) % op.delay) + 1
 		tick = step
+
+	signal.signal(signal.SIGALRM, signal.SIG_IGN)
 
 ### Main entrance
 if __name__ == '__main__':

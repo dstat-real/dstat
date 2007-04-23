@@ -328,7 +328,11 @@ class dstat:
 		for i, name in enumerate(self.name):
 			max = self.width()
 			ret = ret + name[0:max].center(max).replace(' ', '-')
-			if i + 1 != len(self.name): ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
+			if i + 1 != len(self.name): 
+				if op.color:
+					ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
+				else:
+					ret = ret + char['space']
 		return ret
 
 	def title2(self):
