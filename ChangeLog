@@ -4,6 +4,7 @@
 - Install manpage as part of the make install phase. (Scott Baker)
 - Use SIG_IGN instead of SIG_DFL to disable alarm signal.
 - Improved dev() for kernel 2.4 device names. (Filippo Giunchedi)
+- If stdout is not a TTY, don't limit the line length. (Jason)
 
 * 0.6.5 - Torrox - released 17/04/2007
 - Added VMware ESX plugins (Bert de Bruijn)
