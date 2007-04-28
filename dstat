@@ -1743,8 +1743,9 @@ def main():
 
 	### Write term-title
 	if op.isatty:
+		shell = os.getenv('XTERM_SHELL')
 		term = os.getenv('TERM')
-		if term and re.compile('(screen*|xterm*)').match(term):
+		if shell == '/bin/bash' and term and re.compile('(screen*|xterm*)').match(term):
 			sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), ' '.join(op.args)))
 
 	### Check background color (rxvt)

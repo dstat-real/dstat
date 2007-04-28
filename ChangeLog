@@ -1,10 +1,14 @@
+* 0.6.6svn - ... - released 28/04/2007
+- Only rewrite xterm title when XTERM_SHELL is set to bash
+- Added more Dbt (Debian bug tracker) ids in the ChangeLog and TODO
+
 * 0.6.6 - Unemployed - released 28/04/2007
-- Removed SwapCached from the Cached counter. (Peter Rabbitson)
-- Fixed a file descriptor problem on kernel 2.4. (Liviu Daia)
-- Install manpage as part of the make install phase. (Scott Baker)
-- Use SIG_IGN instead of SIG_DFL to disable alarm signal.
-- Improved dev() for kernel 2.4 device names. (Filippo Giunchedi)
-- If stdout is not a TTY, don't limit the line length. (Jason)
+- Removed SwapCached from the Cached counter (Dbt 418326, Peter Rabbitson)
+- Fixed a file descriptor problem on kernel 2.4 (Liviu Daia)
+- Install manpage as part of the make install phase (Scott Baker)
+- Use SIG_IGN instead of SIG_DFL to disable alarm signal
+- Improved dev() for kernel 2.4 device names (Dbt 377199, Filippo Giunchedi)
+- If stdout is not a TTY, don't limit the line length (Jason)
 
 * 0.6.5 - Torrox - released 17/04/2007
 - Added VMware ESX plugins (Bert de Bruijn)
@@ -35,7 +39,7 @@
 - Added individual swap monitoring (-s with -S)
 - Small performance improvements
 - Raise module exceptions when --debug is invoked
-- Removed the memory-leaking curses implementation (supastuff@freenode)
+- Removed the memory-leaking curses implementation (Dbt 336380, supastuff@freenode)
 - Added dist, rpm and srpm targets to Makefile
 - Moved documentation to asciidoc at last
 
@@ -52,7 +56,7 @@
 - Fixed a bug in dpopen causing gpfs/gpfsop to fail after a while
 - Change terminal title (if terminal supports it)
 - Don't trim the cpulist to 2 items when -f (Sébastien Prud'homme)
-- Exclude md-devices from total (Peter Cordes)
+- Exclude md-devices from total (Dbt 318950, Peter Cordes)
 - Now accept 'total' keyword with -C (like -D and -N)
 - Rewrote the path-inserting code
 - Added asciidoc based manual page
