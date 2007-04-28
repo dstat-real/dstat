@@ -16,7 +16,7 @@
 
 #from __future__ import generators
 
-VERSION = '0.6.5svn'
+VERSION = '0.6.6'
 
 def inspath(path):
 	if os.path.isdir(path) and path not in sys.path:
@@ -75,11 +75,16 @@ class Options:
 		self.intlist = None
 		self.netlist = None
 		self.swaplist = None
-		self.nolimit = False
-		self.color = True
+		self.color = False
 		self.update = True
 		self.header = True
 		self.output = False
+		self.isatty = sys.stdout.isatty()
+
+		### Implicit if no terminal is used
+		if not self.isatty:
+			self.update = False
+			self.header = False
 
 		### Temporary hardcoded for my own project
 		self.diskset = {
@@ -1735,16 +1740,14 @@ def main():
 	rows, cols = gettermsize()
 
 	### Write term-title
-	term = os.environ['TERM']
-	if term and re.compile('(screen*|xterm*)').match(term):
-		sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), string.join(op.args, ' ')))
+	if op.isatty:
+		term = os.environ['TERM']
+		if term and re.compile('(screen*|xterm*)').match(term):
+			sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), string.join(op.args, ' ')))
 
 	### Check terminal capabilities
-	if not sys.stdout.isatty():
-		op.color = False
-		op.nolimit = True
-		op.update = False
-	else:
+	if op.isatty:
+		op.color = True
 		try:
 			import curses
 			curses.setupterm()
@@ -1857,22 +1860,25 @@ def main():
 			curwidth = 0
 
 		### Trim object list to what is visible on screen
-		rows, cols = gettermsize()
-		vislist = []
-		for o in totlist:
-			newwidth = curwidth + o.statwidth() + 1
-			if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
-				vislist.append(o)
-				curwidth = newwidth
+		if op.isatty:
+			rows, cols = gettermsize()
+			vislist = []
+			for o in totlist:
+				newwidth = curwidth + o.statwidth() + 1
+				if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
+					vislist.append(o)
+					curwidth = newwidth
+	
+			### Check when to display the header
+			if op.header and rows >= 6:
+				if oldvislist != vislist:
+					showheader = True
+				elif step == 1 and loop % (rows - 1) == 0:
+					showheader = True
 
-		### Check when to display the header
-		if op.header and rows >= 6:
-			if oldvislist != vislist:
-				showheader = True
-			elif step == 1 and loop % (rows - 1) == 0:
-				showheader = True
-
-		oldvislist = vislist
+			oldvislist = vislist
+		else:
+			vislist = totlist
 
 		if showheader:
 			if loop == 0 and totlist != vislist:

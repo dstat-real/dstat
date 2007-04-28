@@ -48,6 +48,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Python 1.5 prints 'L' for long, crashes when int()
 + Implement better (?) protection against counter rollovers (see mail from Sebastien Prud'homme)
 + Plugins currently have to be written in python 1.5 to work for dstat15 (lowest common denominator)
++ When stdout is suspend (Ctrl-S) you get: IOError: [Errno 4] Interrupted system call
 
 ### Plugin issues
 + app plugin: reasonably slow

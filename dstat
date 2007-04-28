@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.5svn'
+VERSION = '0.6.6'
 
 def inspath(path):
 	if os.path.isdir(path) and path not in sys.path:
@@ -1760,7 +1760,6 @@ def main():
 #		print 'Background is unknown, assuming dark.'
 
 	### Check terminal capabilities
-
 	if op.isatty:
 		op.color = True
 		try:
@@ -1874,8 +1873,8 @@ def main():
 		else:
 			curwidth = 0
 
+		### Trim object list to what is visible on screen
 		if op.isatty:
-			### Trim object list to what is visible on screen
 			rows, cols = gettermsize()
 			vislist = []
 			for o in totlist:
