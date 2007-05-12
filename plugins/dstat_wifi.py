@@ -2,31 +2,31 @@ global iwlibs
 from pythonwifi import iwlibs
 
 class dstat_wifi(dstat):
-	def __init__(self):
-		self.name = 'wifi'
-		self.format = ('d', 3, 33)
-		self.check()
-		self.vars = iwlibs.getNICnames()
-		self.name = self.vars
-		self.nick = ('lnk', 's/n')
-		self.init(self.vars, 2)
+    def __init__(self):
+        self.name = 'wifi'
+        self.format = ('d', 3, 33)
+        self.check()
+        self.vars = iwlibs.getNICnames()
+        self.name = self.vars
+        self.nick = ('lnk', 's/n')
+        self.init(self.vars, 2)
 
-	def check(self): 
-		global iwlibs
-		try:
-			from pythonwifi import iwlibs
-		except:
-			raise Exception, 'Needs python-wifi module'
-		return True
+    def check(self): 
+        global iwlibs
+        try:
+            from pythonwifi import iwlibs
+        except:
+            raise Exception, 'Needs python-wifi module'
+        return True
 
-	def extract(self):
-		for name in self.vars:
-			wifi = iwlibs.Wireless(name)
-			stat, qual, discard, missed_beacon = wifi.getStatistics()
-#			print qual.quality, qual.signallevel, qual.noiselevel
-			if qual.quality == 0 or qual.signallevel == -101 or qual.noiselevel == -101 or qual.signallevel == -256 or qual.noiselevel == -256:
-				self.val[name] = ( -1, -1 )
-			else:
-				self.val[name] = ( qual.quality, qual.signallevel * 100 / qual.noiselevel )
+    def extract(self):
+        for name in self.vars:
+            wifi = iwlibs.Wireless(name)
+            stat, qual, discard, missed_beacon = wifi.getStatistics()
+#           print qual.quality, qual.signallevel, qual.noiselevel
+            if qual.quality == 0 or qual.signallevel == -101 or qual.noiselevel == -101 or qual.signallevel == -256 or qual.noiselevel == -256:
+                self.val[name] = ( -1, -1 )
+            else:
+                self.val[name] = ( qual.quality, qual.signallevel * 100 / qual.noiselevel )
 
-# vim:ts=4:sw=4
+# vim:ts=4:sw=4:et

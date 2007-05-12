@@ -17,9 +17,9 @@ except: count = 10
 ### Load stats
 stats = []
 for o in (dstat.dstat_epoch(), dstat.dstat_cpu(), dstat.dstat_mem(), dstat.dstat_load(), dstat.dstat_disk(), dstat.dstat_sys()):
-	try: o.check()
-	except Exception, e: print e
-	else: stats.append(o)
+    try: o.check()
+    except Exception, e: print e
+    else: stats.append(o)
 
 ### Make time stats sub-second
 stats[0].format = ('t', 14, 0)
@@ -27,17 +27,17 @@ stats[0].format = ('t', 14, 0)
 ### Print headers
 title1 = title2 = ''
 for o in stats:
-	title1 = title1 + '  ' + o.title1()
-	title2 = title2 + '  ' + o.title2()
+    title1 = title1 + '  ' + o.title1()
+    title2 = title2 + '  ' + o.title2()
 print '\n' + title1 + '\n' + title2
 
 ### Print stats
 for dstat.update in range(count):
-	line = ''
-	for o in stats:
-		o.extract()
-		line = line + '  ' + o.show()
-	print line + dstat.ansi['reset']
-	if dstat.update != count-1: time.sleep(delay)
-	dstat.tick = 1
+    line = ''
+    for o in stats:
+        o.extract()
+        line = line + '  ' + o.show()
+    print line + dstat.ansi['reset']
+    if dstat.update != count-1: time.sleep(delay)
+    dstat.tick = 1
 print dstat.ansi['reset']

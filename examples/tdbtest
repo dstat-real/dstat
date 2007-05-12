@@ -6,8 +6,8 @@ print db.keys()
 
 key=db.firstkey()
 while key:
-	print db.fetch(key)
-	key=db.nextkey(key)
+    print db.fetch(key)
+    key=db.nextkey(key)
 
 db = tdb.tdb('/var/cache/samba/locking.tdb')
 print db.keys

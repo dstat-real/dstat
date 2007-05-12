@@ -6,7 +6,7 @@ import curses, sys
 #curses.start_color()
 #print "TERM is", curses.termname()
 #if curses.has_colors():
-#	print "Has colors"#
+#   print "Has colors"#
 #print curses.color_pair(curses.COLOR_RED), "Red"
 #curses.endwin()
 
@@ -14,10 +14,10 @@ import curses, sys
 curses.setupterm()
 
 if sys.stdout.isatty():
-	print "Is a TTY"
+    print "Is a TTY"
 
 print "Size is %sx%s" % (curses.tigetnum('lines'), curses.tigetnum('cols'))
 
 if curses.tigetnum('colors') > 0:
-	print "Has colors"
-	print curses.tigetnum('colors')
+    print "Has colors"
+    print curses.tigetnum('colors')
