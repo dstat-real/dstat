@@ -1,9 +1,10 @@
 * 0.6.6svn - ... - released 28/04/2007
 - Only rewrite xterm title when XTERM_SHELL is set to bash
 - Added more Dbt (Debian bug tracker) ids in the ChangeLog and TODO
-- Renamed external dstat_app plugin to dstat_topapp
+- Use sys.exit() instead of exit() before color support is detected
+- Renamed external dstat_app plugin to dstat_topcpu
 - Added external dstat_topmem plugin
-- Improved dstat_topapp CSV output 
+- Improved dstat_topcpu CSV output 
 
 * 0.6.6 - Unemployed - released 28/04/2007
 - Removed SwapCached from the Cached counter (Dbt 418326, Peter Rabbitson)

@@ -6,7 +6,7 @@
 global string
 import string
 
-class dstat_topapp(dstat):
+class dstat_topcpu(dstat):
     def __init__(self):
         self.name = 'most expensive'
         self.format = ('s', 18, 34)
@@ -65,7 +65,10 @@ class dstat_topapp(dstat):
             self.cn1.update(self.cn2)
 
     def show(self):
-        return '%s%-*s%s%3d' % (ansi['default'], self.format[1]-3, self.val['process'], ansi['yellow'], round(self.val['usage']))
+        if self.val['usage'] == 0.0:
+            return '%-s%s' % (self.format[1], '')
+        else:
+            return '%s%-*s%s%3d' % (ansi['default'], self.format[1]-3, self.val['process'], ansi['yellow'], round(self.val['usage']))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['usage'])
