@@ -20,6 +20,11 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 ### Export/Graph
 + Interface with rrdtool (python-rrd ?)
 + Allow for different types of export modules (only CSV now)
++ Allow to write out to syslog (or remote syslog)
++ Allow to write unbuffered to disk
+
+### Plugin improvements
++ Don't calculate counters twice when a plugin is loaded twice
 
 ### Extending statistics (help welcome!)
 + Add slab plugin (see /proc/slabinfo and slabtop)
@@ -35,6 +40,8 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Allow for SNMP counters to be added
 + Add LVM stats
 + Add number of (active) X sessions and X clients
++ Add a 'most expensive mem app' and 'most expensive io app'
++ Allow to have multiple '1st expensive ... app' and '2nd expensive ... app'
 
 ### Documentation (help welcome!)
 + Create document on general system performance tuning

@@ -12,11 +12,11 @@
 ### You should have received a copy of the GNU Library General Public License
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-### Copyright 2004, 2005 Dag Wieers <dag@wieers.com>
+### Copyright 2004-2007 Dag Wieers <dag@wieers.com>
 
 from __future__ import generators
 
-VERSION = '0.6.6'
+VERSION = '0.6.6svn'
 
 def inspath(path):
     if os.path.isdir(path) and path not in sys.path:
@@ -1812,31 +1812,42 @@ def main():
                 try:
                     import imp
                     file, pathname, description = imp.find_module('dstat_'+mod)
-#                   exec compile(readfile(pathname), pathname, 'exec')
-                    execfile(pathname)
+                    ### Try loading python plugin
+                    if description[0] == '.py':
+#                           exec compile(readfile(pathname), pathname, 'exec')
+                            execfile(pathname)
+                            exec 'o = dstat_%s()' % mod
+                ### Try loading C plugin
+                    elif description[0] == '.so':
+                        exec 'import dstat_%s' % mod
+                        exec 'o = dstat_%s.new()' % mod
+#                        exec 'o = dstat_%s.init(dstat)' % mod
+#                        print dir(o)
+#                        print o.__module__
+#                        print o.name
+                    else:
+                        info(1, 'Module is of unknown type.')
                 except Exception, e:
                     info(1, 'Module %s failed to load. (%s)' % (mod, e))
-#                   tb = sys.exc_info()[2]
+#                    tb = sys.exc_info()[2]
                     continue
-
-            try:
-#               exec compile('o = dstat_%s()' % mod, '<string>', 'single')
-                exec 'o = dstat_%s()' % mod
 
                 ### Remove defect stat objects and calculate line length
                 if not o.check():
                     raise Exception, 'Unknown problem, please report'
+#                except Exception, e:
+#                    if mod == mods[-1]:
+#                        info(1, 'Module %s has problems. (%s)' % (mod, e))
+#                        if op.debug:
+#                            raise
+#                    continue
+            else:
+                exec 'o = dstat_%s()' % mod
+#            print o.__module__
 
-                linewidth = linewidth + o.statwidth() + 1
-                totlist.append(o)
-                break
-
-            except Exception, e:
-                if mod == mods[-1]:
-                    info(1, 'Module %s has problems. (%s)' % (mod, e))
-                    if op.debug:
-                        raise
-                continue
+            linewidth = linewidth + o.statwidth() + 1
+            totlist.append(o)
+            break
 
     if not totlist:
         die(8, 'None of the stats you selected are available.')
@@ -1929,9 +1940,9 @@ def main():
             tt = tt + (t2 - t1) * 1000.0
             if loop == 0: tt = tt * step
             if op.debug == 1:
-                sys.stdout.write('%6.2fms' % (tt / step))
+                sys.stdout.write('%s%6.2fms%s' % (ansi['darkblue'], tt / step, ansi['default']))
             elif op.debug > 1:
-                sys.stdout.write('%6.2f [%d:%d:%d]' % (tt / step, loop, step, update))
+                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (ansi['darkblue'], tt / step, ansi['gray'], loop, step, update, ansi['default']))
 
         ### If intermediate results, update increases with 1 sec (=interval)
         update = update + interval

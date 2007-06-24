@@ -6,17 +6,17 @@
 global string
 import string
 
-class dstat_app(dstat):
+class dstat_topapp(dstat):
     def __init__(self):
         self.name = 'most expensive'
-        self.format = ('s', 18, 0)
-        self.nick = ('process',)
+        self.format = ('s', 18, 34)
+        self.nick = ('cpu process',)
         self.vars = self.nick
         self.pid = str(os.getpid())
         self.cn1 = {}; self.cn2 = {}; self.val = {}
 
     def extract(self):
-        max = 0.0
+        self.val['usage'] = 0.0
         for pid in os.listdir('/proc/'):
             try: int(pid)
             except: continue
@@ -33,12 +33,12 @@ class dstat_app(dstat):
                 usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
 
                 ### Get the process that spends the most jiffies
-                if usage > max:
-                    max = usage
+                if usage > self.val['usage']:
+                    self.val['usage'] = usage
                     self.val['name'] = l[1][1:-1]
                     self.val['pid'] = pid
 
-        if max == 0.0:
+        if self.val['usage'] == 0.0:
             self.val['process'] = ''
         else:
             ### If the name is a known interpreter, take the second argument from the cmdline
@@ -47,7 +47,9 @@ class dstat_app(dstat):
 #               l = string.split(dopen('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
                 l = string.split(open('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
                 if len(l) > 2:
-                    self.val['name'] = os.path.basename(l[1])
+                    self.val['process'] = os.path.basename(l[1])
+            else:
+                self.val['process'] = self.val['name']
 
 #               l = l.reverse()
 #               for x in l:
@@ -56,13 +58,16 @@ class dstat_app(dstat):
 #                       self.val['name'] = os.path.basename(x)
 #                       break
 
-            ### Show yellow usage
-            self.val['process'] = '%-*s%s%3d' % (self.format[1]-3, self.val['name'], ansi['yellow'], round(max))
-
             ### Debug (show PID)
 #           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
 
         if step == op.delay:
             self.cn1.update(self.cn2)
+
+    def show(self):
+        return '%s%-*s%s%3d' % (ansi['default'], self.format[1]-3, self.val['process'], ansi['yellow'], round(self.val['usage']))
+
+    def showcsv(self):
+        return '%s / %d%%' % (self.val['name'], self.val['usage'])
 
 # vim:ts=4:sw=4:et
