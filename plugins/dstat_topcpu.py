@@ -66,7 +66,7 @@ class dstat_topcpu(dstat):
 
     def show(self):
         if self.val['usage'] == 0.0:
-            return '%-s%s' % (self.format[1], '')
+            return '%-*s' % (self.format[1], '')
         else:
             return '%s%-*s%s%3d' % (ansi['default'], self.format[1]-3, self.val['process'], ansi['yellow'], round(self.val['usage']))
 
