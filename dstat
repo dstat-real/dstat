@@ -1808,8 +1808,8 @@ def main():
         else: mods = ( module, )
 
         for mod in mods:
-            if 'dstat_'+mod not in globals().keys():
-                try:
+            try:
+                if 'dstat_'+mod not in globals().keys():
                     import imp
                     file, pathname, description = imp.find_module('dstat_'+mod)
                     ### Try loading python plugin
@@ -1827,23 +1827,24 @@ def main():
 #                        print o.name
                     else:
                         info(1, 'Module is of unknown type.')
-                except Exception, e:
-                    info(1, 'Module %s failed to load. (%s)' % (mod, e))
-#                    tb = sys.exc_info()[2]
-                    continue
-
                 ### Remove defect stat objects and calculate line length
-                if not o.check():
-                    raise Exception, 'Unknown problem, please report'
+                    if not o.check():
+                        raise Exception, 'Unknown problem, please report'
 #                except Exception, e:
 #                    if mod == mods[-1]:
 #                        info(1, 'Module %s has problems. (%s)' % (mod, e))
 #                        if op.debug:
 #                            raise
 #                    continue
-            else:
-                exec 'o = dstat_%s()' % mod
-#            print o.__module__
+                else:
+                    exec 'o = dstat_%s()' % mod
+#                print o.__module__
+            except Exception, e:
+                info(1, 'Module %s failed to load. (%s)' % (mod, e))
+                if op.debug:
+                    raise
+#                tb = sys.exc_info()[2]
+                continue
 
             linewidth = linewidth + o.statwidth() + 1
             totlist.append(o)
