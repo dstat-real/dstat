@@ -1840,7 +1840,11 @@ def main():
                     exec 'o = dstat_%s()' % mod
 #                print o.__module__
             except Exception, e:
-                info(1, 'Module %s failed to load. (%s)' % (mod, e))
+                if mod != mods[-1]:
+                    if op.debug:
+                        info(1, 'Module %s failed to load, trying another. (%s)' % (mod, e))
+                else:
+                    info(1, 'Module %s failed to load, giving up. (%s)' % (mod, e))
                 if op.debug:
                     raise
 #                tb = sys.exc_info()[2]
