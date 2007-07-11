@@ -9,7 +9,7 @@ import string
 class dstat_topmem(dstat):
     def __init__(self):
         self.name = 'most expensive'
-        self.format = ('s', 18, 0)
+        self.format = ('s', 16, 0)
         self.nick = ('memory process',)
         self.vars = self.nick
         self.pid = str(os.getpid())

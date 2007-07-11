@@ -9,7 +9,7 @@ import string
 class dstat_topcpu(dstat):
     def __init__(self):
         self.name = 'most expensive'
-        self.format = ('s', 18, 34)
+        self.format = ('s', 16, 34)
         self.nick = ('cpu process',)
         self.vars = self.nick
         self.pid = str(os.getpid())
@@ -28,6 +28,7 @@ class dstat_topcpu(dstat):
                 ### Using dopen() will cause too many open files
 #               l = string.split(dopen('/proc/%s/stat' % pid).read())
                 l = string.split(open('/proc/%s/stat' % pid).read())
+
                 if len(l) < 15: continue
                 self.cn2[pid] = int(l[13]) + int(l[14])
                 usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
@@ -37,6 +38,15 @@ class dstat_topcpu(dstat):
                     self.val['usage'] = usage
                     self.val['name'] = l[1][1:-1]
                     self.val['pid'] = pid
+                    st = os.stat("/proc/%s" % pid)
+#                    if st:
+#                        pw = pwd.getpwuid(st.st_uid)
+#                        if pw:
+#                            self.val['user'] = pw[0]
+#                        else:
+#                            self.val['user'] = stat.st_uid
+#                    else:
+#                        self.val['user'] = 'none'
 
         if self.val['usage'] == 0.0:
             self.val['process'] = ''
