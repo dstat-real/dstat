@@ -4,7 +4,8 @@
 - Use sys.exit() instead of exit() before color support is detected
 - Renamed external dstat_app plugin to dstat_topcpu
 - Added external dstat_topmem plugin
-- Improved dstat_topcpu CSV output 
+- Improved dstat_topcpu CSV output
+- Fixed a problem with asciidoc DocBook output (Dbt 427214, Michael Ablassmeier)
 
 * 0.6.6 - Unemployed - released 28/04/2007
 - Removed SwapCached from the Cached counter (Dbt 418326, Peter Rabbitson)

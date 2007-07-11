@@ -59,7 +59,7 @@ class dstat_topmem(dstat):
 #           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
 
     def show(self):
-        return '%s%-*s%s%s' % (ansi['default'], self.format[1]-4, self.val['process'], ansi['yellow'], cprint(self.val['usage']))
+        return '%s%-*s%s' % (ansi['default'], self.format[1]-4, self.val['process'], cprint(self.val['usage'], ('f', 4, 1024)))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['usage'])

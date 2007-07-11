@@ -78,7 +78,8 @@ class dstat_topcpu(dstat):
         if self.val['usage'] == 0.0:
             return '%-*s' % (self.format[1], '')
         else:
-            return '%s%-*s%s%3d' % (ansi['default'], self.format[1]-3, self.val['process'], ansi['yellow'], round(self.val['usage']))
+            return '%s%-*s%s' % (ansi['default'], self.format[1]-3, self.val['process'], cprint(self.val['usage'], ('p', 3, 34)))
+#ansi['yellow'], round(self.val['usage']))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['usage'])
