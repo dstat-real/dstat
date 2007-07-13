@@ -6,6 +6,8 @@
 - Added external dstat_topmem plugin
 - Improved dstat_topcpu CSV output
 - Fixed a problem with asciidoc DocBook output (Dbt 427214, Michael Ablassmeier)
+- Report when python-curses is missing and colors don't work (eg. on OpenSUSE)
+- Improve --version output wrt. terminal and color support
 
 * 0.6.6 - Unemployed - released 28/04/2007
 - Removed SwapCached from the Cached counter (Dbt 418326, Peter Rabbitson)

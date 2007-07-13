@@ -83,16 +83,16 @@ class Options:
         self.intlist = None
         self.netlist = None
         self.swaplist = None
-        self.color = False
+        self.color = True
         self.update = True
         self.header = True
         self.output = False
-        self.isatty = sys.stdout.isatty()
 
         ### Implicit if no terminal is used
-        if not self.isatty:
+        if not sys.stdout.isatty():
             self.update = False
             self.header = False
+            self.color = False
 
         ### Temporary hardcoded for my own project
         self.diskset = {
@@ -215,12 +215,17 @@ class Options:
         print 'Kernel %s' % os.uname()[2]
         print 'Python %s' % sys.version
         print
+
+        color = ""
+        if not gettermcolor(self.color):
+            color = "no "
+        print 'Terminal type: %s (%scolor support)' % (os.getenv('TERM'), color)
         rows, cols = gettermsize()
         print 'Terminal size: %d lines, %d columns' % (rows, cols)
         print
         print 'Processors: %d' % getcpunr()
         print 'Pagesize: %d' % resource.getpagesize()
-#       print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
+        print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
         print
 
         global op
@@ -1610,6 +1615,18 @@ def gettermsize():
             termsize = 25, 80
     return termsize
 
+def gettermcolor(color=True):
+    if color and sys.stdout.isatty():
+        try:
+            import curses
+            curses.setupterm()
+            if curses.tigetnum('colors') < 0:
+                return False
+        except:
+            info(1, 'Color support is disabled, python-curses is not installed.')
+            return False
+    return color
+
 def getcpunr():
     "Return the number of CPUs in the system"
     cpunr = -1
@@ -1742,7 +1759,7 @@ def main():
     rows, cols = gettermsize()
 
     ### Write term-title
-    if op.isatty:
+    if sys.stdout.isatty():
         shell = os.getenv('XTERM_SHELL')
         term = os.getenv('TERM')
         if shell == '/bin/bash' and term and re.compile('(screen*|xterm*)').match(term):
@@ -1761,15 +1778,7 @@ def main():
 #       print 'Background is unknown, assuming dark.'
 
     ### Check terminal capabilities
-    if op.isatty:
-        op.color = True
-        try:
-            import curses
-            curses.setupterm()
-            if curses.tigetnum('colors') < 0:
-                op.color = False
-        except:
-            op.color = False
+    op.color = gettermcolor(op.color)
 
     if op.output:
         if os.path.exists(op.output):
@@ -1891,7 +1900,7 @@ def main():
             curwidth = 0
 
         ### Trim object list to what is visible on screen
-        if op.isatty:
+        if sys.stdout.isatty():
             rows, cols = gettermsize()
             vislist = []
             for o in totlist:
