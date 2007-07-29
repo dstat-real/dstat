@@ -25,7 +25,11 @@ class dstat_topmem(dstat):
 
                 ### Using dopen() will cause too many open files
 #               l = string.split(dopen('/proc/%s/stat' % pid).read())
-                l = string.split(open('/proc/%s/stat' % pid).read())
+                try:
+                    l = string.split(open('/proc/%s/stat' % pid).read())
+                except:
+                    continue
+
                 if len(l) < 23: continue
                 usage = int(l[23]) * pagesize
 
@@ -59,7 +63,7 @@ class dstat_topmem(dstat):
 #           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
 
     def show(self):
-        return '%s%-*s%s' % (ansi['default'], self.format[1]-4, self.val['process'], cprint(self.val['usage'], ('f', 4, 1024)))
+        return '%s%-*s%s' % (ansi['default'], self.format[1]-4, self.val['process'][0:self.format[1]-4], cprint(self.val['usage'], ('f', 4, 1024)))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['usage'])

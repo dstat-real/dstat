@@ -27,7 +27,10 @@ class dstat_topcpu(dstat):
 
                 ### Using dopen() will cause too many open files
 #               l = string.split(dopen('/proc/%s/stat' % pid).read())
-                l = string.split(open('/proc/%s/stat' % pid).read())
+                try:
+                    l = string.split(open('/proc/%s/stat' % pid).read())
+                except:
+                    continue
 
                 if len(l) < 15: continue
                 self.cn2[pid] = int(l[13]) + int(l[14])
@@ -78,8 +81,7 @@ class dstat_topcpu(dstat):
         if self.val['usage'] == 0.0:
             return '%-*s' % (self.format[1], '')
         else:
-            return '%s%-*s%s' % (ansi['default'], self.format[1]-3, self.val['process'], cprint(self.val['usage'], ('p', 3, 34)))
-#ansi['yellow'], round(self.val['usage']))
+            return '%s%-*s%s' % (ansi['default'], self.format[1]-3, self.val['process'][0:self.format[1]-3], cprint(self.val['usage'], ('p', 3, 34)))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['usage'])

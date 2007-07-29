@@ -83,7 +83,7 @@ OPTIONS
 -s, --swap::
 	enable swap stats
 
--S swal1,total::
+-S swap1,total::
 	include swap1 and total
 
 -t, --time::
@@ -174,7 +174,7 @@ USAGE
 -----
 Using dstat to relate disk-throughput with network-usage (eth0), total CPU-usage and system counters:
 ----
-dstat -dnyc -n eth0 -C total -f 5
+dstat -dnyc -N eth0 -C total -f 5
 ----
 
 Checking dstat's behaviour and the system's impact on dstat:
@@ -182,9 +182,18 @@ Checking dstat's behaviour and the system's impact on dstat:
 dstat -taf --debug
 ----
 
-Using the external clock and app plugins together with normal system resources:
+Using the time plugin together with cpu, net, disk, system, load, proc and topcpu plugins:
 ----
-dstat -M clock,app -cndylp
+dstat -tcndylp -M topcpu
+----
+this is identical to
+----
+dstat -M time,cpu,net,disk,sys,load,proc,topcpu
+----
+
+Using dstat to relate cpu stats with interrupts per device:
+----
+dstat -tcyif
 ----
 
 
