@@ -10,7 +10,7 @@ mandir = $(datadir)/man
 .PHONY: all install docs clean
 
 all: docs
-    @echo "Nothing to be build."
+	@echo "Nothing to be build."
 
 docs:
 	$(MAKE) -C docs docs
