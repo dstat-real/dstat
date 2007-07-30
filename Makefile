@@ -10,6 +10,7 @@ mandir = $(datadir)/man
 .PHONY: all install docs clean
 
 all: docs
+    @echo "Nothing to be build."
 
 docs:
 	$(MAKE) -C docs docs
@@ -39,7 +40,7 @@ rpm: dist
 	rpmbuild -tb --clean --rmsource --rmspec --define "_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm" --define "_rpmdir ../" ../$(name)-$(version).tar.bz2
 
 srpm: dist
-	rpmbuild -ts --clean --rmsource --rmspec --define "_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm" --define "_srcrpmdir../" ../$(name)-$(version).tar.bz2
+	rpmbuild -ts --clean --rmsource --rmspec --define "_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm" --define "_srcrpmdir ../" ../$(name)-$(version).tar.bz2
 
 
 #### Imperfect translation to dstat15
