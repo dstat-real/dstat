@@ -491,7 +491,7 @@ class dstat_cpu(dstat):
         if op.cpulist:
             list = op.cpulist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = []
             cpu = 0
@@ -551,7 +551,7 @@ class dstat_cpu24(dstat):
         if op.cpulist:
             list = op.cpulist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = []
             cpu = 0
@@ -603,7 +603,7 @@ class dstat_disk(dstat):
         if op.disklist:
             list = op.disklist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = self.discover
 #           if len(list) > 2: list = list[0:2]
@@ -666,7 +666,7 @@ class dstat_disk24(dstat):
         if op.disklist:
             list = op.disklist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = self.discover
 #           if len(list) > 2: list = list[0:2]
@@ -735,7 +735,7 @@ class dstat_disk24old(dstat):
         if op.disklist:
             list = op.disklist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = self.discover
 #           if len(list) > 2: list = list[0:2]
@@ -1035,7 +1035,7 @@ class dstat_net(dstat):
         if op.netlist:
             list = op.netlist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = self.discover
 #           if len(list) > 2: list = list[0:2]
@@ -1178,11 +1178,11 @@ class dstat_swap(dstat):
         if op.swaplist:
             list = op.swaplist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = self.discover
 #           if len(list) > 2: list = list[0:2]
-        list.sort()
+            list.sort()
         for name in list:
             if name in self.discover + ['total']:
                 ret.append(name)
