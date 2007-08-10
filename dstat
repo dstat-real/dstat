@@ -1432,7 +1432,37 @@ def readpipe(file, tmout = 0.001):
     while select.select([file.fileno()], [], [], tmout)[0]:
         ret = ret + file.read(1)
     return ret.split('\n')
-#   return ret
+
+def greppipe(file, str, tmout = 0.001):
+    "Grep available data from pipe in a non-blocking fashion"
+    ret = ''
+    while not select.select([file.fileno()], [], [], tmout)[0]:
+        pass
+    while select.select([file.fileno()], [], [], tmout)[0]:
+        char = file.read(1)
+        if char != '\n':
+            ret = ret + char
+        elif ret.startswith(str):
+            return ret
+        else:
+            ret = ''
+    return None
+
+def matchpipe(file, string, tmout = 0.001):
+    "Match available data from pipe in a non-blocking fashion"
+    ret = ''
+    regexp = re.compile(string)
+    while not select.select([file.fileno()], [], [], tmout)[0]:
+        pass
+    while select.select([file.fileno()], [], [], tmout)[0]:
+        char = file.read(1)
+        if char != '\n':
+            ret = ret + char
+        elif regexp.match(ret):
+            return ret
+        else:
+            ret = ''
+    return None
 
 def dchg(var, max, base):
     "Convert decimal to string given base and length"
