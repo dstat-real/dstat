@@ -1,7 +1,7 @@
 global string, select
 import string, select
 
-class dstat_mysql(dstat):
+class dstat_mysql_io(dstat):
     def __init__(self):
         self.name = 'mysql io'
         self.format = ('f', 5, 1024)
