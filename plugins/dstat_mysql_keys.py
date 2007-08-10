@@ -1,12 +1,12 @@
 global string, select
 import string, select
 
-class dstat_innodb_io(dstat):
+class dstat_mysql_keys(dstat):
     def __init__(self):
-        self.name = 'innodb io ops '
-        self.format = ('f', 3, 1000)
-        self.vars = ('rea', 'wri', 'syn')
-        self.nick = self.vars
+        self.name = 'mysql key status'
+        self.format = ('f', 4, 1000)
+        self.vars = ('Key_blocks_used', 'Key_reads', 'Key_writes', 'Key_read_requests', 'Key_write_requests')
+        self.nick = ('used', 'read', 'writ', 'rreq', 'wreq')
         self.init(self.vars, 1)
 
     def check(self): 
@@ -20,14 +20,12 @@ class dstat_innodb_io(dstat):
 
     def extract(self):
         try:
-            self.stdin.write('show engine innodb status\G\n')
-            line = greppipe(self.stdout, 'OS file reads ')
-
-            if line:
+            self.stdin.write("show status like 'Key_%';\n")
+            for line in readpipe(self.stdout):
                 l = line.split()
-                self.cn2['read'] = l[0].rstrip(',')
-                self.cn2['write'] = l[4].rstrip(',')
-                self.cn2['sync'] = l[8]
+                if len(l) < 2: continue
+                if l[0] in self.vars:
+                    self.cn2[l[0]] = float(l[1])
 
             for name in self.vars:
                 self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick

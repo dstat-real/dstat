@@ -40,7 +40,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Allow for SNMP counters to be added
 + Add LVM stats
 + Add number of (active) X sessions and X clients
-+ Add a 'most expensive mem app' and 'most expensive io app'
++ Add 'most expensive io app' and 'most expensive X app'
 + Allow to have multiple '1st expensive ... app' and '2nd expensive ... app'
 
 ### Documentation (help welcome!)

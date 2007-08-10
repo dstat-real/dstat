@@ -36,13 +36,11 @@ class dstat_innodb_buffer(dstat):
                 self.cn1.update(self.cn2)
 
         except IOError, e:
-            if op.debug:
-                print 'dstat_innodb_buffer: lost pipe to mysql,', e
+            if op.debug: print 'dstat_innodb_buffer: lost pipe to mysql,', e
             for name in self.vars: self.val[name] = -1
 
         except Exception, e:
-            if op.debug:
-                print 'dstat_innodb_buffer: exception', e
+            if op.debug: print 'dstat_innodb_buffer: exception', e
             for name in self.vars: self.val[name] = -1
 
 # vim:ts=4:sw=4:et
