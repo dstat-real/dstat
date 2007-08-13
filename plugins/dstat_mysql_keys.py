@@ -1,6 +1,8 @@
 global string, select
 import string, select
 
+mysql_options = os.getenv('DSTAT_MYSQL')
+
 class dstat_mysql_keys(dstat):
     def __init__(self):
         self.name = 'mysql key status'
@@ -12,7 +14,7 @@ class dstat_mysql_keys(dstat):
     def check(self): 
         if os.access('/usr/bin/mysql', os.X_OK):
             try:
-                self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n')
+                self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
             except IOError:
                 raise Exception, 'Cannot interface with MySQL binary'
             return True
