@@ -1,6 +1,9 @@
 global string, select
 import string, select
 
+global mysql_options
+mysql_options = os.getenv('DSTAT_MYSQL')
+
 class dstat_innodb_buffer(dstat):
     def __init__(self):
         self.name = 'innodb pool'
@@ -12,7 +15,7 @@ class dstat_innodb_buffer(dstat):
     def check(self): 
         if os.access('/usr/bin/mysql', os.X_OK):
             try:
-                self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n')
+                self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
             except IOError:
                 raise Exception, 'Cannot interface with MySQL binary'
             return True
