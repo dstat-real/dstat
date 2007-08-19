@@ -11,6 +11,7 @@
 - Fixed a few inaccuracies in the man page. (John Goggan)
 - Fixed opening vanished files in /proc in dstat_topcpu.
 - Fixed formatting bug in dstat_topcpu.
+- Added external dstat_topio and dstat_topbio plugins
 
 * 0.6.6 - Unemployed - released 28/04/2007
 - Removed SwapCached from the Cached counter (Dbt 418326, Peter Rabbitson)

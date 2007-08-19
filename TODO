@@ -39,8 +39,9 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Add i2c plugin (see /sys/class/i2c-adapter/i2c-*/*/*/*/*/*)
 + Allow for SNMP counters to be added
 + Add LVM stats
++ Add 'most expensive io app' based on /proc/pid/io (topio_ops)
++ Add 'most expensive X app' (look at xrestop)
 + Add number of (active) X sessions and X clients
-+ Add 'most expensive io app' and 'most expensive X app'
 + Allow to have multiple '1st expensive ... app' and '2nd expensive ... app'
 
 ### Documentation (help welcome!)
@@ -58,10 +59,8 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + When stdout is suspend (Ctrl-S) you get: IOError: [Errno 4] Interrupted system call (Dbt 309953, Marc Lehmann, supastuff@freenode)
 
 ### Plugin issues
-+ app plugin: reasonably slow
-+ app plugin: has problem opening too many files [Errno 24]
++ plugins that use /proc/pid are reasonably slow
 + app plugin: takes second argument when finding known interpreter (is wrong when second argument
-+ app plugin: prints ANSI characters to CSV
 + disk plugin: /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible?
 + proc plugin: (run and blk) does not work on 2.4.24+, to be confirmed
 + proc plugin: seem to be off-by-one compared to vmstat (some of the time, this is what I get from /proc/stat)
