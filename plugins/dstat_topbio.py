@@ -26,17 +26,28 @@ class dstat_topbio(dstat):
         self.val['usage'] = 0.0
         for pid in os.listdir('/proc/'):
             try:
+                ### Is it a pid ?
                 int(pid)
+
+                ### Filter out dstat
                 if pid == self.pid: continue
+
+                ### Reset values
                 if not self.cn2.has_key(pid):
                     self.cn2[pid] = {'read_bytes:': 0, 'write_bytes:': 0}
                 if not self.cn1.has_key(pid):
                     self.cn1[pid] = {'read_bytes:': 0, 'write_bytes:': 0}
 
+                ### Extract name
+                l = string.split(open('/proc/%s/stat' % pid).read())
+                name = l[1][1:-1]
+
+                ### Extract counters
                 for line in open('/proc/%s/io' % pid).readlines():
                     l = string.split(line)
                     if len(l) != 2: continue
                     self.cn2[pid][l[0]] = int(l[1])
+
             except ValueError:
                 continue
 
@@ -50,13 +61,12 @@ class dstat_topbio(dstat):
                 self.val['read_usage'] = read_usage
                 self.val['write_usage'] = write_usage
                 self.val['pid'] = pid
+                self.val['name'] = name
                 st = os.stat("/proc/%s" % pid)
 
         if self.val['usage'] == 0.0:
             self.val['process'] = ''
         else:
-            l = string.split(open('/proc/%s/stat' % self.val['pid']).read())
-            self.val['name'] = l[1][1:-1]
             ### If the name is a known interpreter, take the second argument from the cmdline
             if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
                 ### Using dopen() will cause too many open files

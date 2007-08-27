@@ -18,43 +18,43 @@ class dstat_topcpu(dstat):
     def extract(self):
         self.val['usage'] = 0.0
         for pid in os.listdir('/proc/'):
-            try: int(pid)
-            except: continue
-            if os.path.exists('/proc/%s/stat' % pid):
+            try:
+                ### Is it a pid ?
+                int(pid)
 
-		### Filter out dstat
+                ### Filter out dstat
                 if pid == self.pid: continue
 
                 ### Using dopen() will cause too many open files
 #               l = string.split(dopen('/proc/%s/stat' % pid).read())
-                try:
-                    l = string.split(open('/proc/%s/stat' % pid).read())
-                except:
-                    continue
+                l = string.split(open('/proc/%s/stat' % pid).read())
 
                 if len(l) < 15: continue
 
-		### Reset previous value if it doesn't exist
+                ### Reset previous value if it doesn't exist
                 if not self.cn1.has_key(pid):
                     self.cn1[pid] = 0
 
                 self.cn2[pid] = int(l[13]) + int(l[14])
                 usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
 
-                ### Get the process that spends the most jiffies
-                if usage >= self.val['usage']:
-                    self.val['usage'] = usage
-                    self.val['name'] = l[1][1:-1]
-                    self.val['pid'] = pid
-                    st = os.stat("/proc/%s" % pid)
-#                    if st:
-#                        pw = pwd.getpwuid(st.st_uid)
-#                        if pw:
-#                            self.val['user'] = pw[0]
-#                        else:
-#                            self.val['user'] = stat.st_uid
+            except ValueError:
+                continue
+
+            ### Get the process that spends the most jiffies
+            if usage >= self.val['usage']:
+                self.val['usage'] = usage
+                self.val['name'] = l[1][1:-1]
+                self.val['pid'] = pid
+                st = os.stat("/proc/%s" % pid)
+#                if st:
+#                    pw = pwd.getpwuid(st.st_uid)
+#                    if pw:
+#                        self.val['user'] = pw[0]
 #                    else:
-#                        self.val['user'] = 'none'
+#                        self.val['user'] = stat.st_uid
+#                else:
+#                    self.val['user'] = 'none'
 
         if self.val['usage'] == 0.0:
             self.val['process'] = ''

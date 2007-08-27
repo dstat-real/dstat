@@ -18,26 +18,28 @@ class dstat_topmem(dstat):
     def extract(self):
         self.val['usage'] = 0.0
         for pid in os.listdir('/proc/'):
-            try: int(pid)
-            except: continue
-            if os.path.exists('/proc/%s/stat' % pid):
+            try:
+                ### Is it a pid ?
+                int(pid)
+
+                ### Filter out dstat
                 if pid == self.pid: continue
 
                 ### Using dopen() will cause too many open files
 #               l = string.split(dopen('/proc/%s/stat' % pid).read())
-                try:
-                    l = string.split(open('/proc/%s/stat' % pid).read())
-                except:
-                    continue
+                l = string.split(open('/proc/%s/stat' % pid).read())
 
                 if len(l) < 23: continue
                 usage = int(l[23]) * pagesize
 
-                ### Get the process that spends the most jiffies
-                if usage > self.val['usage']:
-                    self.val['usage'] = usage
-                    self.val['name'] = l[1][1:-1]
-                    self.val['pid'] = pid
+            except ValueError:
+                continue
+
+            ### Get the process that uses the most memory
+            if usage >= self.val['usage']:
+                self.val['usage'] = usage
+                self.val['name'] = l[1][1:-1]
+                self.val['pid'] = pid
 
         if self.val['usage'] == 0.0:
             self.val['process'] = ''
