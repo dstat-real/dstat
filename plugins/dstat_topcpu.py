@@ -21,9 +21,9 @@ class dstat_topcpu(dstat):
             try: int(pid)
             except: continue
             if os.path.exists('/proc/%s/stat' % pid):
+
+		### Filter out dstat
                 if pid == self.pid: continue
-                if not self.cn1.has_key(pid):
-                    self.cn1[pid] = 0
 
                 ### Using dopen() will cause too many open files
 #               l = string.split(dopen('/proc/%s/stat' % pid).read())
@@ -33,11 +33,16 @@ class dstat_topcpu(dstat):
                     continue
 
                 if len(l) < 15: continue
+
+		### Reset previous value if it doesn't exist
+                if not self.cn1.has_key(pid):
+                    self.cn1[pid] = 0
+
                 self.cn2[pid] = int(l[13]) + int(l[14])
                 usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
 
                 ### Get the process that spends the most jiffies
-                if usage > self.val['usage']:
+                if usage >= self.val['usage']:
                     self.val['usage'] = usage
                     self.val['name'] = l[1][1:-1]
                     self.val['pid'] = pid
