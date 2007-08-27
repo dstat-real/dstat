@@ -48,7 +48,7 @@ class dstat_topbio(dstat):
                     if len(l) != 2: continue
                     self.cn2[pid][l[0]] = int(l[1])
 
-            except ValueError:
+            except ValueError or IOError:
                 continue
 
             read_usage = (self.cn2[pid]['read_bytes:'] - self.cn1[pid]['read_bytes:']) * 1.0 / tick

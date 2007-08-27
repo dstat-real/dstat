@@ -32,7 +32,7 @@ class dstat_topmem(dstat):
                 if len(l) < 23: continue
                 usage = int(l[23]) * pagesize
 
-            except ValueError:
+            except ValueError or IOError:
                 continue
 
             ### Get the process that uses the most memory

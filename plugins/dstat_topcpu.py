@@ -38,7 +38,7 @@ class dstat_topcpu(dstat):
                 self.cn2[pid] = int(l[13]) + int(l[14])
                 usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
 
-            except ValueError:
+            except ValueError or IOError:
                 continue
 
             ### Get the process that spends the most jiffies
