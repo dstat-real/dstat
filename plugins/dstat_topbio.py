@@ -48,7 +48,9 @@ class dstat_topbio(dstat):
                     if len(l) != 2: continue
                     self.cn2[pid][l[0]] = int(l[1])
 
-            except ValueError or IOError:
+            except ValueError:
+                continue
+            except IOError:
                 continue
 
             read_usage = (self.cn2[pid]['read_bytes:'] - self.cn1[pid]['read_bytes:']) * 1.0 / tick
@@ -81,7 +83,8 @@ class dstat_topbio(dstat):
 #           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
 
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            for pid in self.cn2.keys():
+                self.cn1[pid].update(self.cn2[pid])
 
     def show(self):
         if self.val['usage'] == 0.0:

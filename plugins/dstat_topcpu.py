@@ -31,6 +31,11 @@ class dstat_topcpu(dstat):
 
                 if len(l) < 15: continue
 
+                ### Get commandline
+                m = string.split(open('/proc/%s/cmdline' % pid).read(), '\0')
+                if len(m) > 1:
+                    cmd = os.path.basename(m[1])
+
                 ### Reset previous value if it doesn't exist
                 if not self.cn1.has_key(pid):
                     self.cn1[pid] = 0
@@ -38,7 +43,9 @@ class dstat_topcpu(dstat):
                 self.cn2[pid] = int(l[13]) + int(l[14])
                 usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
 
-            except ValueError or IOError:
+            except ValueError:
+                continue
+            except IOError:
                 continue
 
             ### Get the process that spends the most jiffies
@@ -46,7 +53,8 @@ class dstat_topcpu(dstat):
                 self.val['usage'] = usage
                 self.val['name'] = l[1][1:-1]
                 self.val['pid'] = pid
-                st = os.stat("/proc/%s" % pid)
+                self.val['cmd'] = cmd
+#                st = os.stat("/proc/%s" % pid)
 #                if st:
 #                    pw = pwd.getpwuid(st.st_uid)
 #                    if pw:
@@ -61,11 +69,7 @@ class dstat_topcpu(dstat):
         else:
             ### If the name is a known interpreter, take the second argument from the cmdline
             if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
-                ### Using dopen() will cause too many open files
-#               l = string.split(dopen('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
-                l = string.split(open('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
-                if len(l) > 2:
-                    self.val['process'] = os.path.basename(l[1])
+                self.val['process'] = os.path.basename(cmd)
             else:
                 self.val['process'] = self.val['name']
 

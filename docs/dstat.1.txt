@@ -1,21 +1,17 @@
-dstat(1)
-========
+= dstat(1)
 Dag Wieers <dag@wieers.com>
 v0.6.4, December 2006
 
 
-NAME
-----
+== NAME
 dstat - versatile tool for generating system resource statistics
 
 
-SYNOPSIS
---------
+== SYNOPSIS
 dstat [-afv] [options..] [delay [count]]
 
 
-DESCRIPTION
------------
+== DESCRIPTION
 Dstat is a versatile replacement for vmstat, iostat and ifstat. Dstat
 overcomes some of the limitations and adds some extra features.
 
@@ -42,8 +38,7 @@ datastat to avoid a name conflict. See Debian bug #283709 for more
 information.
 
 
-OPTIONS
--------
+== OPTIONS
 -c, --cpu::
 	enable cpu stats
 
@@ -148,8 +143,7 @@ Possible external plugin stats can be listed using::
 	write CSV output to file
 
 
-ARGUMENTS
----------
+== ARGUMENTS
 *delay* is the delay in seconds between each update
 
 *count* is the number of updates to display before exiting
@@ -157,8 +151,7 @@ ARGUMENTS
 The default delay is 1 and count is unspecified (unlimited)
 
 
-INTERMEDIATE UPDATES
---------------------
+== INTERMEDIATE UPDATES
 When invoking dstat with a *delay* greater than 1 and without the
 *--noupdate* option, it will show intermediate updates, ie. the first
 time a 1 sec average, the second update a 2 second average, etc. until
@@ -170,8 +163,7 @@ the last final update. The end result is that you get a 10 second
 average on a new line, just like with vmstat.
 
 
-USAGE
------
+== USAGE
 Using dstat to relate disk-throughput with network-usage (eth0), total CPU-usage and system counters:
 ----
 dstat -dnyc -N eth0 -C total -f 5
@@ -197,8 +189,7 @@ dstat -tcyif
 ----
 
 
-BUGS
-----
+== BUGS
 Since it's practically impossible to test dstat on every possible
 permutation of kernel, python or distribution version, I need your
 help and your feedback to fix the remaining problems. If you have
@@ -209,8 +200,7 @@ mailto:dag@wieers.com[]
 Please see the TODO file for known bugs and future plans.
 
 
-FILES
------
+== FILES
 Paths that may contain external dstat_* plugins:
 
 	~/.dstat/
@@ -221,51 +211,40 @@ Paths that may contain external dstat_* plugins:
 	/usr/local/share/dstat/
 
 
-SEE ALSO
---------
-Performance tools
-~~~~~~~~~~~~~~~~~
+== SEE ALSO
+
+=== Performance tools
 	ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, vmstat(1), xosview(1)
 
-Debugging tools
-~~~~~~~~~~~~~~~
+=== Debugging tools
 	htop, lslk(1), lsof(8), top(1)
 
-Process tracing
-~~~~~~~~~~~~~~~
+=== Process tracing
 	ltrace(1), pmap(1), ps(1), pstack(1), strace(1)
 
-Binary debugging
-~~~~~~~~~~~~~~~~
+=== Binary debugging
 	ldd(1), file(1), nm(1), objdump(1), readelf(1)
 
-Memory usage tools
-~~~~~~~~~~~~~~~~~~
+=== Memory usage tools
 	free(1), memusage, memusagestat, slabtop(1)
 
-Accounting tools
-~~~~~~~~~~~~~~~~
+=== Accounting tools
 	dump-acct, dump-utmp, sa(8)
 
-Hardware debugging tools
-~~~~~~~~~~~~~~~~~~~~~~~~
+=== Hardware debugging tools
 	dmidecode, ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
 
-Application debugging
-~~~~~~~~~~~~~~~~~~~~~
+=== Application debugging
 	mailstats(8), qshape(1)
 
-Xorg related tools
-~~~~~~~~~~~~~~~~~~
+=== Xorg related tools
 	xdpyinfo(1), xrestop(1)
 
-Other useful info
-~~~~~~~~~~~~~~~~~
+=== Other useful info
 	proc(5)
 
 
-AUTHOR
-------
+== AUTHOR
 Written by Dag Wieers mailto:dag@wieers.com[]
 
 Homepage at http://dag.wieers.com/home-made/dstat/[]

@@ -22,6 +22,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Allow for different types of export modules (only CSV now)
 + Allow to write out to syslog (or remote syslog)
 + Allow to write unbuffered to disk
++ Write out user input to CSV
 
 ### Plugin improvements
 + Don't calculate counters twice when a plugin is loaded twice
