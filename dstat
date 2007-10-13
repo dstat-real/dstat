@@ -1148,7 +1148,12 @@ class dstat_raw(dstat):
         self.init(self.vars, 1)
 
     def extract(self):
-        self.val['sockets'] = len(self.readlines()) - 1
+        lines = -1
+        for line in self.readlines():
+            lines = lines + 1
+        self.val['sockets'] = lines
+        ### Cannot use len() on generator
+#        self.val['sockets'] = len(self.readlines()) - 1
 
 class dstat_swap(dstat):
     def __init__(self):
