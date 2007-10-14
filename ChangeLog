@@ -14,6 +14,7 @@
 - Added external dstat_mysql_* and dstat_innodb_* plugins
 - Added greppipe() and matchpipe() to improve performance on pipe-handling
 - Added external dstat_topio and dstat_topbio plugins
+- Added external dstat_topoom plugin to show top out-of-memory score
 
 * 0.6.6 - Unemployed - released 28/04/2007
 - Removed SwapCached from the Cached counter (Dbt 418326, Peter Rabbitson)

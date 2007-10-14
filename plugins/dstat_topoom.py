@@ -8,16 +8,16 @@ import string
 
 class dstat_topoom(dstat):
     def __init__(self):
-        self.name = 'kill score'
+        self.name = 'out of memory'
         self.format = ('s', 20, 34)
-        self.nick = ('oom process',)
+        self.nick = ('kill score',)
         self.vars = self.nick
         self.pid = str(os.getpid())
         self.cn1 = {}; self.cn2 = {}; self.val = {}
 
     def check(self):
         if not os.access('/proc/1/oom_score', os.R_OK):
-            raise Exception, 'Kernel does not support /proc/pid/oom_score interface.'
+            raise Exception, 'Kernel does not support /proc/pid/oom_score, use at least 2.6.20.'
         return True
 
     def extract(self):
@@ -92,7 +92,7 @@ class dstat_topoom(dstat):
         if self.val['max'] == 0.0:
             return '%-*s' % (self.format[1], '')
         else:
-            return '%s%-*s%s' % (ansi['default'], self.format[1]-6, self.val['process'][0:self.format[1]-6], cprint(self.val['max'], ('p', 6, 34)))
+            return '%s%-*s%s' % (ansi['default'], self.format[1]-4, self.val['process'][0:self.format[1]-4], cprint(self.val['max'], ('f', 4, 1000)))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])
