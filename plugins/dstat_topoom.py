@@ -28,16 +28,19 @@ class dstat_topoom(dstat):
                 ### Using dopen() will cause too many open files
 #               l = string.split(dopen('/proc/%s/stat' % pid).read())
                 l = string.split(open('/proc/%s/oom_score' % pid).read())
-
                 if len(l) < 1: continue
+                oom_score = int(l[0])
+
+                if  oom_score < self.val['max']: continue
+
+                ### Extract name
+                l = string.split(open('/proc/%s/stat' % pid).read())
+                name = l[1][1:-1]
 
                 ### Get commandline
                 m = string.split(open('/proc/%s/cmdline' % pid).read(), '\0')
                 if len(m) > 1:
                     cmd = os.path.basename(m[1])
-
-#                self.val[pid] = int(l[0])
-                oom_score = int(l[0])
 
             except ValueError:
                 continue
@@ -46,8 +49,9 @@ class dstat_topoom(dstat):
 
             ### Get the process that spends the most jiffies
             if  oom_score >= self.val['max']:
+
                 self.val['max'] = oom_score
-                self.val['name'] = cmd
+                self.val['name'] = name
                 self.val['pid'] = pid
                 self.val['cmd'] = cmd
 #                st = os.stat("/proc/%s" % pid)
