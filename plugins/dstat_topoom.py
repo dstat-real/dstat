@@ -15,6 +15,11 @@ class dstat_topoom(dstat):
         self.pid = str(os.getpid())
         self.cn1 = {}; self.cn2 = {}; self.val = {}
 
+    def check(self):
+        if not os.access('/proc/1/oom_score', os.R_OK):
+            raise Exception, 'Kernel does not support /proc/pid/oom_score interface.'
+        return True
+
     def extract(self):
         self.val['max'] = 0.0
         for pid in os.listdir('/proc/'):
