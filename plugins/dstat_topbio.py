@@ -16,9 +16,7 @@ class dstat_topbio(dstat):
         self.cn1 = {}; self.cn2 = {}; self.val = {}
 
     def check(self):
-        try:
-            open('/proc/self/io')
-        except:
+        if not os.access('/proc/self/io', os.R_OK):
             raise Exception, 'Kernel has no I/O accounting, use at least 2.6.20.'
         return True
 

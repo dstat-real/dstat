@@ -16,7 +16,7 @@ class dstat_topcpu(dstat):
         self.cn1 = {}; self.cn2 = {}; self.val = {}
 
     def extract(self):
-        self.val['usage'] = 0.0
+        self.val['max'] = 0.0
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -26,15 +26,8 @@ class dstat_topcpu(dstat):
                 if pid == self.pid: continue
 
                 ### Using dopen() will cause too many open files
-#               l = string.split(dopen('/proc/%s/stat' % pid).read())
                 l = string.split(open('/proc/%s/stat' % pid).read())
-
                 if len(l) < 15: continue
-
-                ### Get commandline
-                m = string.split(open('/proc/%s/cmdline' % pid).read(), '\0')
-                if len(m) > 1:
-                    cmd = os.path.basename(m[1])
 
                 ### Reset previous value if it doesn't exist
                 if not self.cn1.has_key(pid):
@@ -43,28 +36,35 @@ class dstat_topcpu(dstat):
                 self.cn2[pid] = int(l[13]) + int(l[14])
                 usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
 
+                ### Is it a new topper ?
+                if usage < self.val['max']: continue
+
+                ### Get commandline
+                m = string.split(open('/proc/%s/cmdline' % pid).read(), '\0')
+                if len(m) > 1:
+                    cmd = os.path.basename(m[1])
+
             except ValueError:
                 continue
             except IOError:
                 continue
 
             ### Get the process that spends the most jiffies
-            if usage >= self.val['usage']:
-                self.val['usage'] = usage
-                self.val['name'] = l[1][1:-1]
-                self.val['pid'] = pid
-                self.val['cmd'] = cmd
-#                st = os.stat("/proc/%s" % pid)
-#                if st:
-#                    pw = pwd.getpwuid(st.st_uid)
-#                    if pw:
-#                        self.val['user'] = pw[0]
-#                    else:
-#                        self.val['user'] = stat.st_uid
+            self.val['max'] = usage
+            self.val['name'] = l[1][1:-1]
+            self.val['pid'] = pid
+            self.val['cmd'] = cmd
+#            st = os.stat("/proc/%s" % pid)
+#            if st:
+#                pw = pwd.getpwuid(st.st_uid)
+#                if pw:
+#                    self.val['user'] = pw[0]
 #                else:
-#                    self.val['user'] = 'none'
+#                    self.val['user'] = stat.st_uid
+#            else:
+#                self.val['user'] = 'none'
 
-        if self.val['usage'] == 0.0:
+        if self.val['max'] == 0.0:
             self.val['process'] = ''
         else:
             ### If the name is a known interpreter, take the second argument from the cmdline
@@ -87,12 +87,12 @@ class dstat_topcpu(dstat):
             self.cn1.update(self.cn2)
 
     def show(self):
-        if self.val['usage'] == 0.0:
+        if self.val['max'] == 0.0:
             return '%-*s' % (self.format[1], '')
         else:
-            return '%s%-*s%s' % (ansi['default'], self.format[1]-3, self.val['process'][0:self.format[1]-3], cprint(self.val['usage'], ('p', 3, 34)))
+            return '%s%-*s%s' % (ansi['default'], self.format[1]-3, self.val['process'][0:self.format[1]-3], cprint(self.val['max'], ('p', 3, 34)))
 
     def showcsv(self):
-        return '%s / %d%%' % (self.val['name'], self.val['usage'])
+        return '%s / %d%%' % (self.val['name'], self.val['max'])
 
 # vim:ts=4:sw=4:et

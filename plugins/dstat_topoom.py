@@ -9,14 +9,14 @@ import string
 class dstat_topoom(dstat):
     def __init__(self):
         self.name = 'out of memory'
-        self.format = ('s', 20, 34)
+        self.format = ('s', 18, 1000)
         self.nick = ('kill score',)
         self.vars = self.nick
         self.pid = str(os.getpid())
         self.cn1 = {}; self.cn2 = {}; self.val = {}
 
     def check(self):
-        if not os.access('/proc/1/oom_score', os.R_OK):
+        if not os.access('/proc/self/oom_score', os.R_OK):
             raise Exception, 'Kernel does not support /proc/pid/oom_score, use at least 2.6.20.'
         return True
 
@@ -31,11 +31,11 @@ class dstat_topoom(dstat):
                 if pid == self.pid: continue
 
                 ### Using dopen() will cause too many open files
-#               l = string.split(dopen('/proc/%s/stat' % pid).read())
                 l = string.split(open('/proc/%s/oom_score' % pid).read())
                 if len(l) < 1: continue
                 oom_score = int(l[0])
 
+                ### Is it a new topper ?
                 if  oom_score < self.val['max']: continue
 
                 ### Extract name
@@ -53,21 +53,10 @@ class dstat_topoom(dstat):
                 continue
 
             ### Get the process that spends the most jiffies
-            if  oom_score >= self.val['max']:
-
-                self.val['max'] = oom_score
-                self.val['name'] = name
-                self.val['pid'] = pid
-                self.val['cmd'] = cmd
-#                st = os.stat("/proc/%s" % pid)
-#                if st:
-#                    pw = pwd.getpwuid(st.st_uid)
-#                    if pw:
-#                        self.val['user'] = pw[0]
-#                    else:
-#                        self.val['user'] = stat.st_uid
-#                else:
-#                    self.val['user'] = 'none'
+            self.val['max'] = oom_score
+            self.val['name'] = name
+            self.val['pid'] = pid
+            self.val['cmd'] = cmd
 
         if self.val['max'] == 0.0:
             self.val['process'] = ''
@@ -78,15 +67,8 @@ class dstat_topoom(dstat):
             else:
                 self.val['process'] = self.val['name']
 
-#               l = l.reverse()
-#               for x in l:
-#                   print x
-#                   if x[0] != '-':
-#                       self.val['name'] = os.path.basename(x)
-#                       break
-
             ### Debug (show PID)
-#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
+#            self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
 
     def show(self):
         if self.val['max'] == 0.0:
