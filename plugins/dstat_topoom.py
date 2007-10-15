@@ -9,7 +9,7 @@ import string
 class dstat_topoom(dstat):
     def __init__(self):
         self.name = 'out of memory'
-        self.format = ('s', 18, 1000)
+        self.format = ('s', 18, 0)
         self.nick = ('kill score',)
         self.vars = self.nick
         self.pid = str(os.getpid())
@@ -36,7 +36,7 @@ class dstat_topoom(dstat):
                 oom_score = int(l[0])
 
                 ### Is it a new topper ?
-                if  oom_score < self.val['max']: continue
+                if oom_score < self.val['max']: continue
 
                 ### Extract name
                 l = string.split(open('/proc/%s/stat' % pid).read())
@@ -52,23 +52,22 @@ class dstat_topoom(dstat):
             except IOError:
                 continue
 
-            ### Get the process that spends the most jiffies
+            self.val['cmd'] = cmd
             self.val['max'] = oom_score
             self.val['name'] = name
             self.val['pid'] = pid
-            self.val['cmd'] = cmd
 
         if self.val['max'] == 0.0:
             self.val['process'] = ''
         else:
             ### If the name is a known interpreter, take the second argument from the cmdline
             if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
-                self.val['process'] = os.path.basename(cmd)
+                self.val['process'] = self.val['cmd']
             else:
                 self.val['process'] = self.val['name']
 
             ### Debug (show PID)
-#            self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
+#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
 
     def show(self):
         if self.val['max'] == 0.0:

@@ -37,7 +37,7 @@ class dstat_topmem(dstat):
                 name = l[1][1:-1]
 
                 ### Get commandline
-                m = string.split(open('/proc/%s/cmdline' % pid).read(),'\0')
+                m = string.split(open('/proc/%s/cmdline' % pid).read(), '\0')
                 if len(m) > 1:
                     cmd = os.path.basename(m[1])
 
@@ -46,7 +46,7 @@ class dstat_topmem(dstat):
             except IOError:
                 continue
 
-            ### Get the process that uses the most memory
+            self.val['cmd'] = cmd
             self.val['max'] = usage
             self.val['name'] = name
             self.val['pid'] = pid
@@ -56,7 +56,7 @@ class dstat_topmem(dstat):
         else:
             ### If the name is a known interpreter, take the second argument from the cmdline
             if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
-                self.val['process'] = os.path.basename(cmd)
+                self.val['process'] = self.val['cmd']
             else:
                 self.val['process'] = self.val['name']
 

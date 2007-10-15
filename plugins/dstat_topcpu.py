@@ -9,7 +9,7 @@ import string
 class dstat_topcpu(dstat):
     def __init__(self):
         self.name = 'most expensive'
-        self.format = ('s', 16, 34)
+        self.format = ('s', 16, 0)
         self.nick = ('cpu process',)
         self.vars = self.nick
         self.pid = str(os.getpid())
@@ -39,6 +39,9 @@ class dstat_topcpu(dstat):
                 ### Is it a new topper ?
                 if usage < self.val['max']: continue
 
+                ### Extract name
+                name = l[1][1:-1]
+
                 ### Get commandline
                 m = string.split(open('/proc/%s/cmdline' % pid).read(), '\0')
                 if len(m) > 1:
@@ -49,11 +52,10 @@ class dstat_topcpu(dstat):
             except IOError:
                 continue
 
-            ### Get the process that spends the most jiffies
-            self.val['max'] = usage
-            self.val['name'] = l[1][1:-1]
-            self.val['pid'] = pid
             self.val['cmd'] = cmd
+            self.val['max'] = usage
+            self.val['name'] = name
+            self.val['pid'] = pid
 #            st = os.stat("/proc/%s" % pid)
 #            if st:
 #                pw = pwd.getpwuid(st.st_uid)
@@ -69,7 +71,7 @@ class dstat_topcpu(dstat):
         else:
             ### If the name is a known interpreter, take the second argument from the cmdline
             if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
-                self.val['process'] = os.path.basename(cmd)
+                self.val['process'] = self.val['cmd']
             else:
                 self.val['process'] = self.val['name']
 

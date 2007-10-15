@@ -9,7 +9,7 @@ import string
 class dstat_topio(dstat):
     def __init__(self):
         self.name = 'most expensive'
-        self.format = ('s', 22, 1024)
+        self.format = ('s', 22, 0)
         self.nick = ('i/o process',)
         self.vars = self.nick
         self.pid = str(os.getpid())
@@ -72,10 +72,8 @@ class dstat_topio(dstat):
             ### If the name is a known interpreter, take the second argument from the cmdline
             if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
                 ### Using dopen() will cause too many open files
-#               l = string.split(dopen('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
                 l = string.split(open('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
-                if len(l) > 2:
-                    self.val['process'] = os.path.basename(l[1])
+                self.val['process'] = os.path.basename(l[len(l)-1])
             else:
                 self.val['process'] = self.val['name']
 

@@ -9,7 +9,7 @@ import string
 class dstat_topbio(dstat):
     def __init__(self):
         self.name = 'most expensive'
-        self.format = ('s', 22, 1024)
+        self.format = ('s', 22, 0)
         self.nick = ('block i/o process',)
         self.vars = self.nick
         self.pid = str(os.getpid())
