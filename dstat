@@ -593,7 +593,6 @@ class dstat_disk(dstat):
             if len(l) < 13: continue
             if l[3:] == ['0',] * 11: continue
             name = l[2]
-            if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
             ret.append(name)
         for item in list: ret.append(item)
         return ret
@@ -605,7 +604,10 @@ class dstat_disk(dstat):
         elif not op.full:
             list = ('total',)
         else:
-            list = self.discover
+            list = []
+            for name in self.discover:
+                if not re.match('(md[0-9]+|dm-[0-9]+)', name):
+                    list.append(name)
 #           if len(list) > 2: list = list[0:2]
             list.sort()
         for name in list:
@@ -656,8 +658,7 @@ class dstat_disk24(dstat):
             l = line.split()
             if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
             name = l[3]
-            if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
-            ret.append(name)    
+            ret.append(name)
         for item in list: ret.append(item)
         return ret
 
@@ -668,7 +669,10 @@ class dstat_disk24(dstat):
         elif not op.full:
             list = ('total',)
         else:
-            list = self.discover
+            list = []
+            for name in self.discover:
+                if not re.match('(md[0-9]+|dm-[0-9]+)', name):
+                    list.append(name)
 #           if len(list) > 2: list = list[0:2]
             list.sort()
         for name in list:
@@ -724,7 +728,6 @@ class dstat_disk24old(dstat):
                 l = m.groups()
                 if len(l) < 4: continue
                 name = dev(int(l[0]), int(l[1]))
-                if re.match('(md[0-9]+)', name): continue
                 ret.append(name)
             break
         for item in list: ret.append(item)
@@ -737,7 +740,10 @@ class dstat_disk24old(dstat):
         elif not op.full:
             list = ('total',)
         else:
-            list = self.discover
+            list = []
+            for name in self.discover:
+                if not re.match('(md[0-9]+|dm-[0-9]+)', name):
+                    list.append(name)
 #           if len(list) > 2: list = list[0:2]
             list.sort()
         for name in list:
@@ -792,6 +798,7 @@ class dstat_epoch(dstat):
 #   def show(self):
 #       return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
 
+### FIXME: Make total work as well
 class dstat_int(dstat):
     def __init__(self):
         self.name = 'interrupts'
@@ -801,7 +808,7 @@ class dstat_int(dstat):
         self.intmap = self.intmap()
         self.vars = self.vars()
         self.nick = self.vars
-        self.init(self.vars, 1)
+        self.init(self.vars + ['total'], 1)
 
     def intmap(self):
         ret = {}
@@ -838,7 +845,7 @@ class dstat_int(dstat):
         if op.intlist:
             list = op.intlist
         else:
-            list = self.discover
+            list = self.discover + ['total']
             for name in list:
                 if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
                     list.remove(name)
@@ -856,7 +863,8 @@ class dstat_int(dstat):
             if not l or l[0] != 'intr': continue
             for name in self.vars:
                 self.cn2[name] = long(l[int(name) + 2])
-        for name in self.vars:
+            self.cn2['total'] = self.cn2['total'] + long(l[int(name) + 2])
+        for name in self.vars + ['total']:
             self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
         if step == op.delay:
             self.cn1.update(self.cn2)
@@ -1832,6 +1840,7 @@ def main():
         op.update = False
         for key in ansi.keys():
             ansi[key] = ''
+#        print ansi['blackbg']
 
     if not op.update:
         interval = op.delay
@@ -1885,7 +1894,7 @@ def main():
 #                print o.__module__
             except Exception, e:
                 if mod == mods[-1]:
-                    info(1, 'Module %s failed to load, giving up. (%s)' % (mod, e))
+                    info(1, 'Module %s failed to load. (%s)' % (mod, e))
                 elif op.debug:
                     info(1, 'Module %s failed to load, trying another. (%s)' % (mod, e))
                 if op.debug:
@@ -2028,7 +2037,7 @@ if __name__ == '__main__':
         op = Options(sys.argv[1:])
         main()
     except KeyboardInterrupt, e:
-        print
+        print ansi['default']
 #   except IOError, e:
 #       if e.errno != 32:               ## [Errno 32] Broken pipe
 #           print
