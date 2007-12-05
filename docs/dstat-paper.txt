@@ -234,7 +234,7 @@ into Dstat. A set of 'external' modules exist for:
     - topmem: most expensive memory process
     - utmp: utmp counters
     - vmkhba: VMware kernel HBA counters
-    - vmkint: VMWare kernel interrupt counters
+    - vmkint: VMware kernel interrupt counters
     - vzcpu: OpenVZ CPU counters
     - vzubc: OpenVZ user beancounters
     - wifi: WIFI quality information
@@ -383,7 +383,7 @@ usr sys idl wai hiq siq|  cpu process   | read  writ| recv  send|  in   out | me
 
 === What process is using all my CPU or memory at 4:20 AM ?
 Imagine the monitoring team notices strange peaks, a system engineer got a
-worthless message, the system was swaping extensively, a process got killed.
+worthless message, the system was swapping extensively, a process got killed.
 
 Something indicates the system is doing something unexpected but what is
 causing it and why ? As of now you can do:
