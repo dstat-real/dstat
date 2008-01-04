@@ -4,13 +4,18 @@
 ### Authority: dag@wieers.com
 
 global string
+global glob
 import string
+import glob
 
 class dstat_cpufreq(dstat):
     def __init__(self):
         self.name = 'frequency'
         self.format = ('p', 4, 34)
-        self.vars = os.listdir('/sys/devices/system/cpu/')
+#       self.vars = os.listdir('/sys/devices/system/cpu/')
+        self.vars = []
+        for name in glob.glob('/sys/devices/system/cpu/cpu?'):
+            self.vars.append(os.path.basename(name))
 #       self.nick = [string.lower(name) for name in self.vars]
         self.nick = []
         for name in self.vars:
