@@ -13,12 +13,12 @@ class dstat_cpufreq(dstat):
         self.name = 'frequency'
         self.format = ('p', 4, 34)
 #       self.vars = os.listdir('/sys/devices/system/cpu/')
-        self.vars = []
-        for name in glob.glob('/sys/devices/system/cpu/cpu?'):
-            self.vars.append(os.path.basename(name))
 #       self.nick = [string.lower(name) for name in self.vars]
+        self.vars = []
         self.nick = []
-        for name in self.vars:
+        for name in glob.glob('/sys/devices/system/cpu/cpu[0-9]*'):
+            name = os.path.basename(name)
+            self.vars.append(name)
             self.nick.append(string.lower(name))
         self.init(self.vars, 1)
 
