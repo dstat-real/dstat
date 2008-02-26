@@ -1,4 +1,4 @@
-* 0.6.6svn - ... - released 15/10/2007
+* 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash
 - Added more Dbt (Debian bug tracker) ids in the ChangeLog and TODO
 - Use sys.exit() instead of exit() before color support is detected

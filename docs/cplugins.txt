@@ -1,0 +1,8 @@
+Defining Python class methods in C 
+http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/54352
+
+python class in c / global calls
+http://mail.python.org/pipermail/python-list/2002-August/160784.html
+
+How to create a python class in C
+http://mail.python.org/pipermail/python-list/2000-August/047158.html

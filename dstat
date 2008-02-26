@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.6svn'
+VERSION = '0.6.7'
 
 def inspath(path):
     if os.path.isdir(path) and path not in sys.path:
@@ -90,9 +90,9 @@ class Options:
 
         ### Implicit if no terminal is used
         if not sys.stdout.isatty():
-            self.update = False
-            self.header = False
             self.color = False
+            self.header = False
+            self.update = False
 
         ### Temporary hardcoded for my own project
         self.diskset = {
@@ -1865,12 +1865,14 @@ def main():
                 if 'dstat_'+mod not in globals().keys():
                     import imp
                     file, pathname, description = imp.find_module('dstat_'+mod)
+
                     ### Try loading python plugin
                     if description[0] == '.py':
 #                           exec compile(readfile(pathname), pathname, 'exec')
                             execfile(pathname)
                             exec 'o = dstat_%s()' % mod
-                ### Try loading C plugin
+
+                    ### Try loading C plugin
                     elif description[0] == '.so':
                         exec 'import dstat_%s' % mod
                         exec 'o = dstat_%s.new()' % mod
@@ -1880,7 +1882,8 @@ def main():
 #                        print o.name
                     else:
                         info(1, 'Module is of unknown type.')
-                ### Remove defect stat objects and calculate line length
+
+                    ### Remove defect stat objects and calculate line length
                     if not o.check():
                         raise Exception, 'Unknown problem, please report'
 #                except Exception, e:

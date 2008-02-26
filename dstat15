@@ -12,11 +12,11 @@
 ### You should have received a copy of the GNU Library General Public License
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-### Copyright 2004, 2005 Dag Wieers <dag@wieers.com>
+### Copyright 2004-2007 Dag Wieers <dag@wieers.com>
 
 #from __future__ import generators
 
-VERSION = '0.6.6svn'
+VERSION = '0.6.7'
 
 def inspath(path):
     if os.path.isdir(path) and path not in sys.path:
@@ -75,16 +75,16 @@ class Options:
         self.intlist = None
         self.netlist = None
         self.swaplist = None
-        self.color = False
+        self.color = True
         self.update = True
         self.header = True
         self.output = False
-        self.isatty = sys.stdout.isatty()
 
         ### Implicit if no terminal is used
-        if not self.isatty:
-            self.update = False
+        if not sys.stdout.isatty():
+            self.color = False
             self.header = False
+            self.update = False
 
         ### Temporary hardcoded for my own project
         self.diskset = {
@@ -102,7 +102,7 @@ class Options:
                 'noheaders', 'noupdate', 'output=', 'version', 'vmstat'])
         except getopt.error, exc:
             print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
-            exit(1)
+            sys.exit(1)
 
         self.modlist = []
 
@@ -179,10 +179,10 @@ class Options:
             elif opt in ['-h', '--help']:
                 self.usage()
                 self.help()
-                exit(0)
+                sys.exit(0)
             elif opt in ['-V', '--version']:
                 self.version()
-                exit(0)
+                sys.exit(0)
 
         if not self.modlist:
             self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
@@ -192,11 +192,11 @@ class Options:
             if len(args) > 1: self.count = int(args[1])
         except:
             print 'dstat: incorrect argument, try dstat -h for the correct syntax'
-            exit(1)
+            sys.exit(1)
 
         if self.delay <= 0:
             print 'dstat: delay must be an integer, greater than zero'
-            exit(1)
+            sys.exit(1)
 
     def version(self):
         print 'Dstat %s' % VERSION
@@ -207,12 +207,17 @@ class Options:
         print 'Kernel %s' % os.uname()[2]
         print 'Python %s' % sys.version
         print
+
+        color = ""
+        if not gettermcolor(self.color):
+            color = "no "
+        print 'Terminal type: %s (%scolor support)' % (os.getenv('TERM'), color)
         rows, cols = gettermsize()
         print 'Terminal size: %d lines, %d columns' % (rows, cols)
         print
         print 'Processors: %d' % getcpunr()
         print 'Pagesize: %d' % resource.getpagesize()
-#       print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
+        print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
         print
 
         global op
@@ -479,7 +484,7 @@ class dstat_cpu(dstat):
         if op.cpulist:
             list = op.cpulist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = []
             cpu = 0
@@ -539,7 +544,7 @@ class dstat_cpu24(dstat):
         if op.cpulist:
             list = op.cpulist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = []
             cpu = 0
@@ -582,7 +587,6 @@ class dstat_disk(dstat):
             if len(l) < 13: continue
             if l[3:] == ['0',] * 11: continue
             name = l[2]
-            if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
             ret.append(name)
         for item in list: ret.append(item)
         return ret
@@ -592,9 +596,12 @@ class dstat_disk(dstat):
         if op.disklist:
             list = op.disklist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
-            list = self.discover
+            list = []
+            for name in self.discover:
+                if not re.match('(md[0-9]+|dm-[0-9]+)', name):
+                    list.append(name)
 #           if len(list) > 2: list = list[0:2]
             list.sort()
         for name in list:
@@ -646,8 +653,7 @@ class dstat_disk24(dstat):
             l = string.split(line)
             if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
             name = l[3]
-            if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
-            ret.append(name)    
+            ret.append(name)
         for item in list: ret.append(item)
         return ret
 
@@ -656,9 +662,12 @@ class dstat_disk24(dstat):
         if op.disklist:
             list = op.disklist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
-            list = self.discover
+            list = []
+            for name in self.discover:
+                if not re.match('(md[0-9]+|dm-[0-9]+)', name):
+                    list.append(name)
 #           if len(list) > 2: list = list[0:2]
             list.sort()
         for name in list:
@@ -725,9 +734,12 @@ class dstat_disk24old(dstat):
         if op.disklist:
             list = op.disklist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
-            list = self.discover
+            list = []
+            for name in self.discover:
+                if not re.match('(md[0-9]+|dm-[0-9]+)', name):
+                    list.append(name)
 #           if len(list) > 2: list = list[0:2]
             list.sort()
         for name in list:
@@ -782,6 +794,7 @@ class dstat_epoch(dstat):
 #   def show(self):
 #       return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
 
+### FIXME: Make total work as well
 class dstat_int(dstat):
     def __init__(self):
         self.name = 'interrupts'
@@ -791,7 +804,7 @@ class dstat_int(dstat):
         self.intmap = self.intmap()
         self.vars = self.vars()
         self.nick = self.vars
-        self.init(self.vars, 1)
+        self.init(self.vars + ['total'], 1)
 
     def intmap(self):
         ret = {}
@@ -829,7 +842,7 @@ class dstat_int(dstat):
         if op.intlist:
             list = op.intlist
         else:
-            list = self.discover
+            list = self.discover + ['total']
             for name in list:
                 if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
                     list.remove(name)
@@ -847,7 +860,8 @@ class dstat_int(dstat):
             if not l or l[0] != 'intr': continue
             for name in self.vars:
                 self.cn2[name] = long(l[int(name) + 2])
-        for name in self.vars:
+            self.cn2['total'] = self.cn2['total'] + long(l[int(name) + 2])
+        for name in self.vars + ['total']:
             self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
         if step == op.delay:
             self.cn1.update(self.cn2)
@@ -1028,7 +1042,7 @@ class dstat_net(dstat):
         if op.netlist:
             list = op.netlist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = self.discover
 #           if len(list) > 2: list = list[0:2]
@@ -1172,7 +1186,7 @@ class dstat_swap(dstat):
         if op.swaplist:
             list = op.swaplist
         elif not op.full:
-            list = ('total', )
+            list = ('total',)
         else:
             list = self.discover
 #           if len(list) > 2: list = list[0:2]
@@ -1262,6 +1276,7 @@ class dstat_time(dstat):
         self.init(self.vars, 1)
 
     def extract(self):
+        ### FIXME: Add milliseconds when using --debug (see dstat_epoch)
         self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime())
 
     def show(self):
@@ -1425,7 +1440,37 @@ def readpipe(file, tmout = 0.001):
     while select.select([file.fileno()], [], [], tmout)[0]:
         ret = ret + file.read(1)
     return string.split(ret, '\n')
-#   return ret
+
+def greppipe(file, str, tmout = 0.001):
+    "Grep available data from pipe in a non-blocking fashion"
+    ret = ''
+    while not select.select([file.fileno()], [], [], tmout)[0]:
+        pass
+    while select.select([file.fileno()], [], [], tmout)[0]:
+        char = file.read(1)
+        if char != '\n':
+            ret = ret + char
+        elif ret.startswith(str):
+            return ret
+        else:
+            ret = ''
+    return None
+
+def matchpipe(file, string, tmout = 0.001):
+    "Match available data from pipe in a non-blocking fashion"
+    ret = ''
+    regexp = re.compile(string)
+    while not select.select([file.fileno()], [], [], tmout)[0]:
+        pass
+    while select.select([file.fileno()], [], [], tmout)[0]:
+        char = file.read(1)
+        if char != '\n':
+            ret = ret + char
+        elif regexp.match(ret):
+            return ret
+        else:
+            ret = ''
+    return None
 
 def dchg(var, max, base):
     "Convert decimal to string given base and length"
@@ -1608,6 +1653,18 @@ def gettermsize():
             termsize = 25, 80
     return termsize
 
+def gettermcolor(color=True):
+    if color and sys.stdout.isatty():
+        try:
+            import curses
+            curses.setupterm()
+            if curses.tigetnum('colors') < 0:
+                return False
+        except:
+            info(1, 'Color support is disabled, python-curses is not installed.')
+            return False
+    return color
+
 def getcpunr():
     "Return the number of CPUs in the system"
     cpunr = -1
@@ -1740,21 +1797,14 @@ def main():
     rows, cols = gettermsize()
 
     ### Write term-title
-    if op.isatty:
-        term = os.environ['TERM']
-        if term and re.compile('(screen*|xterm*)').match(term):
+    if sys.stdout.isatty():
+        shell = os.getenv('XTERM_SHELL')
+        term = os.getenv('TERM')
+        if shell == '/bin/bash' and term and re.compile('(screen*|xterm*)').match(term):
             sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), string.join(op.args, ' ')))
 
     ### Check terminal capabilities
-    if op.isatty:
-        op.color = True
-        try:
-            import curses
-            curses.setupterm()
-            if curses.tigetnum('colors') < 0:
-                op.color = False
-        except:
-            op.color = False
+    op.color = gettermcolor(op.color)
 
     if op.output:
         if os.path.exists(op.output):
@@ -1793,35 +1843,53 @@ def main():
         else: mods = ( module, )
 
         for mod in mods:
-            if 'dstat_'+mod not in globals().keys():
-                try:
+            try:
+                if 'dstat_'+mod not in globals().keys():
                     import imp
                     file, pathname, description = imp.find_module('dstat_'+mod)
-#                   exec compile(readfile(pathname), pathname, 'exec')
-                    execfile(pathname)
-                except Exception, e:
-                    info(1, 'Module %s failed to load. (%s)' % (mod, e))
-#                   tb = sys.exc_info()[2]
-                    continue
 
-            try:
-#               exec compile('o = dstat_%s()' % mod, '<string>', 'single')
-                exec 'o = dstat_%s()' % mod
+                    ### Try loading python plugin
+                    if description[0] == '.py':
+#                           exec compile(readfile(pathname), pathname, 'exec')
+                            execfile(pathname)
+                            exec 'o = dstat_%s()' % mod
 
-                ### Remove defect stat objects and calculate line length
-                if not o.check():
-                    raise Exception, 'Unknown problem, please report'
+                    ### Try loading C plugin
+                    elif description[0] == '.so':
+                        exec 'import dstat_%s' % mod
+                        exec 'o = dstat_%s.new()' % mod
+#                        exec 'o = dstat_%s.init(dstat)' % mod
+#                        print dir(o)
+#                        print o.__module__
+#                        print o.name
+                    else:
+                        info(1, 'Module is of unknown type.')
 
-                linewidth = linewidth + o.statwidth() + 1
-                totlist.append(o)
-                break
-
+                    ### Remove defect stat objects and calculate line length
+                    if not o.check():
+                        raise Exception, 'Unknown problem, please report'
+#                except Exception, e:
+#                    if mod == mods[-1]:
+#                        info(1, 'Module %s has problems. (%s)' % (mod, e))
+#                        if op.debug:
+#                            raise
+#                    continue
+                else:
+                    exec 'o = dstat_%s()' % mod
+#                print o.__module__
             except Exception, e:
                 if mod == mods[-1]:
-                    info(1, 'Module %s has problems. (%s)' % (mod, e))
-                    if op.debug:
-                        raise
+                    info(1, 'Module %s failed to load. (%s)' % (mod, e))
+                elif op.debug:
+                    info(1, 'Module %s failed to load, trying another. (%s)' % (mod, e))
+                if op.debug:
+                    raise
+#                tb = sys.exc_info()[2]
                 continue
+
+            linewidth = linewidth + o.statwidth() + 1
+            totlist.append(o)
+            break
 
     if not totlist:
         die(8, 'None of the stats you selected are available.')
@@ -1860,7 +1928,7 @@ def main():
             curwidth = 0
 
         ### Trim object list to what is visible on screen
-        if op.isatty:
+        if sys.stdout.isatty():
             rows, cols = gettermsize()
             vislist = []
             for o in totlist:
@@ -1914,9 +1982,9 @@ def main():
             tt = tt + (t2 - t1) * 1000.0
             if loop == 0: tt = tt * step
             if op.debug == 1:
-                sys.stdout.write('%6.2fms' % (tt / step))
+                sys.stdout.write('%s%6.2fms%s' % (ansi['darkblue'], tt / step, ansi['default']))
             elif op.debug > 1:
-                sys.stdout.write('%6.2f [%d:%d:%d]' % (tt / step, loop, step, update))
+                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (ansi['darkblue'], tt / step, ansi['gray'], loop, step, update, ansi['default']))
 
         ### If intermediate results, update increases with 1 sec (=interval)
         update = update + interval
@@ -1948,7 +2016,7 @@ if __name__ == '__main__':
         op = Options(sys.argv[1:])
         main()
     except KeyboardInterrupt, e:
-        print
+        print ansi['default']
 #   except IOError, e:
 #       if e.errno != 32:               ## [Errno 32] Broken pipe
 #           print
