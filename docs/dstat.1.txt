@@ -40,76 +40,76 @@ information.
 
 == OPTIONS
 -c, --cpu::
-	enable cpu stats
+    enable cpu stats
 
 -C 0,3,total::
-	include cpu0, cpu3 and total
+    include cpu0, cpu3 and total
 
 -d, --disk::
-	enable disk stats
+    enable disk stats
 
 -D total,hda::
-	include hda and total
+    include hda and total
 
 -g, --page::
-	enable page stats
+    enable page stats
 
 -i, --int::
-	enable interrupt stats
+    enable interrupt stats
 
 -I 5,10::
-	include interrupt 5 and 10
+    include interrupt 5 and 10
 
 -l, --load::
-	enable load stats
+    enable load stats
 
 -m, --mem::
-	enable memory stats
+    enable memory stats
 
 -n, --net::
-	enable network stats
+    enable network stats
 
 -N eth1,total::
-	include eth1 and total
+    include eth1 and total
 
 -p, --proc::
-	enable process stats
+    enable process stats
 
 -s, --swap::
-	enable swap stats
+    enable swap stats
 
 -S swap1,total::
-	include swap1 and total
+    include swap1 and total
 
 -t, --time::
-	enable time/date output
+    enable time/date output
 
 -T, --epoch::
-	enable time counter (seconds since epoch)
+    enable time counter (seconds since epoch)
 
 -y, --sys::
-	enable system stats
+    enable system stats
 
 --ipc::
-	enable ipc stats
+    enable ipc stats
 
 --lock::
-	enable lock stats
+    enable lock stats
 
 --raw::
-	enable raw stats
+    enable raw stats
 
 --tcp::
-	enable tcp stats
+    enable tcp stats
 
 --udp::
-	enable udp stats
+    enable udp stats
 
 --unix::
-	enable unix stats
+    enable unix stats
 
 -M stat1,stat2::
-	enable internal stats and external plugin stats
+    enable internal stats and external plugin stats
 
 Possible internal stats are::
   cpu, cpu24, disk, disk24, disk24old, epoch, int, int24, ipc, load, lock, mem,
@@ -119,28 +119,28 @@ Possible external plugin stats can be listed using::
   dstat -M list
 
 -a, --all::
-	equals -cdngy (default)
+    equals -cdngy (default)
 
 -f, --full::
-	expand -C, -D, -I, -N and -S discovery lists
+    expand -C, -D, -I, -N and -S discovery lists
 
 -v, --vmstat::
-	equals -pmgdsc -D total
+    equals -pmgdsc -D total
 
 --integer::
-	show integer values
+    show integer values
 
 --nocolor::
-	disable colors (implies --noupdate)
+    disable colors (implies --noupdate)
 
 --noheaders::
-	disable repetitive headers
+    disable repetitive headers
 
 --noupdate::
-	disable intermediate updates when delay > 1
+    disable intermediate updates when delay > 1
 
 --output file::
-	write CSV output to file
+    write CSV output to file
 
 
 == ARGUMENTS
@@ -203,45 +203,45 @@ Please see the TODO file for known bugs and future plans.
 == FILES
 Paths that may contain external dstat_* plugins:
 
-	~/.dstat/
-	./
-	./plugins/
-	(path of binary)/plugins/
-	/usr/share/dstat/
-	/usr/local/share/dstat/
+    ~/.dstat/
+    ./
+    ./plugins/
+    (path of binary)/plugins/
+    /usr/share/dstat/
+    /usr/local/share/dstat/
 
 
 == SEE ALSO
 
 === Performance tools
-	ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, vmstat(1), xosview(1)
+    ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, vmstat(1), xosview(1)
 
 === Debugging tools
-	htop, lslk(1), lsof(8), top(1)
+    htop, lslk(1), lsof(8), top(1)
 
 === Process tracing
-	ltrace(1), pmap(1), ps(1), pstack(1), strace(1)
+    ltrace(1), pmap(1), ps(1), pstack(1), strace(1)
 
 === Binary debugging
-	ldd(1), file(1), nm(1), objdump(1), readelf(1)
+    ldd(1), file(1), nm(1), objdump(1), readelf(1)
 
 === Memory usage tools
-	free(1), memusage, memusagestat, slabtop(1)
+    free(1), memusage, memusagestat, slabtop(1)
 
 === Accounting tools
-	dump-acct, dump-utmp, sa(8)
+    dump-acct, dump-utmp, sa(8)
 
 === Hardware debugging tools
-	dmidecode, ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
+    dmidecode, ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
 
 === Application debugging
-	mailstats(8), qshape(1)
+    mailstats(8), qshape(1)
 
 === Xorg related tools
-	xdpyinfo(1), xrestop(1)
+    xdpyinfo(1), xrestop(1)
 
 === Other useful info
-	proc(5)
+    proc(5)
 
 
 == AUTHOR

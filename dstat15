@@ -211,7 +211,7 @@ class Options:
         color = ""
         if not gettermcolor(self.color):
             color = "no "
-        print 'Terminal type: %s (%scolor support)' % (os.getenv('TERM'), color)
+        print 'Terminal type: %s (%scolor support)' % (getenv('TERM'), color)
         rows, cols = gettermsize()
         print 'Terminal size: %d lines, %d columns' % (rows, cols)
         print
@@ -1610,6 +1610,11 @@ def die(ret, str):
     info(0, str)
     exit(ret)
 
+def getenv(key):
+    if os.environ.has_key(key):
+        return os.environ[key]
+    return None
+
 def initterm():
     "Initialise terminal"
     global termsize
@@ -1648,7 +1653,7 @@ def gettermsize():
                 curses.setupterm()
                 return curses.tigetnum('lines'), curses.tigetnum('cols')
             else:
-                termsize = (int(os.environ['LINES']), int(os.environ['COLUMNS']))
+                termsize = (int(getenv('LINES')), int(getenv('COLUMNS')))
         except:
             termsize = 25, 80
     return termsize
@@ -1798,8 +1803,8 @@ def main():
 
     ### Write term-title
     if sys.stdout.isatty():
-        shell = os.getenv('XTERM_SHELL')
-        term = os.getenv('TERM')
+        shell = getenv('XTERM_SHELL')
+        term = getenv('TERM')
         if shell == '/bin/bash' and term and re.compile('(screen*|xterm*)').match(term):
             sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), string.join(op.args, ' ')))
 

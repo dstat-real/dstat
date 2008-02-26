@@ -19,6 +19,7 @@
 - Reinstated the use of -D md0 which got lost (Peter Rabbitson)
 - Improvement to cpufreq module for SMP systems (Bert de Bruijn)
 - Added VMware ESX dstat_vmknic plugin (Bert de Bruijn)
+- Added infrastructure to allow C plugins
 
 * 0.6.6 - Unemployed - released 28/04/2007
 - Removed SwapCached from the Cached counter (Dbt 418326, Peter Rabbitson)
