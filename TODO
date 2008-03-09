@@ -57,7 +57,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Python 1.5 prints 'L' for long, crashes when int()
 + Implement better (?) protection against counter rollovers (see mail from Sebastien Prud'homme)
 + Plugins currently have to be written in python 1.5 to work for dstat15 (lowest common denominator)
-+ When stdout is suspend (Ctrl-S) you get: IOError: [Errno 4] Interrupted system call (Dbt 309953, Marc Lehmann, supastuff@freenode)
++ Because output is unbiffered, when stdout is suspendes (Ctrl-S) you get: IOError: [Errno 4] Interrupted system call (Dbt 309953, Marc Lehmann, supastuff@freenode)
 
 ### Plugin issues
 + plugins that use /proc/pid are reasonably slow
@@ -72,12 +72,12 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Create modules that can contain samples of different units
 
    CPU: (see mpstat)
-	sys, usr, idl, iow, hiq, siq (percentage)
-      	intr/sec (int)
-	
+    sys, usr, idl, iow, hiq, siq (percentage)
+        intr/sec (int)
+
    IO: (see iostat -x)
-	tps (int)
-	blk_read/sec, blk_wrtn/sec (kB/sec)
+    tps (int)
+    blk_read/sec, blk_wrtn/sec (kB/sec)
 
 + Design proper object model and namespace for _all_ possible stats
 + Create a seperate curses-based tool, much like nmon (dstat stays line-based)

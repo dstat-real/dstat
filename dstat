@@ -1276,13 +1276,16 @@ class dstat_time(dstat):
     def __init__(self):
         self.name = 'time'
         self.format = ('s', 14, 0)
+        if op.debug:
+            self.format = ('s', 18, 0)
         self.nick = ('date/time',)
         self.vars = ('time',)
         self.init(self.vars, 1)
 
     def extract(self):
-        ### FIXME: Add milliseconds when using --debug (see dstat_epoch)
         self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime())
+        if op.debug:
+            self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime()) + ".%d" % (time.time() * 1000 % 1000 )
 
     def show(self):
         if step == op.delay:
@@ -1954,7 +1957,7 @@ def main():
                 if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
                     vislist.append(o)
                     curwidth = newwidth
-    
+
             ### Check when to display the header
             if op.header and rows >= 6:
                 if oldvislist != vislist:
@@ -1980,6 +1983,13 @@ def main():
             ansi['default'] = ansi['gray']
         line = ansi['default']
 
+        ### Recalculate the time spend
+        ticknow = time.time()
+        if loop != 0:
+            tick = ticknow - tickbefore
+        if step == op.delay:
+            tickbefore = ticknow
+
         ### Calculate all objects (visible, invisible)
         oline = ''
         for o in totlist:
@@ -1988,7 +1998,6 @@ def main():
                 line = line + o.show() + o.showend(totlist, vislist)
             if op.output and step == op.delay:
                 oline = oline + o.showcsv() + o.showcsvend(totlist, vislist)
-
         ### Print stats
         sys.stdout.write(line + ansi['default'])
         if op.output and step == op.delay:
@@ -2029,7 +2038,6 @@ def main():
 
         loop = (update + op.delay - 1) / op.delay
         step = ((update - 1) % op.delay) + 1
-        tick = step
 
     signal.signal(signal.SIGALRM, signal.SIG_IGN)
 

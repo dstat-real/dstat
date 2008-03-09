@@ -1,3 +1,7 @@
+* 0.6.7svn - ... - release 09/03/2008
+- Added improved tick patch (Kelly Long)
+- Show milliseconds in dstat_time when using --debug cfr. dstat_epoch
+
 * 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash
 - Added more Dbt (Debian bug tracker) ids in the ChangeLog and TODO
@@ -8,9 +12,9 @@
 - Fixed a problem with asciidoc DocBook output (Dbt 427214, Michael Ablassmeier)
 - Report when python-curses is missing and colors don't work (eg. on OpenSUSE)
 - Improve --version output wrt. terminal and color support
-- Fixed a few inaccuracies in the man page. (John Goggan)
-- Fixed opening vanished files in /proc in dstat_topcpu.
-- Fixed formatting bug in dstat_topcpu.
+- Fixed a few inaccuracies in the man page (John Goggan)
+- Fixed opening vanished files in /proc in dstat_topcpu
+- Fixed formatting bug in dstat_topcpu
 - Added external dstat_mysql_* and dstat_innodb_* plugins
 - Added greppipe() and matchpipe() to improve performance on pipe-handling
 - Added external dstat_topio and dstat_topbio plugins
