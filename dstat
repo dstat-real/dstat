@@ -1571,7 +1571,7 @@ def cprint(var, format = ('f', 4, 1000)):
     if ret == '0':
         color = 'default'
     elif type in ('d', 'p'):
-        color = colors[int(var/mp)%len(colors)]
+        color = colors[int(round(var)/mp)%len(colors)]
     elif type in ('f'):
         color = colors[c%len(colors)]
     else:
