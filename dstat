@@ -1625,7 +1625,7 @@ def initterm():
     termsize = None, None
 
     ### Unbuffered sys.stdout
-    sys.stdout = os.fdopen(1, 'w', 0)
+#   sys.stdout = os.fdopen(1, 'w', 0)
 
     try:
         global fcntl, struct, termios
@@ -1976,6 +1976,10 @@ def main():
             showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
             showtitle(2, totlist, vislist, ansi['gray'] + char['pipe'], ansi['darkblue'] + char['gt'])
 
+        ### Flush output since this is buffered I/O
+        try: sys.stdout.flush()
+        except IOError: pass
+
         ### Prepare the colors for intermediate updates, last step in a loop is definitive
         if step == op.delay:
             ansi['default'] = ansi['reset']
@@ -2018,6 +2022,10 @@ def main():
 
         if not op.update:
             sys.stdout.write('\n')
+
+        ### Flush output since this is buffered I/O
+        try: sys.stdout.flush()
+        except IOError: pass
 
         ### Do not pause when this is the final loop
         if update <= op.delay * op.count or op.count == -1:
