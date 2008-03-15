@@ -2,7 +2,10 @@
 - Added improved tick patch (Kelly Long)
 - Show milliseconds in dstat_time when using --debug cfr. dstat_epoch
 - Difference in integer rounding should not affect colouring
-- Fixed the IOError when terminal is suspended and IO is unbuffered. (Dbt 309953)
+- Fixed the IOError when terminal is suspended and IO is unbuffered (Dbt 309953)
+- Scheduler accuracy improvements by using sched instead of signal
+- Added external dstat_snooze plugin (Kelly Long)
+- Improved dstat_time to accept format string from DSTAT_TIMEFMT (Kelly Long)
 
 * 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash
