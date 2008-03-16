@@ -4,10 +4,17 @@ class dstat_snooze(dstat):
         self.format = ('s', 6, 0)
         self.nick = ('snooze',)
         self.vars = self.nick
+        self.before = time.time()
         self.init(self.vars, 1)
 
     def extract(self):
-        self.val['snooze'] = tick
+        now = time.time()
+        if loop != 0:
+            self.val['snooze'] = now - self.before
+        else:
+            self.val['snooze'] = self.before
+        if step == op.delay:
+            self.before = now
 
     def show(self):
         if self.val['snooze'] > step + 1:

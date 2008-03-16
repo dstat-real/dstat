@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.7'
+VERSION = '0.6.7svn'
 
 def inspath(path):
     if os.path.isdir(path) and path not in sys.path:
@@ -1631,8 +1631,6 @@ def initterm():
     "Initialise terminal"
     global termsize
 
-    termsize = None, None
-
     ### Unbuffered sys.stdout
 #    sys.stdout = os.fdopen(1, 'w', 0)
 
@@ -1794,21 +1792,18 @@ def listmodules():
         print
 
 def main():
-    global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols
-    global totlist, oldvislist, tt, tickbefore
+    global update, loop, step, pagesize, cpunr, ansi, interval, outputfile
+    global totlist, tickbefore, now
 
     loop = update = 0
     step = op.delay
-    tick = ticks()
+
     pagesize = resource.getpagesize()
     cpunr = getcpunr()
-#   hz = os.sysconf('SC_CLK_TCK')
     interval = 1
 
     user = getpass.getuser()
     hostname = os.uname()[1].split('.')[0]
-
-    rows, cols = gettermsize()
 
     ### Write term-title
     if sys.stdout.isatty():
@@ -1856,7 +1851,6 @@ def main():
 
     ### Build list of requested modules
     linewidth = 0
-    oldvislist = []
     totlist = []
     for module in op.modlist:
         if module in ('list', 'help'):
@@ -1925,58 +1919,65 @@ def main():
         showcsvtitle(1, totlist)
         showcsvtitle(2, totlist)
 
-    ### Always show header the first time
-    showheader = True
-
-    tt = 0
-
     scheduler = sched.scheduler(time.time, time.sleep)
-    now = time.time()
-    tickbefore = now
+    now = tickbefore = time.time()
 
     ### Let the games begin
     while update <= op.delay * op.count or op.count == -1:
         scheduler.enterabs(now + update, 1, perform, ())
         scheduler.run()
 
+        update = update + interval
+
     if op.update:
         sys.stdout.write('\n')
 
 def perform():
-        global totlist, oldvislist, loop, step, interval, update, showheader, tickbefore, tt, t1, t2, tick
+        global totlist, oldvislist, vislist, showheader, rows, cols
+        global tick, tickbefore, totaltime
+        global loop, step, update
 
-        ### The last step in a loop is to show the definitive line on its own line
+        loop = (update - 1 + op.delay) / op.delay
+        step = ((update - 1) % op.delay) + 1
+
+        ### Get current time (may be different from schedule) for debugging
+        if not op.debug:
+            curwidth = 0
+        else:
+            starttime = time.time()
+            if step == 1 or loop == 0:
+                totaltime = 0
+            curwidth = 8
+
+        ### Initialise certain variables
+        if loop == 0:
+            tick = ticks()
+            rows, cols = 0, 0
+            oldvislist = []
+            showheader = True
+        else:
+            tick = step
+
+        ### The first step is to show the definitive line if necessary
         if op.update:
-            if step == op.delay and update != 0:
+            if step == 1 and update != 0:
                 sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
-#               import gc
-#               for object in gc.get_objects():
-#                   if isinstance(object, dstat):
-#                       print dir(object)
-#                       for object2 in gc.get_referents(object):
-#                           print object2
             else:
                 sys.stdout.write(ansi['restore'])
 
-        loop = (update + op.delay - 1) / op.delay
-        step = ((update - 1) % op.delay) + 1
-
-        if op.debug:
-            if step == 1: tt = 0
-            t1 = time.time()
-            curwidth = 8
-        else:
-            curwidth = 0
-
-        ### Trim object list to what is visible on screen
+        ### FIXME: Make this part smarter
         if sys.stdout.isatty():
+            oldrows, oldcols = rows, cols
             rows, cols = gettermsize()
-            vislist = []
-            for o in totlist:
-                newwidth = curwidth + o.statwidth() + 1
-                if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
-                    vislist.append(o)
-                    curwidth = newwidth
+
+            ### Trim object list to what is visible on screen
+            if oldcols != cols:
+                vislist = []
+                for o in totlist:
+                    newwidth = curwidth + o.statwidth() + 1
+                    if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
+                        vislist.append(o)
+                        curwidth = newwidth
 
             ### Check when to display the header
             if op.header and rows >= 6:
@@ -1989,6 +1990,7 @@ def perform():
         else:
             vislist = totlist
 
+        ### Display header
         if showheader:
             if loop == 0 and totlist != vislist:
                 info(1, 'Terminal width too small, trimming output.')
@@ -2001,16 +2003,9 @@ def perform():
             ansi['default'] = ansi['reset']
         else:
             ansi['default'] = ansi['gray']
-        line = ansi['default']
-
-        ### Recalculate the time spend
-        ticknow = time.time()
-        if loop != 0:
-            tick = ticknow - tickbefore
-        if step == op.delay:
-            tickbefore = ticknow
 
         ### Calculate all objects (visible, invisible)
+        line = ''
         oline = ''
         for o in totlist:
             o.extract()
@@ -2018,28 +2013,29 @@ def perform():
                 line = line + o.show() + o.showend(totlist, vislist)
             if op.output and step == op.delay:
                 oline = oline + o.showcsv() + o.showcsvend(totlist, vislist)
+
         ### Print stats
-        sys.stdout.write(line + ansi['default'])
+        sys.stdout.write(line)
         if op.output and step == op.delay:
             outputfile.write(oline + '\n')
 
         ### Print debugging output
         if op.debug:
-            t2 = time.time();
-            tt = tt + (t2 - t1) * 1000.0
-            if loop == 0: tt = tt * step
+            totaltime = totaltime + (time.time() - starttime) * 1000.0
+            if loop == 0: totaltime = totaltime * step
             if op.debug == 1:
-                sys.stdout.write('%s%6.2fms%s' % (ansi['darkblue'], tt / step, ansi['default']))
+                sys.stdout.write('%s%6.2fms%s' % (ansi['darkblue'], totaltime / step, ansi['default']))
             elif op.debug > 1:
-                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (ansi['darkblue'], tt / step, ansi['gray'], loop, step, update, ansi['default']))
+                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (ansi['darkblue'], totaltime / step, ansi['darkred'], loop, step, update, ansi['default']))
 
-        ### If intermediate results, update increases with 1 sec (=interval)
-        update = update + interval
+        ### FIXME: This is temporary functionality, we should do this better
+        ### If it takes longer than 500ms, than warn !
+        if time.time() - now - update > 1:
+            sys.stdout.write(' '+ansi['redbg']+ansi['white']+'= warn =')
 
+        ### Finish the line
         if not op.update:
             sys.stdout.write('\n')
-
-        ### Flush output since this is buffered I/O
         sys.stdout.flush()
 
 ### Main entrance
