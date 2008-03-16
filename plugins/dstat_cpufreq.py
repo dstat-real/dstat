@@ -26,7 +26,7 @@ class dstat_cpufreq(dstat):
         if self.vars:
             for cpu in self.vars:
                 if not os.access('/sys/devices/system/cpu/'+cpu+'/cpufreq/scaling_cur_freq', os.R_OK):
-                    raise Exception, 'Cannot access acpi cpu frequency information'
+                    raise Exception, 'Cannot access acpi '+cpu+' frequency information'
             return True
         raise Exception, 'No statistics found'
 

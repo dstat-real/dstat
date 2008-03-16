@@ -6,6 +6,7 @@
 - Scheduler accuracy improvements by using sched instead of signal
 - Added external dstat_snooze plugin (Kelly Long)
 - Improved dstat_time to accept format string from DSTAT_TIMEFMT (Kelly Long)
+- Added --pidfile option to write out a pidfile (Kelly Long)
 
 * 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash

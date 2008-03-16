@@ -87,6 +87,7 @@ class Options:
         self.update = True
         self.header = True
         self.output = False
+        self.pidfile = False
 
         ### Implicit if no terminal is used
         if not sys.stdout.isatty():
@@ -107,7 +108,7 @@ class Options:
                 ['cpu', 'disk', 'epoch', 'int', 'ipc', 'load', 'lock', 'mem', 'net',
                 'page', 'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 
                 'all', 'debug', 'full', 'help', 'integer', 'mods', 'modules', 'nocolor',
-                'noheaders', 'noupdate', 'output=', 'version', 'vmstat'])
+                'noheaders', 'noupdate', 'output=', 'pidfile=', 'version', 'vmstat'])
         except getopt.error, exc:
             print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
             sys.exit(1)
@@ -184,6 +185,8 @@ class Options:
                 self.update = False
             elif opt in ['-o', '--output']:
                 self.output = arg
+            elif opt in ['--pidfile']:
+                self.pidfile = arg
             elif opt in ['-h', '--help']:
                 self.usage()
                 self.help()
@@ -1617,14 +1620,9 @@ def showcsvtitle(nr, totlist):
             line = line + ','
     outputfile.write(line + '\n')
 
-def info(level, str):
-    "Output info message"
-#   if level <= op.verbose:
-    print str
-
 def die(ret, str):
     "Print error and exit with errorcode"
-    info(0, str)
+    print >>sys.stderr, str
     exit(ret)
 
 def initterm():
@@ -1676,7 +1674,7 @@ def gettermcolor(color=True):
             if curses.tigetnum('colors') < 0:
                 return False
         except:
-            info(1, 'Color support is disabled, python-curses is not installed.')
+            print >>sys.stderr, 'Color support is disabled, python-curses is not installed.'
             return False
     return color
 
@@ -1827,6 +1825,7 @@ def main():
     ### Check terminal capabilities
     op.color = gettermcolor(op.color)
 
+    ### Prepare CSV output file
     if op.output:
         if os.path.exists(op.output):
             outputfile = open(op.output, 'a', 0)
@@ -1838,6 +1837,16 @@ def main():
 
         outputfile.write('"Host:","%s",,,,"User:","%s"\n' % (hostname, user))
         outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (' '.join(op.args), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
+
+    ### Create pidfile
+    if op.pidfile:
+        try:
+            pidfile = open(op.pidfile, 'w', 0)
+            pidfile.write(str(os.getpid()))
+            pidfile.close()
+        except Exception, e:
+            print >>sys.stderr, 'Failed to create pidfile %s' % op.pidfile, e
+            op.pidfile = False
 
     ### Empty ansi database if no colors are requested
     if not op.color:
@@ -1884,7 +1893,7 @@ def main():
 #                        print o.__module__
 #                        print o.name
                     else:
-                        info(1, 'Module is of unknown type.')
+                        print >>sys.stderr, 'Module %s is of unknown type.' % mod
 
                     ### Remove defect stat objects and calculate line length
                     if not o.check():
@@ -1894,9 +1903,9 @@ def main():
 #               print o.__module__
             except Exception, e:
                 if mod == mods[-1]:
-                    info(1, 'Module %s failed to load. (%s)' % (mod, e))
+                    print >>sys.stderr, 'Module %s failed to load. (%s)' % (mod, e)
                 elif op.debug:
-                    info(1, 'Module %s failed to load, trying another. (%s)' % (mod, e))
+                    print >>sys.stderr, 'Module %s failed to load, trying another. (%s)' % (mod, e)
                 if op.debug:
                     raise
 #                tb = sys.exc_info()[2]
@@ -1993,7 +2002,7 @@ def perform():
         ### Display header
         if showheader:
             if loop == 0 and totlist != vislist:
-                info(1, 'Terminal width too small, trimming output.')
+                print >>sys.stderr, 'Terminal width too small, trimming output.'
             showheader = False
             showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
             showtitle(2, totlist, vislist, ansi['gray'] + char['pipe'], ansi['darkblue'] + char['gt'])
@@ -2046,6 +2055,10 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt, e:
         print ansi['default']
+
+    if op.pidfile and os.path.exists(op.pidfile):
+        os.remove(op.pidfile)
+
     exit(0)
 else:
     op = Options('')
