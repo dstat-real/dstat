@@ -516,7 +516,10 @@ class dstat_cpu(dstat):
                     self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
         for name in self.vars:
             for i in range(6):
-                self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
+                if sum(self.cn2[name]) > sum(self.cn1[name]):
+                    self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
+                else:
+                    print >>sys.stderr, "Error: tick problem detected, this should never happen !"
         if step == op.delay:
             self.cn1.update(self.cn2)
 
@@ -795,8 +798,10 @@ class dstat_epoch(dstat):
         self.vars = self.nick
         self.init(self.vars, 1)
 
+    ### We are now using the starttime instead of the execution time of this plugin
     def extract(self):
-        self.val['epoch'] = time.time()
+#        self.val['epoch'] = time.time()
+        self.val['epoch'] = starttime
 
 #   def show(self):
 #       return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
@@ -1291,13 +1296,14 @@ class dstat_time(dstat):
         self.vars = ('time',)
         self.init(self.vars, 1)
 
+    ### We are now using the starttime for this plugin, not the execution time of this plugin
     def extract(self):
         if self.timefmt:
-            self.val['time'] = time.strftime(self.timefmt, time.localtime())
+            self.val['time'] = time.strftime(self.timefmt, time.localtime(starttime))
         elif op.debug:
-            self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime()) + ".%03d" % (time.time() * 1000 % 1000 )
+            self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime(starttime)) + ".%03d" % (round(starttime * 1000 % 1000 ))
         else:
-            self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime())
+            self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime(starttime))
 
     def show(self):
         if step == op.delay:
@@ -1790,11 +1796,9 @@ def listmodules():
         print
 
 def main():
-    global update, loop, step, pagesize, cpunr, ansi, interval, outputfile
+    global pagesize, cpunr, ansi, outputfile
     global totlist, tickbefore, now
-
-    loop = update = 0
-    step = op.delay
+    global interval, update, missed
 
     pagesize = resource.getpagesize()
     cpunr = getcpunr()
@@ -1931,20 +1935,27 @@ def main():
     scheduler = sched.scheduler(time.time, time.sleep)
     now = tickbefore = time.time()
 
+#    loop = 0
+    update = -1
+#    step = op.delay
+    missed = 0
+
     ### Let the games begin
     while update <= op.delay * op.count or op.count == -1:
-        scheduler.enterabs(now + update, 1, perform, ())
+        scheduler.enterabs(now + update + 1, 1, perform, ())
         scheduler.run()
 
-        update = update + interval
+#        update = update + interval
 
     if op.update:
         sys.stdout.write('\n')
 
 def perform():
         global totlist, oldvislist, vislist, showheader, rows, cols
-        global tick, tickbefore, totaltime
-        global loop, step, update
+        global tick, tickbefore, totaltime, starttime
+        global loop, step, update, missed
+
+        update = update + 1
 
         loop = (update - 1 + op.delay) / op.delay
         step = ((update - 1) % op.delay) + 1
@@ -1958,6 +1969,12 @@ def perform():
                 totaltime = 0
             curwidth = 8
 
+        ### FIXME: This is temporary functionality, we should do this better
+        ### If it takes longer than 500ms, than warn !
+        if starttime - now - update > 1:
+            missed = missed + 1
+            return 0
+
         ### Initialise certain variables
         if loop == 0:
             tick = ticks()
@@ -1966,13 +1983,6 @@ def perform():
             showheader = True
         else:
             tick = step
-
-        ### The first step is to show the definitive line if necessary
-        if op.update:
-            if step == 1 and update != 0:
-                sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
-            else:
-                sys.stdout.write(ansi['restore'])
 
         ### FIXME: Make this part smarter
         if sys.stdout.isatty():
@@ -1998,6 +2008,13 @@ def perform():
             oldvislist = vislist
         else:
             vislist = totlist
+
+        ### The first step is to show the definitive line if necessary
+        if op.update:
+            if step == 1 and update != 0:
+                sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
+            else:
+                sys.stdout.write(ansi['restore'])
 
         ### Display header
         if showheader:
@@ -2037,10 +2054,10 @@ def perform():
             elif op.debug > 1:
                 sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (ansi['darkblue'], totaltime / step, ansi['darkred'], loop, step, update, ansi['default']))
 
-        ### FIXME: This is temporary functionality, we should do this better
-        ### If it takes longer than 500ms, than warn !
-        if time.time() - now - update > 1:
-            sys.stdout.write(' '+ansi['redbg']+ansi['white']+'= warn =')
+        if missed > 0:
+#            sys.stdout.write(' '+ansi['redbg']+ansi['white']+'= warn =')
+            sys.stdout.write(' '+ansi['redbg']+ansi['white']+'missed '+str(missed+1)+' ticks')
+            missed = 0
 
         ### Finish the line
         if not op.update:
