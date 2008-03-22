@@ -1561,9 +1561,9 @@ def cprint(var, format = ('f', 4, 1000)):
 
     if var < 0:
         if unit:
-            return ansi['default'] + '-'.rjust(max) + ' '
+            return ansi['white'] + ansi['redbg'] + '-'.rjust(max) + ' ' + ansi['default']
         else:
-            return ansi['default'] + '-'.rjust(max)
+            return ansi['white'] + ansi['redbg'] + '-'.rjust(max) + ansi['default']
 
     if base == 1024:
         units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
@@ -1797,8 +1797,8 @@ def listmodules():
 
 def main():
     global pagesize, cpunr, ansi, outputfile
-    global totlist, tickbefore, now
-    global interval, update, missed
+    global totlist, inittime
+    global update, missed
 
     pagesize = resource.getpagesize()
     cpunr = getcpunr()
@@ -1933,29 +1933,26 @@ def main():
         showcsvtitle(2, totlist)
 
     scheduler = sched.scheduler(time.time, time.sleep)
-    now = tickbefore = time.time()
+    inittime = time.time()
 
-#    loop = 0
     update = -1
-#    step = op.delay
     missed = 0
 
     ### Let the games begin
     while update <= op.delay * op.count or op.count == -1:
-        scheduler.enterabs(now + update + 1, 1, perform, ())
+        update = update + interval
+        scheduler.enterabs(inittime + update, 1, perform, ())
         scheduler.run()
-
-#        update = update + interval
 
     if op.update:
         sys.stdout.write('\n')
 
 def perform():
         global totlist, oldvislist, vislist, showheader, rows, cols
-        global tick, tickbefore, totaltime, starttime
+        global tick, totaltime, starttime
         global loop, step, update, missed
 
-        update = update + 1
+        starttime = time.time()
 
         loop = (update - 1 + op.delay) / op.delay
         step = ((update - 1) % op.delay) + 1
@@ -1964,14 +1961,13 @@ def perform():
         if not op.debug:
             curwidth = 0
         else:
-            starttime = time.time()
             if step == 1 or loop == 0:
                 totaltime = 0
             curwidth = 8
 
         ### FIXME: This is temporary functionality, we should do this better
         ### If it takes longer than 500ms, than warn !
-        if starttime - now - update > 1:
+        if starttime - inittime - update > 1:
             missed = missed + 1
             return 0
 
@@ -2048,10 +2044,13 @@ def perform():
         ### Print debugging output
         if op.debug:
             totaltime = totaltime + (time.time() - starttime) * 1000.0
-            if loop == 0: totaltime = totaltime * step
+            if loop == 0:
+                totaltime = totaltime * step
             if op.debug == 1:
                 sys.stdout.write('%s%6.2fms%s' % (ansi['darkblue'], totaltime / step, ansi['default']))
-            elif op.debug > 1:
+            elif op.debug == 2:
+                sys.stdout.write('%s%6.2f %s%d:%d%s' % (ansi['darkblue'], totaltime / step, ansi['darkred'], loop, step, ansi['default']))
+            elif op.debug > 2:
                 sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (ansi['darkblue'], totaltime / step, ansi['darkred'], loop, step, update, ansi['default']))
 
         if missed > 0:
