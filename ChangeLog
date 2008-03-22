@@ -1,4 +1,4 @@
-* 0.6.7svn - ... - release 16/03/2008
+* 0.6.7svn - ... - release 22/03/2008
 - Added improved tick patch (Kelly Long)
 - Show milliseconds in dstat_time when using --debug cfr. dstat_epoch
 - Difference in integer rounding should not affect colouring
@@ -10,7 +10,7 @@
 - dstat_epoch and dstat_time now display starttime, not execution time of plugin
 - Fix division by zero problem
 - Warn when loosing ticks (buffering problems or vmware time sync errors)
-- 
+- Fixed permissions of plugins (Andrew Pollock)
 
 * 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash

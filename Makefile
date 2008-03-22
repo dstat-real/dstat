@@ -20,7 +20,7 @@ install:
 	install -Dp -m0755 dstat $(DESTDIR)$(bindir)/dstat
 	install -d -m0755 $(DESTDIR)$(datadir)/dstat/
 	install -Dp -m0755 dstat $(DESTDIR)$(datadir)/dstat/dstat.py
-	install -Dp -m0755 plugins/dstat_*.py $(DESTDIR)$(datadir)/dstat/
+	install -Dp -m0644 plugins/dstat_*.py $(DESTDIR)$(datadir)/dstat/
 #	install -d -m0755 $(DESTDIR)$(datadir)/dstat/examples/
 #	install -Dp -m0755 examples/*.py $(DESTDIR)$(datadir)/dstat/examples/
 	install -Dp -m0644 docs/dstat.1 $(DESTDIR)$(mandir)/man1/dstat.1
