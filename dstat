@@ -1626,6 +1626,11 @@ def showcsvtitle(nr, totlist):
             line = line + ','
     outputfile.write(line + '\n')
 
+def info(level, str):
+    "Output info message"
+#   if level <= op.verbose:
+    print >>sys.stderr, str
+
 def die(ret, str):
     "Print error and exit with errorcode"
     print >>sys.stderr, str
