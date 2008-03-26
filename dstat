@@ -1940,22 +1940,22 @@ def main():
     scheduler = sched.scheduler(time.time, time.sleep)
     inittime = time.time()
 
-    update = -1
+    update = 0
     missed = 0
 
     ### Let the games begin
     while update <= op.delay * op.count or op.count == -1:
-        update = update + interval
-        scheduler.enterabs(inittime + update, 1, perform, ())
+        scheduler.enterabs(inittime + update, 1, perform, (update,))
         scheduler.run()
+        update = update + interval
 
     if op.update:
         sys.stdout.write('\n')
 
-def perform():
+def perform(update):
         global totlist, oldvislist, vislist, showheader, rows, cols
         global tick, totaltime, starttime
-        global loop, step, update, missed
+        global loop, step, missed
 
         starttime = time.time()
 
@@ -1972,7 +1972,7 @@ def perform():
 
         ### FIXME: This is temporary functionality, we should do this better
         ### If it takes longer than 500ms, than warn !
-        if starttime - inittime - update > 1:
+        if loop != 0 and starttime - inittime - update > 1:
             missed = missed + 1
             return 0
 
@@ -2014,7 +2014,7 @@ def perform():
         if op.update:
             if step == 1 and update != 0:
                 sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
-            else:
+            elif loop != 0:
                 sys.stdout.write(ansi['restore'])
 
         ### Display header
