@@ -806,7 +806,6 @@ class dstat_epoch(dstat):
 #   def show(self):
 #       return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
 
-### FIXME: Make total work as well
 class dstat_int(dstat):
     def __init__(self):
         self.name = 'interrupts'
@@ -816,7 +815,7 @@ class dstat_int(dstat):
         self.intmap = self.intmap()
         self.vars = self.vars()
         self.nick = self.vars
-        self.init(self.vars + ['total'], 1)
+        self.init(self.vars + ['total',], 1)
 
     def intmap(self):
         ret = {}
@@ -853,13 +852,13 @@ class dstat_int(dstat):
         if op.intlist:
             list = op.intlist
         else:
-            list = self.discover + ['total']
+            list = self.discover
             for name in list:
                 if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
                     list.remove(name)
             if not op.full and len(list) > 3: list = list[-3:]
         for name in list:
-            if name in self.discover:
+            if name in self.discover + ['total',]:
                 ret.append(name)
             elif name.lower() in self.intmap.keys():
                 ret.append(self.intmap[name.lower()])
@@ -870,9 +869,10 @@ class dstat_int(dstat):
             l = line.split()
             if not l or l[0] != 'intr': continue
             for name in self.vars:
-                self.cn2[name] = long(l[int(name) + 2])
-            self.cn2['total'] = self.cn2['total'] + long(l[int(name) + 2])
-        for name in self.vars + ['total']:
+                if name != 'total':
+                    self.cn2[name] = long(l[int(name) + 2])
+            self.cn2['total'] = long(l[1])
+        for name in self.vars:
             self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
         if step == op.delay:
             self.cn1.update(self.cn2)
@@ -1915,7 +1915,7 @@ def main():
                     print >>sys.stderr, 'Module %s failed to load. (%s)' % (mod, e)
                 elif op.debug:
                     print >>sys.stderr, 'Module %s failed to load, trying another. (%s)' % (mod, e)
-                if op.debug:
+                if op.debug >= 3:
                     raise
 #                tb = sys.exc_info()[2]
                 continue

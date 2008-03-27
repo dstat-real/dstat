@@ -11,6 +11,8 @@
 - Fix division by zero problem
 - Warn when loosing ticks (buffering problems or vmware time sync errors)
 - Fixed permissions of plugins (Andrew Pollock)
+- Fixed exception when specifying -I eth0 (Radek Brich)
+- dstat_int plugin now allows -I total (Radek Brich)
 
 * 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash
