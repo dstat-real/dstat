@@ -13,6 +13,7 @@
 - Fixed permissions of plugins (Andrew Pollock)
 - Fixed exception when specifying -I eth0 (Radek Brich)
 - dstat_int plugin now allows -I total (Radek Brich)
+- Fixed typo in dstat_topio and dstat_topbio when using CSV output (Bharvani Toshaan)
 
 * 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash

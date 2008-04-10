@@ -91,6 +91,6 @@ class dstat_topbio(dstat):
             return '%s%-*s%s:%s' % (ansi['default'], self.format[1]-11, self.val['process'][0:self.format[1]-11], cprint(self.val['read_usage'], ('f', 5, 1024)), cprint(self.val['write_usage'], ('f', 5, 1024)))
 
     def showcsv(self):
-        return '%s / %d:%d' % (self.val['name'], self.val['read_usage'], selv.val['write_usage'])
+        return '%s / %d:%d' % (self.val['name'], self.val['read_usage'], self.val['write_usage'])
 
 # vim:ts=4:sw=4:et
