@@ -106,7 +106,7 @@ class Options:
             import getopt
             opts, args = getopt.getopt (args, 'acdfghilmno:pstTvyC:D:I:M:N:S:V',
                 ['cpu', 'disk', 'epoch', 'int', 'ipc', 'load', 'lock', 'mem', 'net',
-                'page', 'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 
+                'page', 'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix',
                 'all', 'debug', 'full', 'help', 'integer', 'mods', 'modules', 'nocolor',
                 'noheaders', 'noupdate', 'output=', 'pidfile=', 'version', 'vmstat'])
         except getopt.error, exc:
@@ -341,7 +341,7 @@ class dstat:
         for i, name in enumerate(self.name):
             max = self.width()
             ret = ret + name[0:max].center(max).replace(' ', '-')
-            if i + 1 != len(self.name): 
+            if i + 1 != len(self.name):
                 if op.color:
                     ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
                 else:
@@ -639,7 +639,7 @@ class dstat_disk(dstat):
                         if re.match('^'+disk+'$', name):
                             self.cn2[set] = ( self.cn2[set][0] + long(l[5]), self.cn2[set][1] + long(l[9]) )
         for name in self.cn2.keys():
-            self.val[name] = ( 
+            self.val[name] = (
                 (self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
                 (self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
             )
@@ -702,7 +702,7 @@ class dstat_disk24(dstat):
                         if re.match('^'+disk+'$', name):
                             self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
         for name in self.cn2.keys():
-            self.val[name] = ( 
+            self.val[name] = (
                 (self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
                 (self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
             )
@@ -1074,7 +1074,7 @@ class dstat_net(dstat):
                 self.cn2['total'] = ( self.cn2['total'][0] + long(l[1]), self.cn2['total'][1] + long(l[9]))
         if update:
             for name in self.cn2.keys():
-                self.val[name] = ( 
+                self.val[name] = (
                     (self.cn2[name][0] - self.cn1[name][0]) * 1.0 / tick,
                     (self.cn2[name][1] - self.cn1[name][1]) * 1.0 / tick,
                  )

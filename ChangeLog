@@ -1,4 +1,4 @@
-* 0.6.7svn - ... - release 22/03/2008
+* 0.6.7svn - ... - release 17/04/2008
 - Added improved tick patch (Kelly Long)
 - Show milliseconds in dstat_time when using --debug cfr. dstat_epoch
 - Difference in integer rounding should not affect colouring
@@ -14,6 +14,7 @@
 - Fixed exception when specifying -I eth0 (Radek Brich)
 - dstat_int plugin now allows -I total (Radek Brich)
 - Fixed typo in dstat_topio and dstat_topbio when using CSV output (Bharvani Toshaan)
+- Added external dstat_net_packets plugin to show the number of packets per interface
 
 * 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash
