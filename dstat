@@ -1662,7 +1662,7 @@ def gettermsize():
     "Return the dynamic terminal geometry"
     global termsize
 
-    if not termsize[0]:
+    if not termsize[0] and not termsize[1]:
         try:
             if termsize[1] == 1:
                 s = struct.pack('HHHH', 0, 0, 0, 0)
@@ -1675,6 +1675,8 @@ def gettermsize():
                 termsize = (int(os.environ['LINES']), int(os.environ['COLUMNS']))
         except:
             termsize = 25, 80
+    else:
+        termsize = 25, 80
     return termsize
 
 def gettermcolor(color=True):
@@ -1981,6 +1983,7 @@ def perform(update):
         if loop == 0:
             tick = ticks()
             rows, cols = 0, 0
+            vislist = []
             oldvislist = []
             showheader = True
         else:

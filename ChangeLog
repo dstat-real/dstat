@@ -15,6 +15,7 @@
 - dstat_int plugin now allows -I total (Radek Brich)
 - Fixed typo in dstat_topio and dstat_topbio when using CSV output (Bharvani Toshaan)
 - Added external dstat_net_packets plugin to show the number of packets per interface
+- Default to 25/80 when terminal height/width is set to zero, eg. XEmacs shell (Jeff Mincy)
 
 * 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash

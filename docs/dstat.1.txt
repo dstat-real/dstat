@@ -190,7 +190,7 @@ dstat -tcyif
 
 
 == BUGS
-Since it's practically impossible to test dstat on every possible
+Since it is practically impossible to test dstat on every possible
 permutation of kernel, python or distribution version, I need your
 help and your feedback to fix the remaining problems. If you have
 improvements or bugreports, please send them to:
@@ -217,7 +217,7 @@ Paths that may contain external dstat_* plugins:
     ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, vmstat(1), xosview(1)
 
 === Debugging tools
-    htop, lslk(1), lsof(8), top(1)
+    htop(1), lslk(1), lsof(8), top(1)
 
 === Process tracing
     ltrace(1), pmap(1), ps(1), pstack(1), strace(1)
