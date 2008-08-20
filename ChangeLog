@@ -1,4 +1,4 @@
-* 0.6.7svn - ... - release 17/04/2008
+* 0.6.8 - Buenos Aires - release 17/08/2008
 - Added improved tick patch (Kelly Long)
 - Show milliseconds in dstat_time when using --debug cfr. dstat_epoch
 - Difference in integer rounding should not affect colouring
@@ -16,6 +16,7 @@
 - Fixed typo in dstat_topio and dstat_topbio when using CSV output (Bharvani Toshaan)
 - Added external dstat_net_packets plugin to show the number of packets per interface
 - Default to 25/80 when terminal height/width is set to zero, eg. XEmacs shell (Jeff Mincy)
+- Removed complex process name since /proc/pid/cmdline behaves different on new kernels (Adrian Alves)
 
 * 0.6.7 - Cambridge overdue - released 26/02/2008
 - Only rewrite xterm title when XTERM_SHELL is set to bash

@@ -69,13 +69,7 @@ class dstat_topio(dstat):
         if self.val['usage'] == 0.0:
             self.val['process'] = ''
         else:
-            ### If the name is a known interpreter, take the second argument from the cmdline
-            if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
-                ### Using dopen() will cause too many open files
-                l = string.split(open('/proc/%s/cmdline' % self.val['pid']).read(), '\0')
-                self.val['process'] = os.path.basename(l[len(l)-1])
-            else:
-                self.val['process'] = self.val['name']
+            self.val['process'] = self.val['name']
 
             ### Debug (show PID)
 #           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])

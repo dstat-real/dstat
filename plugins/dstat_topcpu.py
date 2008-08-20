@@ -42,17 +42,11 @@ class dstat_topcpu(dstat):
                 ### Extract name
                 name = l[1][1:-1]
 
-                ### Get commandline
-                m = string.split(open('/proc/%s/cmdline' % pid).read(), '\0')
-                if len(m) > 1:
-                    cmd = os.path.basename(m[1])
-
             except ValueError:
                 continue
             except IOError:
                 continue
 
-            self.val['cmd'] = cmd
             self.val['max'] = usage
             self.val['name'] = name
             self.val['pid'] = pid
@@ -69,11 +63,7 @@ class dstat_topcpu(dstat):
         if self.val['max'] == 0.0:
             self.val['process'] = ''
         else:
-            ### If the name is a known interpreter, take the second argument from the cmdline
-            if self.val['name'] in ('bash', 'csh', 'ksh', 'perl', 'python', 'sh'):
-                self.val['process'] = self.val['cmd']
-            else:
-                self.val['process'] = self.val['name']
+            self.val['process'] = self.val['name']
 
 #               l = l.reverse()
 #               for x in l:

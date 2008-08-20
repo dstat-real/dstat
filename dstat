@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.7svn'
+VERSION = '0.6.8'
 
 def inspath(path):
     if os.path.isdir(path) and path not in sys.path:
@@ -1662,7 +1662,8 @@ def gettermsize():
     "Return the dynamic terminal geometry"
     global termsize
 
-    if not termsize[0] and not termsize[1]:
+#    if not termsize[0] and not termsize[1]:
+    if not termsize[0]:
         try:
             if termsize[1] == 1:
                 s = struct.pack('HHHH', 0, 0, 0, 0)
@@ -1675,8 +1676,6 @@ def gettermsize():
                 termsize = (int(os.environ['LINES']), int(os.environ['COLUMNS']))
         except:
             termsize = 25, 80
-    else:
-        termsize = 25, 80
     return termsize
 
 def gettermcolor(color=True):
@@ -1777,6 +1776,18 @@ def readfile(file):
     for line in open(file,'r').readlines():
         ret = ret + line
     return ret
+
+#cdef extern from "sched.h":
+#    struct sched_param:
+#        int sched_priority
+#        int sched_setscheduler(int pid, int policy,sched_param  *p)
+#
+#SCHED_FIFO = 1
+#
+#def switchRTCPriority(nb):
+#    cdef sched_param sp
+#    sp.sched_priority = nb
+#    sched_setscheduler (0,SCHED_FIFO , &sp);
 
 def exit(ret):
     sys.stdout.write(ansi['reset'])
