@@ -232,6 +232,7 @@ into Dstat. A set of 'external' modules exist for:
     - topcpu: most expensive cpu process
     - topio: most expensive I/O process
     - topmem: most expensive memory process
+    - topoom: process first shot by OOM killer
     - utmp: utmp counters
     - vmkhba: VMware kernel HBA counters
     - vmkint: VMware kernel interrupt counters
@@ -381,7 +382,7 @@ usr sys idl wai hiq siq|  cpu process   | read  writ| recv  send|  in   out | me
   2   2  96   0   0   0|                |   0    52k| 724B 2674B|   0     0 |rsync        74M
 ----
 
-=== What process is using all my CPU or memory at 4:20 AM ?
+=== What process is using all my CPU, memory or I/O at 4:20 AM ?
 Imagine the monitoring team notices strange peaks, a system engineer got a
 worthless message, the system was swapping extensively, a process got killed.
 
@@ -389,9 +390,9 @@ Something indicates the system is doing something unexpected but what is
 causing it and why ? As of now you can do:
 
 ----
-dstat -tcy -M topcpu 120
-dstat -tmgs -M topmem 120
-dstat -td -M topio 120
+screen dstat -tcy -M topcpu 120
+screen dstat -tmgs -M topmem 120
+screen dstat -tdi -M topio 120
 ----
 
 to see what process is using the most CPU, the most memory and the most I/O
@@ -405,6 +406,32 @@ dstat -tn -M topx 120
 ----
 
 Leave it running during the night and in the morning you can see the light.
+
+=== What device is slowing down my system ?
+Many devices generate interrupts, especially when used at maximum capacity.
+Sometimes too many interrupts can slow down a system. If you want to correlate
+bad performance with hardware interrupts, you can run a command like:
+
+----
+dstat -tyif
+dstat -tyi -I 12,58,ipw2200 -f 5
+----
+
+=== How much ticks per second on my kernel ?
+In some cases it can be useful to see how many ticks (timer interrupts) your
+kernel is producing. With older kernels this is a fixed number (usually 100,
+250 or 1000) but on newer kernels the number can be dynamic.
+
+Also on VMware virtual machines, the number of ticks can cause clock issues,
+so in that case if you want to see what is happening, you can simply do:
+
+----
+dstat -ti -I0
+----
+
+Dstat nowadays can also detect lost ticks (when the number of ticks do not
+much the time progress. This is useful to correlate VM issues with other
+problems.
 
 
 ////
@@ -485,10 +512,14 @@ dstat -t -M wifi
 ----
 
 === Is my SWRAID performing as it claims ?
-This surprised me when Googling for Dstat. I was looking for other use-cases
-on the Internet and on the linux kernel mailinglist one of the SWRAID
-developers was indicating a problem with an implementation using Dstat output
-to prove it.
+You can monitor I/O throughput for any block device. By default dstat limits
+itself to real block devices to prevent having the same I/O to be counted more
+than once, but if you want to monitor a SWRAID device, or a multipath device,
+you can simply do that by doing:
+
+----
+dstat -td -D md0,md1,sda,sdb,hda
+----
 
 
 == Writing your own Dstat plugin

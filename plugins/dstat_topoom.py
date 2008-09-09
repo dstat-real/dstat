@@ -17,7 +17,7 @@ class dstat_topoom(dstat):
 
     def check(self):
         if not os.access('/proc/self/oom_score', os.R_OK):
-            raise Exception, 'Kernel does not support /proc/pid/oom_score, use at least 2.6.20.'
+            raise Exception, 'Kernel does not support /proc/pid/oom_score, use at least 2.6.11.'
         return True
 
     def extract(self):

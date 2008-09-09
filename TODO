@@ -44,6 +44,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Add 'most expensive X app' (look at xrestop)
 + Add number of (active) X sessions and X clients
 + Allow to have multiple '1st expensive ... app' and '2nd expensive ... app'
++ Add 'most iowaiting app' plugin
 
 ### Documentation (help welcome!)
 + Create document on general system performance tuning
