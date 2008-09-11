@@ -16,6 +16,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Look at possibilities to show deviation (on second line ?)
 + Check for dark/light background color and change colors accordingly (see dstat.conf)
 + Show parts of counters in other colors (eg. color the 6 in 6134B in yellow to indicate it's kilobyte)
++ Look into adding sched_setscheduler() calls for improved priority
 
 ### Export/Graph
 + Interface with rrdtool (python-rrd ?)

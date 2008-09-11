@@ -1,4 +1,5 @@
 Terminal emulation
+http://www.termsys.demon.co.uk/vtansi.htm
 http://vt100.net/docs/vt100-ug/chapter3.html#DECSC
 
 NFS
@@ -7,3 +8,5 @@ http://www.hn.edu.cn/book/NetWork/NetworkingBookshelf_2ndEd/nfs/ch14_02.htm
 MySQL performance counters
 http://www.mysql.com/news-and-events/newsletter/2004-01/a0000000301.html
 
+Kernel schedstat
+http://eaglet.rain.com/rick/linux/schedstat/v10/format-10.html
