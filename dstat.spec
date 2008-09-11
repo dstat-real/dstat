@@ -53,9 +53,8 @@ confusion, less mistakes.
 
 %files
 %defattr(-, root, root, 0755)
-%doc AUTHORS ChangeLog COPYING README TODO *.conf docs/*.html docs/*.txt examples/
+%doc AUTHORS ChangeLog COPYING README TODO docs/*.html docs/*.txt examples/
 %doc %{_mandir}/man1/dstat.1*
-#%config(noreplace) %{_sysconfdir}/dstat.conf
 %{_bindir}/dstat
 %{_datadir}/dstat/
 
