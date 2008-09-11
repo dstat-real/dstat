@@ -1922,7 +1922,7 @@ def main():
                         raise Exception, 'Unknown problem, please report'
                 else:
                     exec 'o = dstat_%s()' % mod
-#               print o.__module__
+#                print o.__module__
             except Exception, e:
                 if mod == mods[-1]:
                     print >>sys.stderr, 'Module %s failed to load. (%s)' % (mod, e)

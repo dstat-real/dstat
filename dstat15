@@ -23,8 +23,8 @@ def inspath(path):
         sys.path.insert(1, path)
 
 try:
-    import sys, signal, os, re, time, string
-    import types, signal, resource, getpass
+    import sys, os, time, sched, re, string
+    import types, resource, getpass
     inspath('/usr/local/share/dstat/')
     inspath('/usr/share/dstat/')
     inspath(os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/')    # binary path + /plugins/
@@ -79,6 +79,7 @@ class Options:
         self.update = True
         self.header = True
         self.output = False
+        self.pidfile = False
 
         ### Implicit if no terminal is used
         if not sys.stdout.isatty():
@@ -97,9 +98,9 @@ class Options:
             import getopt
             opts, args = getopt.getopt (args, 'acdfghilmno:pstTvyC:D:I:M:N:S:V',
                 ['cpu', 'disk', 'epoch', 'int', 'ipc', 'load', 'lock', 'mem', 'net',
-                'page', 'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 
+                'page', 'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix',
                 'all', 'debug', 'full', 'help', 'integer', 'mods', 'modules', 'nocolor',
-                'noheaders', 'noupdate', 'output=', 'version', 'vmstat'])
+                'noheaders', 'noupdate', 'output=', 'pidfile=', 'version', 'vmstat'])
         except getopt.error, exc:
             print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
             sys.exit(1)
@@ -176,6 +177,8 @@ class Options:
                 self.update = False
             elif opt in ['-o', '--output']:
                 self.output = arg
+            elif opt in ['--pidfile']:
+                self.pidfile = arg
             elif opt in ['-h', '--help']:
                 self.usage()
                 self.help()
@@ -217,7 +220,7 @@ class Options:
         print
         print 'Processors: %d' % getcpunr()
         print 'Pagesize: %d' % resource.getpagesize()
-        print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
+#        print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
         print
 
         global op
@@ -506,7 +509,10 @@ class dstat_cpu(dstat):
                     self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
         for name in self.vars:
             for i in range(6):
-                self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
+                if sum(self.cn2[name]) > sum(self.cn1[name]):
+                    self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
+                else:
+                    print "Error: tick problem detected, this should never happen !"
         if step == op.delay:
             self.cn1.update(self.cn2)
 
@@ -627,7 +633,7 @@ class dstat_disk(dstat):
                         if re.match('^'+disk+'$', name):
                             self.cn2[set] = ( self.cn2[set][0] + long(l[5]), self.cn2[set][1] + long(l[9]) )
         for name in self.cn2.keys():
-            self.val[name] = ( 
+            self.val[name] = (
                 (self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
                 (self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
             )
@@ -691,7 +697,7 @@ class dstat_disk24(dstat):
                         if re.match('^'+disk+'$', name):
                             self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
         for name in self.cn2.keys():
-            self.val[name] = ( 
+            self.val[name] = (
                 (self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
                 (self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
             )
@@ -788,13 +794,14 @@ class dstat_epoch(dstat):
         self.vars = self.nick
         self.init(self.vars, 1)
 
+    ### We are now using the starttime instead of the execution time of this plugin
     def extract(self):
-        self.val['epoch'] = time.time()
+#        self.val['epoch'] = time.time()
+        self.val['epoch'] = starttime
 
 #   def show(self):
 #       return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
 
-### FIXME: Make total work as well
 class dstat_int(dstat):
     def __init__(self):
         self.name = 'interrupts'
@@ -804,7 +811,7 @@ class dstat_int(dstat):
         self.intmap = self.intmap()
         self.vars = self.vars()
         self.nick = self.vars
-        self.init(self.vars + ['total'], 1)
+        self.init(self.vars + ['total',], 1)
 
     def intmap(self):
         ret = {}
@@ -842,13 +849,13 @@ class dstat_int(dstat):
         if op.intlist:
             list = op.intlist
         else:
-            list = self.discover + ['total']
+            list = self.discover
             for name in list:
                 if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
                     list.remove(name)
             if not op.full and len(list) > 3: list = list[-3:]
         for name in list:
-            if name in self.discover:
+            if name in self.discover + ['total',]:
                 ret.append(name)
             elif string.lower(name) in self.intmap.keys():
                 ret.append(self.intmap[string.lower(name)])
@@ -859,9 +866,10 @@ class dstat_int(dstat):
             l = string.split(line)
             if not l or l[0] != 'intr': continue
             for name in self.vars:
-                self.cn2[name] = long(l[int(name) + 2])
-            self.cn2['total'] = self.cn2['total'] + long(l[int(name) + 2])
-        for name in self.vars + ['total']:
+                if name != 'total':
+                    self.cn2[name] = long(l[int(name) + 2])
+            self.cn2['total'] = long(l[1])
+        for name in self.vars:
             self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
         if step == op.delay:
             self.cn1.update(self.cn2)
@@ -1065,7 +1073,7 @@ class dstat_net(dstat):
                 self.cn2['total'] = ( self.cn2['total'][0] + long(l[1]), self.cn2['total'][1] + long(l[9]))
         if update:
             for name in self.cn2.keys():
-                self.val[name] = ( 
+                self.val[name] = (
                     (self.cn2[name][0] - self.cn1[name][0]) * 1.0 / tick,
                     (self.cn2[name][1] - self.cn1[name][1]) * 1.0 / tick,
                  )
@@ -1155,7 +1163,12 @@ class dstat_raw(dstat):
         self.init(self.vars, 1)
 
     def extract(self):
-        self.val['sockets'] = len(self.readlines()) - 1
+        lines = -1
+        for line in self.readlines():
+            lines = lines + 1
+        self.val['sockets'] = lines
+        ### Cannot use len() on generator
+#        self.val['sockets'] = len(self.readlines()) - 1
 
 class dstat_swap(dstat):
     def __init__(self):
@@ -1190,7 +1203,7 @@ class dstat_swap(dstat):
         else:
             list = self.discover
 #           if len(list) > 2: list = list[0:2]
-        list.sort()
+            list.sort()
         for name in list:
             if name in self.discover + ['total']:
                 ret.append(name)
@@ -1267,17 +1280,30 @@ class dstat_tcp(dstat):
             elif l[3] in ('06',): self.val['wait'] = self.val['wait'] + 1
             elif l[3] in ('04', '05', '07', '08', '0B',): self.val['close'] = self.val['close'] + 1
 
+### FIXME: If timefmt < len(self.nick) output is fucked up
 class dstat_time(dstat):
     def __init__(self):
         self.name = 'time'
-        self.format = ('s', 14, 0)
+        self.timefmt = os.getenv('DSTAT_TIMEFMT')
+        if self.timefmt:
+            tmp = time.strftime(self.timefmt, time.localtime())
+            self.format = ('s', len(tmp), 0)
+        elif op.debug:
+            self.format = ('s', 18, 0)
+        else:
+            self.format = ('s', 14, 0)
         self.nick = ('date/time',)
         self.vars = ('time',)
         self.init(self.vars, 1)
 
+    ### We are now using the starttime for this plugin, not the execution time of this plugin
     def extract(self):
-        ### FIXME: Add milliseconds when using --debug (see dstat_epoch)
-        self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime())
+        if self.timefmt:
+            self.val['time'] = time.strftime(self.timefmt, time.localtime(starttime))
+        elif op.debug:
+            self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime(starttime)) + ".%03d" % (round(starttime * 1000 % 1000 ))
+        else:
+            self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime(starttime))
 
     def show(self):
         if step == op.delay:
@@ -1535,9 +1561,9 @@ def cprint(var, format = ('f', 4, 1000)):
 
     if var < 0:
         if unit:
-            return ansi['default'] + string.rjust('-', max) + ' '
+            return ansi['white'] + ansi['redbg'] + string.rjust('-', max) + ' ' + ansi['default']
         else:
-            return ansi['default'] + string.rjust('-', max)
+            return ansi['white'] + ansi['redbg'] + string.rjust('-', max) + ansi['default']
 
     if base == 1024:
         units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
@@ -1563,7 +1589,7 @@ def cprint(var, format = ('f', 4, 1000)):
     if ret == '0':
         color = 'default'
     elif type in ('d', 'p'):
-        color = colors[int(var/mp)%len(colors)]
+        color = colors[int(round(var)/mp)%len(colors)]
     elif type in ('f'):
         color = colors[c%len(colors)]
     else:
@@ -1607,7 +1633,7 @@ def info(level, str):
 
 def die(ret, str):
     "Print error and exit with errorcode"
-    info(0, str)
+    print str
     exit(ret)
 
 def getenv(key):
@@ -1622,7 +1648,7 @@ def initterm():
     termsize = None, None
 
     ### Unbuffered sys.stdout
-    sys.stdout = os.fdopen(1, 'w', 0)
+#    sys.stdout = os.fdopen(1, 'w', 0)
 
     try:
         global fcntl, struct, termios
@@ -1643,6 +1669,7 @@ def gettermsize():
     "Return the dynamic terminal geometry"
     global termsize
 
+#    if not termsize[0] and not termsize[1]:
     if not termsize[0]:
         try:
             if termsize[1] == 1:
@@ -1666,7 +1693,7 @@ def gettermcolor(color=True):
             if curses.tigetnum('colors') < 0:
                 return False
         except:
-            info(1, 'Color support is disabled, python-curses is not installed.')
+            print 'Color support is disabled, python-curses is not installed.'
             return False
     return color
 
@@ -1757,11 +1784,7 @@ def readfile(file):
         ret = ret + line
     return ret
 
-def signaler(signum, frame):
-    signal.alarm(interval)
-
 def exit(ret):
-    signal.signal(signal.SIGALRM, signal.SIG_IGN)
     sys.stdout.write(ansi['reset'])
     sys.exit(ret)
 
@@ -1786,20 +1809,16 @@ def listmodules():
         print
 
 def main():
-    global update, loop, step, pagesize, cpunr, ansi, interval, outputfile, tick, cols
+    global pagesize, cpunr, ansi, outputfile
+    global totlist, inittime
+    global update, missed
 
-    loop = update = 0
-    step = op.delay
-    tick = ticks()
     pagesize = resource.getpagesize()
     cpunr = getcpunr()
-#   hz = os.sysconf('SC_CLK_TCK')
     interval = 1
 
     user = getpass.getuser()
     hostname = string.split(os.uname()[1], '.')[0]
-
-    rows, cols = gettermsize()
 
     ### Write term-title
     if sys.stdout.isatty():
@@ -1811,6 +1830,7 @@ def main():
     ### Check terminal capabilities
     op.color = gettermcolor(op.color)
 
+    ### Prepare CSV output file
     if op.output:
         if os.path.exists(op.output):
             outputfile = open(op.output, 'a', 0)
@@ -1823,18 +1843,28 @@ def main():
         outputfile.write('"Host:","%s",,,,"User:","%s"\n' % (hostname, user))
         outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (' '.join(op.args), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
 
+    ### Create pidfile
+    if op.pidfile:
+        try:
+            pidfile = open(op.pidfile, 'w', 0)
+            pidfile.write(str(os.getpid()))
+            pidfile.close()
+        except Exception, e:
+            print 'Failed to create pidfile %s' % op.pidfile, e
+            op.pidfile = False
+
     ### Empty ansi database if no colors are requested
     if not op.color:
         op.update = False
         for key in ansi.keys():
             ansi[key] = ''
+#        print ansi['blackbg']
 
     if not op.update:
         interval = op.delay
 
     ### Build list of requested modules
     linewidth = 0
-    oldvislist = []
     totlist = []
     for module in op.modlist:
         if module in ('list', 'help'):
@@ -1868,26 +1898,20 @@ def main():
 #                        print o.__module__
 #                        print o.name
                     else:
-                        info(1, 'Module is of unknown type.')
+                        print 'Module %s is of unknown type.' % mod
 
                     ### Remove defect stat objects and calculate line length
                     if not o.check():
                         raise Exception, 'Unknown problem, please report'
-#                except Exception, e:
-#                    if mod == mods[-1]:
-#                        info(1, 'Module %s has problems. (%s)' % (mod, e))
-#                        if op.debug:
-#                            raise
-#                    continue
                 else:
                     exec 'o = dstat_%s()' % mod
 #                print o.__module__
             except Exception, e:
                 if mod == mods[-1]:
-                    info(1, 'Module %s failed to load. (%s)' % (mod, e))
+                    print 'Module %s failed to load. (%s)' % (mod, e)
                 elif op.debug:
-                    info(1, 'Module %s failed to load, trying another. (%s)' % (mod, e))
-                if op.debug:
+                    print 'Module %s failed to load, trying another. (%s)' % (mod, e)
+                if op.debug >= 3:
                     raise
 #                tb = sys.exc_info()[2]
                 continue
@@ -1909,39 +1933,70 @@ def main():
         showcsvtitle(1, totlist)
         showcsvtitle(2, totlist)
 
-    ### Increase precision if we're root (does not seem to have effect)
-#   if os.geteuid() == 0:
-#       os.nice(-20)
-#   sys.setcheckinterval(op.delay / 10000)
+    scheduler = sched.scheduler(time.time, time.sleep)
+    inittime = time.time()
 
-    ### Always show header the first time
-    showheader = True
-
-    signal.signal(signal.SIGALRM, signaler)
-    signal.alarm(interval)
-
-    tt = 0
+    update = 0
+    missed = 0
 
     ### Let the games begin
     while update <= op.delay * op.count or op.count == -1:
+        scheduler.enterabs(inittime + update, 1, perform, (update,))
+#        scheduler.enter(1, 1, perform, (update,))
+        scheduler.run()
+        update = update + interval
 
-        if op.debug:
-            if step == 1: tt = 0
-            t1 = time.time()
-            curwidth = 8
-        else:
+    if op.update:
+        sys.stdout.write('\n')
+
+def perform(update):
+        global totlist, oldvislist, vislist, showheader, rows, cols
+        global tick, totaltime, starttime
+        global loop, step, missed
+
+        starttime = time.time()
+
+        loop = (update - 1 + op.delay) / op.delay
+        step = ((update - 1) % op.delay) + 1
+
+        ### Get current time (may be different from schedule) for debugging
+        if not op.debug:
             curwidth = 0
+        else:
+            if step == 1 or loop == 0:
+                totaltime = 0
+            curwidth = 8
 
-        ### Trim object list to what is visible on screen
-        if sys.stdout.isatty():
-            rows, cols = gettermsize()
+        ### FIXME: This is temporary functionality, we should do this better
+        ### If it takes longer than 500ms, than warn !
+        if loop != 0 and starttime - inittime - update > 1:
+            missed = missed + 1
+            return 0
+
+        ### Initialise certain variables
+        if loop == 0:
+            tick = ticks()
+            rows, cols = 0, 0
             vislist = []
-            for o in totlist:
-                newwidth = curwidth + o.statwidth() + 1
-                if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
-                    vislist.append(o)
-                    curwidth = newwidth
-    
+            oldvislist = []
+            showheader = True
+        else:
+            tick = step
+
+        ### FIXME: Make this part smarter
+        if sys.stdout.isatty():
+            oldrows, oldcols = rows, cols
+            rows, cols = gettermsize()
+
+            ### Trim object list to what is visible on screen
+            if oldcols != cols:
+                vislist = []
+                for o in totlist:
+                    newwidth = curwidth + o.statwidth() + 1
+                    if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
+                        vislist.append(o)
+                        curwidth = newwidth
+
             ### Check when to display the header
             if op.header and rows >= 6:
                 if oldvislist != vislist:
@@ -1953,9 +2008,17 @@ def main():
         else:
             vislist = totlist
 
+        ### The first step is to show the definitive line if necessary
+        if op.update:
+            if step == 1 and update != 0:
+                sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
+            elif loop != 0:
+                sys.stdout.write(ansi['restore'])
+
+        ### Display header
         if showheader:
             if loop == 0 and totlist != vislist:
-                info(1, 'Terminal width too small, trimming output.')
+                print 'Terminal width too small, trimming output.'
             showheader = False
             showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
             showtitle(2, totlist, vislist, ansi['gray'] + char['pipe'], ansi['darkblue'] + char['gt'])
@@ -1965,9 +2028,9 @@ def main():
             ansi['default'] = ansi['reset']
         else:
             ansi['default'] = ansi['gray']
-        line = ansi['default']
 
         ### Calculate all objects (visible, invisible)
+        line = ''
         oline = ''
         for o in totlist:
             o.extract()
@@ -1977,42 +2040,31 @@ def main():
                 oline = oline + o.showcsv() + o.showcsvend(totlist, vislist)
 
         ### Print stats
-        sys.stdout.write(line + ansi['default'])
+        sys.stdout.write(line)
         if op.output and step == op.delay:
             outputfile.write(oline + '\n')
 
         ### Print debugging output
         if op.debug:
-            t2 = time.time();
-            tt = tt + (t2 - t1) * 1000.0
-            if loop == 0: tt = tt * step
+            totaltime = totaltime + (time.time() - starttime) * 1000.0
+            if loop == 0:
+                totaltime = totaltime * step
             if op.debug == 1:
-                sys.stdout.write('%s%6.2fms%s' % (ansi['darkblue'], tt / step, ansi['default']))
-            elif op.debug > 1:
-                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (ansi['darkblue'], tt / step, ansi['gray'], loop, step, update, ansi['default']))
+                sys.stdout.write('%s%6.2fms%s' % (ansi['darkblue'], totaltime / step, ansi['default']))
+            elif op.debug == 2:
+                sys.stdout.write('%s%6.2f %s%d:%d%s' % (ansi['darkblue'], totaltime / step, ansi['darkred'], loop, step, ansi['default']))
+            elif op.debug > 2:
+                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (ansi['darkblue'], totaltime / step, ansi['darkred'], loop, step, update, ansi['default']))
 
-        ### If intermediate results, update increases with 1 sec (=interval)
-        update = update + interval
+        if missed > 0:
+#            sys.stdout.write(' '+ansi['redbg']+ansi['white']+'= warn =')
+            sys.stdout.write(' '+ansi['redbg']+ansi['white']+'missed '+str(missed+1)+' ticks')
+            missed = 0
 
+        ### Finish the line
         if not op.update:
             sys.stdout.write('\n')
-
-        ### Do not pause when this is the final loop
-        if update <= op.delay * op.count or op.count == -1:
-            signal.pause()
-
-        ### The last step in a loop is to show the definitive line on its own line
-        if op.update:
-            if step == op.delay:
-                sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
-            else:
-                sys.stdout.write(ansi['restore'])
-
-        loop = (update + op.delay - 1) / op.delay
-        step = ((update - 1) % op.delay) + 1
-        tick = step
-
-    signal.signal(signal.SIGALRM, signal.SIG_IGN)
+        sys.stdout.flush()
 
 ### Main entrance
 if __name__ == '__main__':
@@ -2022,19 +2074,13 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt, e:
         print ansi['default']
-#   except IOError, e:
-#       if e.errno != 32:               ## [Errno 32] Broken pipe
-#           print
-#           print 'IOError: %s' % e
-#           exit(7)
-#   except OSError, e:
-#       print
-#       print 'OSError: %s' % e
-#       exit(7)
+
+    if op.pidfile and os.path.exists(op.pidfile):
+        os.remove(op.pidfile)
+
     exit(0)
 else:
     op = Options('')
     step = 1
-    tick = ticks()
 
 # vim:ts=4:sw=4:et
