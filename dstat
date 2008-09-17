@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.8'
+VERSION = '0.6.8svn'
 
 def inspath(path):
     if os.path.isdir(path) and path not in sys.path:
@@ -519,7 +519,8 @@ class dstat_cpu(dstat):
                 if sum(self.cn2[name]) > sum(self.cn1[name]):
                     self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
                 else:
-                    print >>sys.stderr, "Error: tick problem detected, this should never happen !"
+                    self.val[name][i] = 0
+#                    print >>sys.stderr, "Error: tick problem detected, this should never happen !"
         if step == op.delay:
             self.cn1.update(self.cn2)
 
@@ -2077,6 +2078,9 @@ def perform(update):
 #            sys.stdout.write(' '+ansi['redbg']+ansi['white']+'= warn =')
             sys.stdout.write(' '+ansi['redbg']+ansi['white']+'missed '+str(missed+1)+' ticks')
             missed = 0
+
+        ### Additional input in gray
+        sys.stdout.write(ansi['gray'])
 
         ### Finish the line
         if not op.update:
