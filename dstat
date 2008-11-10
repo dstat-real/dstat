@@ -24,7 +24,7 @@ def inspath(path):
 
 try:
     import sys, os, time, sched, re
-    import types, resource, getpass
+    import types, resource, getpass, glob
     inspath('/usr/local/share/dstat/')
     inspath('/usr/share/dstat/')
     inspath(os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/')    # binary path + /plugins/
@@ -55,11 +55,11 @@ if sys.version_info < (2, 3) and sys.version_info >= (2, 2):
 elif sys.version_info < (2, 2):
     def enumerate(sequence):
         index = 0
-        list = []
+        seqlist = []
         for item in sequence:
-            list.append((index, item))
+            seqlist.append((index, item))
             index = index + 1
-        return list
+        return seqlist
 
 ### Workaround for python < 2.3
 #if 'sum' not in __builtins__.__dict__.keys():
@@ -286,6 +286,11 @@ Dstat options:
 
 ### START STATS DEFINITIONS ###
 class dstat:
+    vars = None
+    name = None
+    nick = None
+    format = ()
+
     ### Initialise default variables
     def init(self, vars=(), len=0):
         if vars:
@@ -298,17 +303,17 @@ class dstat:
                     for i in range(len):
                         self.val[name][i] = self.cn1[name][i] = self.cn2[name][i] = 0
 
-    def open(self, *files):
+    def open(self, *filenames):
         "Open stat file descriptor"
         self.file = []
         self.fd = []
-        for file in files:
-            fd = dopen(file)
+        for filename in filenames:
+            fd = dopen(filename)
             if fd:
-                self.file.append(file)
+                self.file.append(filename)
                 self.fd.append(fd)
-            else:
-                raise Exception, 'Cannot open file %s.' % file
+#            else:
+#                raise Exception, 'Cannot open file %s.' % filename
 
     def readlines(self):
         for fd in self.fd:
@@ -336,11 +341,11 @@ class dstat:
     def title1(self):
         ret = ansi['darkblue']
         if isinstance(self.name, types.StringType):
-            max = self.statwidth()
-            return ret + self.name[0:max].center(max).replace(' ', '-') + ansi['default']
+            maxlen = self.statwidth()
+            return ret + self.name[0:maxlen].center(maxlen).replace(' ', '-') + ansi['default']
         for i, name in enumerate(self.name):
-            max = self.width()
-            ret = ret + name[0:max].center(max).replace(' ', '-')
+            maxlen = self.width()
+            ret = ret + name[0:maxlen].center(maxlen).replace(' ', '-')
             if i + 1 != len(self.name):
                 if op.color:
                     ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
@@ -408,7 +413,7 @@ class dstat:
             return True
         raise Exception, 'Unknown problem, please report'
 
-    def discover(self):
+    def discover(self, *objlist):
         return True
 
     def show(self):
@@ -470,14 +475,14 @@ class dstat_cpu(dstat):
         self.name = self.name()
         self.init(self.vars + ['total',], 6)
 
-    def discover(self, *list):
+    def discover(self, *objlist):
         ret = []
         for line in self.readlines():
             l = line.split()
             if len(l) < 8 or l[0][0:3] != 'cpu': continue
             ret.append(l[0][3:])
         ret.sort()
-        for item in list: ret.append(item)
+        for item in objlist: ret.append(item)
         return ret
 
     def name(self):
@@ -492,17 +497,17 @@ class dstat_cpu(dstat):
     def vars(self):
         ret = []
         if op.cpulist:
-            list = op.cpulist
+            varlist = op.cpulist
         elif not op.full:
-            list = ('total',)
+            varlist = ('total',)
         else:
-            list = []
+            varlist = []
             cpu = 0
             while cpu < cpunr:
-                list.append(str(cpu))
+                varlist.append(str(cpu))
                 cpu = cpu + 1
-#           if len(list) > 2: list = list[0:2]
-        for name in list:
+#           if len(varlist) > 2: varlist = varlist[0:2]
+        for name in varlist:
             if name in self.discover + ['total']:
                 ret.append(name)
         return ret
@@ -543,30 +548,30 @@ class dstat_cpu24(dstat):
                 ret.append('cpu total')
         return ret
 
-    def discover(self, *list):
+    def discover(self, *objlist):
         ret = []
         for line in self.readlines():
             l = line.split()
             if len(l) != 5 or l[0][0:3] != 'cpu': continue
             ret.append(l[0][3:])
         ret.sort()
-        for item in list: ret.append(item)
+        for item in objlist: ret.append(item)
         return ret
 
     def vars(self):
         ret = []
         if op.cpulist:
-            list = op.cpulist
+            varlist = op.cpulist
         elif not op.full:
-            list = ('total',)
+            varlist = ('total',)
         else:
-            list = []
+            varlist = []
             cpu = 0
             while cpu < cpunr:
-                list.append(str(cpu))
+                varlist.append(str(cpu))
                 cpu = cpu + 1
-#           if len(list) > 2: list = list[0:2]
-        for name in list:
+#           if len(varlist) > 2: varlist = varlist[0:2]
+        for name in varlist:
             if name in self.discover + ['total']:
                 ret.append(name)
         return ret
@@ -593,7 +598,7 @@ class dstat_disk(dstat):
         self.name = ['dsk/'+name for name in self.vars]
         self.init(self.vars + ['total',], 2)
 
-    def discover(self, *list):
+    def discover(self, *objlist):
         ret = []
         for line in self.readlines():
             l = line.split()
@@ -601,23 +606,25 @@ class dstat_disk(dstat):
             if l[3:] == ['0',] * 11: continue
             name = l[2]
             ret.append(name)
-        for item in list: ret.append(item)
+        for item in objlist: ret.append(item)
         return ret
 
     def vars(self):
         ret = []
         if op.disklist:
-            list = op.disklist
+            varlist = op.disklist
         elif not op.full:
-            list = ('total',)
+            varlist = ('total',)
         else:
-            list = []
+            varlist = []
+            blockdevices = [os.path.basename(filename) for filename in glob.glob('/sys/block/*')]
             for name in self.discover:
-                if not re.match('(md[0-9]+|dm-[0-9]+)', name):
-                    list.append(name)
-#           if len(list) > 2: list = list[0:2]
-            list.sort()
-        for name in list:
+                if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
+                if name not in blockdevices: continue
+                varlist.append(name)
+#           if len(varlist) > 2: varlist = varlist[0:2]
+            varlist.sort()
+        for name in varlist:
             if name in self.discover + ['total'] + op.diskset.keys():
                 ret.append(name)
         return ret
@@ -634,11 +641,11 @@ class dstat_disk(dstat):
                 self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
             if name in self.vars and name != 'total':
                 self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
-            for set in self.vars:
-                if set in op.diskset.keys():
-                    for disk in op.diskset[set]:
+            for diskset in self.vars:
+                if diskset in op.diskset.keys():
+                    for disk in op.diskset[diskset]:
                         if re.match('^'+disk+'$', name):
-                            self.cn2[set] = ( self.cn2[set][0] + long(l[5]), self.cn2[set][1] + long(l[9]) )
+                            self.cn2[diskset] = ( self.cn2[diskset][0] + long(l[5]), self.cn2[diskset][1] + long(l[9]) )
         for name in self.cn2.keys():
             self.val[name] = (
                 (self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
@@ -659,30 +666,30 @@ class dstat_disk24(dstat):
         self.name = ['dsk/'+sysfs_dev(name) for name in self.vars]
         self.init(self.vars + ['total',], 2)
 
-    def discover(self, *list):
+    def discover(self, *objlist):
         ret = []
         for line in self.readlines():
             l = line.split()
             if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
             name = l[3]
             ret.append(name)
-        for item in list: ret.append(item)
+        for item in objlist: ret.append(item)
         return ret
 
     def vars(self):
         ret = []
         if op.disklist:
-            list = op.disklist
+            varlist = op.disklist
         elif not op.full:
-            list = ('total',)
+            varlist = ('total',)
         else:
-            list = []
+            varlist = []
             for name in self.discover:
                 if not re.match('(md[0-9]+|dm-[0-9]+)', name):
-                    list.append(name)
-#           if len(list) > 2: list = list[0:2]
-            list.sort()
-        for name in list:
+                    varlist.append(name)
+#           if len(varlist) > 2: varlist = varlist[0:2]
+            varlist.sort()
+        for name in varlist:
             if name in self.discover + ['total'] + op.diskset.keys():
                 ret.append(name)
         return ret
@@ -697,11 +704,11 @@ class dstat_disk24(dstat):
                 self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
             if name in self.vars:
                 self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
-            for set in self.vars:
-                if set in op.diskset.keys():
-                    for disk in op.diskset[set]:
+            for diskset in self.vars:
+                if diskset in op.diskset.keys():
+                    for disk in op.diskset[diskset]:
                         if re.match('^'+disk+'$', name):
-                            self.cn2[set] = ( self.cn2[set][0] + long(l[6]), self.cn2[set][1] + long(l[10]) )
+                            self.cn2[diskset] = ( self.cn2[diskset][0] + long(l[6]), self.cn2[diskset][1] + long(l[10]) )
         for name in self.cn2.keys():
             self.val[name] = (
                 (self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
@@ -722,7 +729,7 @@ class dstat_disk24old(dstat):
         self.name = ['dsk/'+name for name in self.vars]
         self.init(self.vars + ['total',], 2)
 
-    def discover(self, *list):
+    def discover(self, *objlist):
         ret = []
         for line in self.readlines():
             l = line.split(':')
@@ -737,23 +744,23 @@ class dstat_disk24old(dstat):
                 name = dev(int(l[0]), int(l[1]))
                 ret.append(name)
             break
-        for item in list: ret.append(item)
+        for item in objlist: ret.append(item)
         return ret
 
     def vars(self):
         ret = []
         if op.disklist:
-            list = op.disklist
+            varlist = op.disklist
         elif not op.full:
-            list = ('total',)
+            varlist = ('total',)
         else:
-            list = []
+            varlist = []
             for name in self.discover:
                 if not re.match('(md[0-9]+|dm-[0-9]+)', name):
-                    list.append(name)
-#           if len(list) > 2: list = list[0:2]
-            list.sort()
-        for name in list:
+                    varlist.append(name)
+#           if len(varlist) > 2: varlist = varlist[0:2]
+            varlist.sort()
+        for name in varlist:
             if name in self.discover + ['total'] + op.diskset.keys():
                 ret.append(name)
         return ret
@@ -775,11 +782,11 @@ class dstat_disk24old(dstat):
                     self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
                 if name in self.vars and name != 'total':
                     self.cn2[name] = ( self.cn2[name][0] + long(l[2]), self.cn2[name][1] + long(l[3]) )
-                for set in self.vars:
-                    if set in op.diskset.keys():
-                        for disk in op.diskset[set]:
+                for diskset in self.vars:
+                    if diskset in op.diskset.keys():
+                        for disk in op.diskset[diskset]:
                             if re.match('^'+disk+'$', name):
-                                self.cn2[set] = ( self.cn2[set][0] + long(l[2]), self.cn2[set][1] + long(l[3]) )
+                                self.cn2[diskset] = ( self.cn2[diskset][0] + long(l[2]), self.cn2[diskset][1] + long(l[3]) )
             break
         for name in self.cn2.keys():
             self.val[name] = (
@@ -830,7 +837,7 @@ class dstat_int(dstat):
                 ret[name.strip().lower()] = l1
         return ret
 
-    def discover(self):
+    def discover(self, *objlist):
         ret = []
         for line in self.readlines():
             l = line.split()
@@ -851,14 +858,14 @@ class dstat_int(dstat):
     def vars(self):
         ret = []
         if op.intlist:
-            list = op.intlist
+            varlist = op.intlist
         else:
-            list = self.discover
-            for name in list:
+            varlist = self.discover
+            for name in varlist:
                 if name in ('0', '1', '2', '8', 'NMI', 'LOC', 'MIS', 'CPU0'):
-                    list.remove(name)
-            if not op.full and len(list) > 3: list = list[-3:]
-        for name in list:
+                    varlist.remove(name)
+            if not op.full and len(varlist) > 3: varlist = varlist[-3:]
+        for name in varlist:
             if name in self.discover + ['total',]:
                 ret.append(name)
             elif name.lower() in self.intmap.keys():
@@ -900,7 +907,7 @@ class dstat_int24(dstat):
                 ret[name.strip().lower()] = l1
         return ret
 
-    def discover(self):
+    def discover(self, *objlist):
         ret = []
         for line in self.readlines():
             l = line.split()
@@ -922,14 +929,14 @@ class dstat_int24(dstat):
     def vars(self):
         ret = []
         if op.intlist:
-            list = op.intlist
+            varlist = op.intlist
         else:
-            list = self.discover
-            for name in list:
+            varlist = self.discover
+            for name in varlist:
                 if name in ('0', '1', '2', '8', 'CPU0', 'ERR', 'LOC', 'MIS', 'NMI'):
-                    list.remove(name)
-            if not op.full and len(list) > 3: list = list[-3:]
-        for name in list:
+                    varlist.remove(name)
+            if not op.full and len(varlist) > 3: varlist = varlist[-3:]
+        for name in varlist:
             if name in self.discover:
                 ret.append(name)
             elif name.lower() in self.intmap.keys():
@@ -1034,7 +1041,7 @@ class dstat_net(dstat):
         self.name = ['net/'+name for name in self.vars]
         self.init(self.vars + ['total',], 2)
 
-    def discover(self, *list):
+    def discover(self, *objlist):
         ret = []
         for line in self.readlines():
             l = line.replace(':', ' ').split()
@@ -1044,20 +1051,20 @@ class dstat_net(dstat):
             if name not in ('lo', 'face'):
                 ret.append(name)
         ret.sort()
-        for item in list: ret.append(item)
+        for item in objlist: ret.append(item)
         return ret
 
     def vars(self):
         ret = []
         if op.netlist:
-            list = op.netlist
+            varlist = op.netlist
         elif not op.full:
-            list = ('total',)
+            varlist = ('total',)
         else:
-            list = self.discover
-#           if len(list) > 2: list = list[0:2]
-            list.sort()
-        for name in list:
+            varlist = self.discover
+#           if len(varlist) > 2: varlist = varlist[0:2]
+            varlist.sort()
+        for name in varlist:
             if name in self.discover + ['total', 'lo']:
                 ret.append(name)
         return ret
@@ -1167,7 +1174,7 @@ class dstat_raw(dstat):
     def extract(self):
         lines = -1
         for line in self.readlines():
-            lines = lines + 1
+	    lines = lines + 1
         self.val['sockets'] = lines
         ### Cannot use len() on generator
 #        self.val['sockets'] = len(self.readlines()) - 1
@@ -1183,29 +1190,34 @@ class dstat_swap(dstat):
         self.name = ['swp/'+improve(name) for name in self.vars]
         self.init(self.vars + ['total',], 2)
 
-    def discover(self, *list):
+    def discover(self, *objlist):
         ret = []
         for line in self.readlines():
             l = line.split()
             if len(l) < 5: continue
             if l[0] == 'Filename': continue
+            try: 
+                int(l[2])
+                int(l[3])
+            except:
+                continue
 #           ret.append(improve(l[0]))
             ret.append(l[0])
         ret.sort()
-        for item in list: ret.append(item)
+        for item in objlist: ret.append(item)
         return ret
 
     def vars(self):
         ret = []
         if op.swaplist:
-            list = op.swaplist
+            varlist = op.swaplist
         elif not op.full:
-            list = ('total',)
+            varlist = ('total',)
         else:
-            list = self.discover
-#           if len(list) > 2: list = list[0:2]
-            list.sort()
-        for name in list:
+            varlist = self.discover
+#           if len(varlist) > 2: varlist = varlist[0:2]
+            varlist.sort()
+        for name in varlist:
             if name in self.discover + ['total']:
                 ret.append(name)
         return ret
@@ -1424,32 +1436,32 @@ def ticks():
             if l[0] == 'btime':
                 return time.time() - long(l[1])
 
-def improve(str):
+def improve(devname):
     "Improve a device name"
-    if str.startswith('/dev/mapper/'):
-        str = str.split('/')[3]
-    elif str.startswith('/dev/'):
-        str = str.split('/')[2]
-    return str
+    if devname.startswith('/dev/mapper/'):
+        devname = devname.split('/')[3]
+    elif devname.startswith('/dev/'):
+        devname = devname.split('/')[2]
+    return devname
 
-def dopen(file):
+def dopen(filename):
     "Open a file for reuse, if already opened, return file descriptor"
     global fds
-    if not os.path.exists(file): return None
+    if not os.path.exists(filename): return None
     if 'fds' not in globals().keys(): fds = {}
     if file not in fds.keys():
-        fds[file] = open(file, 'r', 0)
+        fds[filename] = open(filename, 'r', 0)
     else:
-        fds[file].seek(0)
-    return fds[file]
+        fds[filename].seek(0)
+    return fds[filename]
 
-def dclose(file):
+def dclose(filename):
     "Close an open file and remove file descriptor from list"
     global fds
-    if not 'fds' in globals(): fds = {}
-    if file in fds:
-        fds[file].close()
-        del(fds[file])
+    if not 'fds' in globals().keys(): fds = {}
+    if filename in fds:
+        fds[filename].close()
+        del(fds[filename])
 
 def dpopen(cmd):
     "Open a pipe for reuse, if already opened, return pipes"
@@ -1459,52 +1471,52 @@ def dpopen(cmd):
         pipes[cmd] = os.popen3(cmd, 't', 0)
     return pipes[cmd]
 
-def readpipe(file, tmout = 0.001):
+def readpipe(fileobj, tmout = 0.001):
     "Read available data from pipe in a non-blocking fashion"
     ret = ''
-    while not select.select([file.fileno()], [], [], tmout)[0]:
+    while not select.select([fileobj.fileno()], [], [], tmout)[0]:
         pass
-    while select.select([file.fileno()], [], [], tmout)[0]:
-        ret = ret + file.read(1)
+    while select.select([fileobj.fileno()], [], [], tmout)[0]:
+        ret = ret + fileobj.read(1)
     return ret.split('\n')
 
-def greppipe(file, str, tmout = 0.001):
+def greppipe(fileobj, str, tmout = 0.001):
     "Grep available data from pipe in a non-blocking fashion"
     ret = ''
-    while not select.select([file.fileno()], [], [], tmout)[0]:
+    while not select.select([fileobj.fileno()], [], [], tmout)[0]:
         pass
-    while select.select([file.fileno()], [], [], tmout)[0]:
-        char = file.read(1)
-        if char != '\n':
-            ret = ret + char
+    while select.select([fileobj.fileno()], [], [], tmout)[0]:
+        character = fileobj.read(1)
+        if character != '\n':
+            ret = ret + character
         elif ret.startswith(str):
             return ret
         else:
             ret = ''
     return None
 
-def matchpipe(file, string, tmout = 0.001):
+def matchpipe(fileobj, string, tmout = 0.001):
     "Match available data from pipe in a non-blocking fashion"
     ret = ''
     regexp = re.compile(string)
-    while not select.select([file.fileno()], [], [], tmout)[0]:
+    while not select.select([fileobj.fileno()], [], [], tmout)[0]:
         pass
-    while select.select([file.fileno()], [], [], tmout)[0]:
-        char = file.read(1)
-        if char != '\n':
-            ret = ret + char
+    while select.select([fileobj.fileno()], [], [], tmout)[0]:
+        character = fileobj.read(1)
+        if character != '\n':
+            ret = ret + character
         elif regexp.match(ret):
             return ret
         else:
             ret = ''
     return None
 
-def dchg(var, max, base):
+def dchg(var, maxlen, base):
     "Convert decimal to string given base and length"
     c = 0
     while True:
         ret = str(long(round(var)))
-        if len(ret) <= max:
+        if len(ret) <= maxlen:
             break
         var = var / base
         c = c + 1
@@ -1512,7 +1524,7 @@ def dchg(var, max, base):
         c = -1
     return ret, c
 
-def fchg(var, max, base):
+def fchg(var, maxlen, base):
     "Convert float to string given base and length"
     c = 0
     while True:
@@ -1520,13 +1532,13 @@ def fchg(var, max, base):
             ret = str('0')
             break
 #       ret = repr(round(var))
-#       ret = repr(long(round(var,max)))
-        ret = str(long(round(var,max)))
-        if len(ret) <= max:
-            i = max - len(ret)
+#       ret = repr(long(round(var, maxlen)))
+        ret = str(long(round(var, maxlen)))
+        if len(ret) <= maxlen:
+            i = maxlen - len(ret)
             while i > 0:
                 ret = ('%.'+str(i)+'f') % var
-                if len(ret) < max and ret != repr(round(var)):
+                if len(ret) < maxlen and ret != repr(round(var)):
                     break
                 i = i - 1
             else:
@@ -1538,33 +1550,34 @@ def fchg(var, max, base):
         c = -1
     return ret, c
 
-def cprintlist(list, format):
+def cprintlist(varlist, format):
     ret = sep = ''
-    for var in list:
+    for var in varlist:
         ret = ret + sep + cprint(var, format)
         sep = ' '
     return ret
 
 def cprint(var, format = ('f', 4, 1000)):
-    c = -1
-    type = format[0]
-    max = format[1]
+    vartype = format[0]
+    maxlen = format[1]
     mp = format[2]
 
     base = 1000
     if mp == 1024:
         base = 1024
 
+    ### Use units when base is exact 1000 or 1024
     unit = False
-    if mp in (1000, 1024) and max >= len(str(base)):
+    if mp in (1000, 1024) and maxlen >= len(str(base)):
         unit = True
-        max = max - 1
+        maxlen = maxlen - 1
 
+    ### If this is a negative value, return a dash
     if var < 0:
         if unit:
-            return ansi['white'] + ansi['redbg'] + '-'.rjust(max) + ' ' + ansi['default']
+            return ansi['white'] + ansi['redbg'] + '-'.rjust(maxlen) + ' ' + ansi['default']
         else:
-            return ansi['white'] + ansi['redbg'] + '-'.rjust(max) + ansi['default']
+            return ansi['white'] + ansi['redbg'] + '-'.rjust(maxlen) + ansi['default']
 
     if base == 1024:
         units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
@@ -1576,34 +1589,38 @@ def cprint(var, format = ('f', 4, 1000)):
     else:
         colors = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'green')
 
-    if op.integer and type in ('d', 'p', 'f'):
-        ret, c = dchg(var, max, base)
-    elif type in ('d', 'p'):
-        ret, c = dchg(var, max, base)
-    elif type in ('f'):
-        ret, c = fchg(var, max, base)
-    elif type in ('t'):
-        ret, c = fchg(var, max+1, base)
+    ### Convert value to string given base and field-length
+    if op.integer and vartype in ('d', 'p', 'f'):
+        ret, c = dchg(var, maxlen, base)
+    elif vartype in ('d', 'p'):
+        ret, c = dchg(var, maxlen, base)
+    elif vartype in ('f'):
+        ret, c = fchg(var, maxlen, base)
+    elif vartype in ('t'):
+        ret, c = fchg(var, maxlen+1, base)
     else:
-        ret = str(var)
+        ret, c = str(var), -1
 
+    ### Set the counter color
     if ret == '0':
         color = 'default'
-    elif type in ('d', 'p'):
+    elif vartype in ('d', 'p'):
         color = colors[int(round(var)/mp)%len(colors)]
-    elif type in ('f'):
+    elif vartype in ('f'):
         color = colors[c%len(colors)]
     else:
         color = 'default'
 
-    if type in ('s',):
-        ret = ansi['default'] + ret.ljust(max)
+    ### Justify value to left if string
+    if vartype in ('s',):
+        ret = ansi[color] + ret.ljust(maxlen)
     else:
-        ret = ansi[color] + ret.rjust(max)
+        ret = ansi[color] + ret.rjust(maxlen)
 
+    ### Add unit to output
     if unit:
         if c != -1 and round(var) != 0:
-            ret = ret + units[c]
+            ret = ret + ansi['default'] + units[c]
         else:
             ret = ret + ' '
 
@@ -1768,9 +1785,9 @@ def dev(maj, min):
 #   "Return the mountpoint of a mounted device/file"
 #   for entry in dopen('/etc/mtab').readlines():
 #       if entry:
-#           list = entry.split()
-#           if dev == list[0]:
-#               return list[1]
+#           devlist = entry.split()
+#           if dev == devlist[0]:
+#               return devlist[1]
 
 def readfile(file):
     ret = ''
@@ -1795,18 +1812,17 @@ def exit(ret):
     sys.exit(ret)
 
 def listmodules():
-    import glob
     rows, cols = gettermsize()
     remod = re.compile('.+/dstat_(.+).py$')
     for path in sys.path:
-        list = []
-        for file in glob.glob(path + '/dstat_*.py'):
-            list.append(remod.match(file).groups()[0])
-        if not list: continue
-        list.sort()
+        modlist = []
+        for filename in glob.glob(path + '/dstat_*.py'):
+            modlist.append(remod.match(filename).groups()[0])
+        if not modlist: continue
+        modlist.sort()
         cols2 = cols - 8
         print '%s:\n\t' % os.path.abspath(path),
-        for mod in list:
+        for mod in modlist:
             cols2 = cols2 - len(mod) - 2
             if cols2 <= 0:
                 print '\n\t',
@@ -1825,6 +1841,9 @@ def main():
 
     user = getpass.getuser()
     hostname = os.uname()[1].split('.')[0]
+
+    ### Disable line-wrapping (does not work ?)
+    sys.stdout.write('\033[7l')
 
     ### Write term-title
     if sys.stdout.isatty():
@@ -1899,7 +1918,7 @@ def main():
             try:
                 if 'dstat_'+mod not in globals().keys():
                     import imp
-                    file, pathname, description = imp.find_module('dstat_'+mod)
+                    filename, pathname, description = imp.find_module('dstat_'+mod)
 
                     ### Try loading python plugin
                     if description[0] == '.py':
@@ -2003,7 +2022,7 @@ def perform(update):
 
         ### FIXME: Make this part smarter
         if sys.stdout.isatty():
-            oldrows, oldcols = rows, cols
+            oldcols = cols
             rows, cols = gettermsize()
 
             ### Trim object list to what is visible on screen
