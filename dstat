@@ -108,8 +108,9 @@ class Options:
                 ['aio', 'cpu', 'disk', 'epoch', 'fs', 'filesystem', 'int', 'ipc',
                  'load', 'lock', 'mem', 'net', 'page', 'proc', 'raw', 'socket',
                  'swap', 'sys', 'tcp', 'time', 'udp', 'unix',
-                 'all', 'debug', 'full', 'help', 'integer', 'mods', 'modules', 'nocolor',
-                 'noheaders', 'noupdate', 'output=', 'pidfile=', 'version', 'vmstat'])
+                 'all', 'debug', 'full', 'help', 'integer', 'list', 'mods', 'modules',
+                 'nocolor', 'noheaders', 'noupdate', 'output=', 'pidfile=', 'version',
+                 'vmstat'])
         except getopt.error, exc:
             print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
             sys.exit(1)
@@ -194,6 +195,9 @@ class Options:
                 self.output = arg
             elif opt in ['--pidfile']:
                 self.pidfile = arg
+            elif opt in ['--list']:
+                listmodules()
+                sys.exit(0)
             elif opt in ['-h', '--help']:
                 self.usage()
                 self.help()
@@ -277,8 +281,10 @@ Dstat options:
   --udp                  enable udp stats
   --unix                 enable unix stats
 
-  -M stat1,stat2         enable external stats
+  -M stat1,stat2         enable external plugins
      --mods stat1,stat2
+
+  --list                 list all internal and external plugins
 
   -a, --all              equals -cdngy (default)
   -f, --full             expand -C, -D, -I, -N and -S discovery lists
