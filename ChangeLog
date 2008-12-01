@@ -5,6 +5,7 @@
 - Added VMware ESX dstat_vmmemctl plugin (Bert de Bruijn)
 - Added internal dstat_fs plugin to show number of open files/inodes
 - Added internal dstat_socket plugin to show total number of various sockets
+- Added internal dstat_aio plugin to see number of asynchronous I/O requests
 
 * 0.6.8 - Buenos Aires - release 12/09/2008
 - Added improved tick patch (Kelly Long)

@@ -105,9 +105,9 @@ class Options:
         try:
             import getopt
             opts, args = getopt.getopt (args, 'acdfghilmno:pstTvyC:D:I:M:N:S:V',
-                ['cpu', 'disk', 'epoch', 'fs', 'filesystem', 'int', 'ipc', 'load',
-                 'lock', 'mem', 'net', 'page', 'proc', 'raw', 'socket', 'swap',
-                 'sys', 'tcp', 'time', 'udp', 'unix',
+                ['aio', 'cpu', 'disk', 'epoch', 'fs', 'filesystem', 'int', 'ipc',
+                 'load', 'lock', 'mem', 'net', 'page', 'proc', 'raw', 'socket',
+                 'swap', 'sys', 'tcp', 'time', 'udp', 'unix',
                  'all', 'debug', 'full', 'help', 'integer', 'mods', 'modules', 'nocolor',
                  'noheaders', 'noupdate', 'output=', 'pidfile=', 'version', 'vmstat'])
         except getopt.error, exc:
@@ -117,7 +117,9 @@ class Options:
         self.modlist = []
 
         for opt, arg in opts:
-            if opt in ['-c', '--cpu']:
+            if opt in ['--aio']:
+                self.modlist.append('cpu')
+            elif opt in ['-c', '--cpu']:
                 self.modlist.append('cpu')
             elif opt in ['-C']:
                 self.cpulist = arg.split(',')
@@ -264,9 +266,13 @@ Dstat options:
   -t, --time             enable time/date output
   -T, --epoch            enable time counter (seconds since epoch)
   -y, --sys              enable system stats
+
+  --aio                  enable aio stats
+  --fs                   enable fs stats
   --ipc                  enable ipc stats
   --lock                 enable lock stats
   --raw                  enable raw stats
+  --socket               enable socket stats
   --tcp                  enable tcp stats
   --udp                  enable udp stats
   --unix                 enable unix stats
@@ -317,7 +323,7 @@ class dstat:
             if fd:
                 self.file.append(filename)
                 self.fd.append(fd)
-	if not self.fd:
+        if not self.fd:
             raise Exception, 'Cannot open file %s.' % filename
 
     def readlines(self):
@@ -469,6 +475,21 @@ class dstat:
         elif self is not totlist[-1]:
             return ','
         return ''
+
+class dstat_aio(dstat):
+    def __init__(self):
+        self.name = 'async'
+        self.format = ('d', 5, 1000)
+        self.open('/proc/sys/fs/aio-nr')
+        self.nick = ('#aio',)
+        self.vars = ('aio',)
+        self.init(self.vars, 1)
+
+    def extract(self):
+        for line in self.readlines():
+            l = line.split()
+            if len(l) < 1: continue
+            self.val['aio'] = float(l[0])
 
 class dstat_cpu(dstat):
     def __init__(self):
@@ -827,7 +848,6 @@ class dstat_fs(dstat):
         self.vars = ('files', 'inodes')
         self.init(self.vars, 1)
 
-    ### We are now using the starttime instead of the execution time of this plugin
     def extract(self):
         for line in dopen('/proc/sys/fs/file-nr').readlines():
             l = line.split()
@@ -1198,7 +1218,7 @@ class dstat_raw(dstat):
     def extract(self):
         lines = -1
         for line in self.readlines():
-	    lines = lines + 1
+            lines = lines + 1
         self.val['sockets'] = lines
         ### Cannot use len() on generator
 #        self.val['sockets'] = len(self.readlines()) - 1
@@ -1852,6 +1872,21 @@ def exit(ret):
 
 def listmodules():
     rows, cols = gettermsize()
+    print 'internal:\n\t',
+    remod = re.compile('dstat_(.+)$')
+    modlist = []
+    for filename in globals():
+        if filename.startswith('dstat_'):
+            modlist.append(remod.match(filename).groups()[0])
+    modlist.sort()
+    cols2 = cols - 8
+    for mod in modlist:
+        cols2 = cols2 - len(mod) - 2
+        if cols2 <= 0:
+            print '\n\t',
+            cols2 = cols - len(mod) - 10
+        print mod + ',',
+    print
     remod = re.compile('.+/dstat_(.+).py$')
     for path in sys.path:
         modlist = []
