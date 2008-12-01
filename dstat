@@ -105,10 +105,11 @@ class Options:
         try:
             import getopt
             opts, args = getopt.getopt (args, 'acdfghilmno:pstTvyC:D:I:M:N:S:V',
-                ['cpu', 'disk', 'epoch', 'int', 'ipc', 'load', 'lock', 'mem', 'net',
-                'page', 'proc', 'raw', 'swap', 'sys', 'tcp', 'time', 'udp', 'unix',
-                'all', 'debug', 'full', 'help', 'integer', 'mods', 'modules', 'nocolor',
-                'noheaders', 'noupdate', 'output=', 'pidfile=', 'version', 'vmstat'])
+                ['cpu', 'disk', 'epoch', 'fs', 'filesystem', 'int', 'ipc', 'load',
+                 'lock', 'mem', 'net', 'page', 'proc', 'raw', 'socket', 'swap',
+                 'sys', 'tcp', 'time', 'udp', 'unix',
+                 'all', 'debug', 'full', 'help', 'integer', 'mods', 'modules', 'nocolor',
+                 'noheaders', 'noupdate', 'output=', 'pidfile=', 'version', 'vmstat'])
         except getopt.error, exc:
             print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
             sys.exit(1)
@@ -126,6 +127,8 @@ class Options:
                 self.disklist = arg.split(',')
             elif opt in ['--debug']:
                 self.debug = self.debug + 1
+            elif opt in ['--fs', '--filesystem']:
+                self.modlist.append('fs')
             elif opt in ['-g', '--page']:
                 self.modlist.append('page')
             elif opt in ['-i', '--int']:
@@ -150,6 +153,8 @@ class Options:
                 self.modlist.append('proc')
             elif opt in ['--raw']:
                 self.modlist.append('raw')
+            elif opt in ['--socket']:
+                self.modlist.append('socket')
             elif opt in ['-s', '--swap']:
                 self.modlist.append('swap')
             elif opt in ['-S']:
@@ -168,9 +173,9 @@ class Options:
                 self.modlist.append('sys')
 
             elif opt in ['-a', '--all']:
-                self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys' ]
+                self.modlist = self.modlist + ( 'cpu', 'disk', 'net', 'page', 'sys' )
             elif opt in ['-v', '--vmstat']:
-                self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
+                self.modlist = self.modlist + ( 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' )
             elif opt in ['-f', '--full']:
                 self.full = True
 
@@ -312,8 +317,8 @@ class dstat:
             if fd:
                 self.file.append(filename)
                 self.fd.append(fd)
-#            else:
-#                raise Exception, 'Cannot open file %s.' % filename
+	if not self.fd:
+            raise Exception, 'Cannot open file %s.' % filename
 
     def readlines(self):
         for fd in self.fd:
@@ -814,6 +819,25 @@ class dstat_epoch(dstat):
 #   def show(self):
 #       return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
 
+class dstat_fs(dstat):
+    def __init__(self):
+        self.name = 'filesystem'
+        self.format = ('d', 6, 1000)
+        self.nick = ('#file', '#inode')
+        self.vars = ('files', 'inodes')
+        self.init(self.vars, 1)
+
+    ### We are now using the starttime instead of the execution time of this plugin
+    def extract(self):
+        for line in dopen('/proc/sys/fs/file-nr').readlines():
+            l = line.split()
+            if len(l) < 1: continue
+            self.val['files'] = float(l[0])
+        for line in dopen('/proc/sys/fs/inode-nr').readlines():
+            l = line.split()
+            if len(l) < 2: continue
+            self.val['inodes'] = float(l[0]) - float(l[1])
+
 class dstat_int(dstat):
     def __init__(self):
         self.name = 'interrupts'
@@ -1178,6 +1202,21 @@ class dstat_raw(dstat):
         self.val['sockets'] = lines
         ### Cannot use len() on generator
 #        self.val['sockets'] = len(self.readlines()) - 1
+
+class dstat_socket(dstat):
+    def __init__(self):
+        self.name = 'sockets'
+        self.format = ('d', 4, 100)
+        self.open('/proc/net/sockstat')
+        self.nick = ('unix', 'tcp', 'udp', 'raw', 'frag')
+        self.vars = ('sockets:', 'TCP:', 'UDP:', 'RAW:', 'FRAG:')
+        self.init(self.vars, 1)
+
+    def extract(self):
+        for line in self.readlines():
+            l = line.split()
+            if len(l) < 3: continue
+            self.val[l[0]] = float(l[2])
 
 class dstat_swap(dstat):
     def __init__(self):

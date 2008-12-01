@@ -1,8 +1,10 @@
-* 0.6.8svn - ... - release 14/09/2008
+* 0.6.8svn - ... - release 01/12/2008
 - Input text color is now gray (again)
 - Added external dstat_luster plugin (Brock Palen, Kilian Vavalotti)
 - Validate integer values in /proc/swaps (Bert de Bruijn)
 - Added VMware ESX dstat_vmmemctl plugin (Bert de Bruijn)
+- Added internal dstat_fs plugin to show number of open files/inodes
+- Added internal dstat_socket plugin to show total number of various sockets
 
 * 0.6.8 - Buenos Aires - release 12/09/2008
 - Added improved tick patch (Kelly Long)

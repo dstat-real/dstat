@@ -2,10 +2,10 @@ class dstat_net_packets(dstat):
     def __init__(self):
         self.format = ('f', 5, 1000)
         self.open('/proc/net/dev')
-        self.nick = ('recv', 'send')
+        self.nick = ('#recv', '#send')
         self.discover = self.discover()
         self.vars = self.vars()
-        self.name = ['net/'+name for name in self.vars]
+        self.name = ['pkt/'+name for name in self.vars]
         self.init(self.vars + ['total',], 2)
 
     def discover(self, *list):

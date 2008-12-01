@@ -17,19 +17,17 @@ class dstat_vmmemctl(dstat):
 		self.init(self.vars, 1)
 
 	def check(self): 
-		ret = True
 		try:
 			os.stat('/proc/vmmemctl')
 		except:
-			ret = False
 			raise Exception, 'Needs VMware Tools (modprobe vmmemctl)'
-		return ret
 
 	def extract(self):
 		for line in self.readlines():
 			l = line.split()
 			if len(l) < 3: continue
-			if l[0] != 'target:': continue
-			if l[2] == 'pages':
-				self.val['balloon'] = int(l[1]) * 4096.0
+			if l[0] != 'current:': continue
+			if l[2] != 'pages': continue
+			self.val['balloon'] = int(l[1]) * 4096.0
+			break
 # vim:ts=4:sw=4
