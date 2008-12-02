@@ -8,6 +8,7 @@
 - Added internal dstat_aio plugin to see number of asynchronous I/O requests
 - Listing modules (-M list) now also lists internal plugins
 - Added internal dstat_vm plugin showing page faults, allocations and frees
+- Added internal dstat_io plugin showing number of completed I/O reuests
 
 * 0.6.8 - Buenos Aires - release 12/09/2008
 - Added improved tick patch (Kelly Long)

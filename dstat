@@ -104,10 +104,10 @@ class Options:
 
         try:
             import getopt
-            opts, args = getopt.getopt (args, 'acdfghilmno:pstTvyC:D:I:M:N:S:V',
-                ['aio', 'cpu', 'disk', 'epoch', 'fs', 'filesystem', 'int', 'ipc',
-                 'load', 'lock', 'mem', 'net', 'page', 'proc', 'raw', 'socket',
-                 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 'vm',
+            opts, args = getopt.getopt (args, 'acdfghilmno:prstTvyC:D:I:M:N:S:V',
+                ['aio', 'cpu', 'disk', 'epoch', 'fs', 'filesystem', 'int', 'io', 'ipc',
+                 'load', 'lock', 'mem', 'net', 'page', 'proc', 'raw', 'socket', 'swap',
+                 'sys', 'tcp', 'time', 'udp', 'unix', 'vm',
                  'all', 'debug', 'full', 'help', 'integer', 'list', 'mods', 'modules',
                  'nocolor', 'noheaders', 'noupdate', 'output=', 'pidfile=', 'version',
                  'vmstat'])
@@ -119,7 +119,7 @@ class Options:
 
         for opt, arg in opts:
             if opt in ['--aio']:
-                self.modlist.append('cpu')
+                self.modlist.append('aio')
             elif opt in ['-c', '--cpu']:
                 self.modlist.append('cpu')
             elif opt in ['-C']:
@@ -156,6 +156,8 @@ class Options:
                 self.modlist.append('proc')
             elif opt in ['--raw']:
                 self.modlist.append('raw')
+            elif opt in ['-r', '--io']:
+                self.modlist.append('io')
             elif opt in ['--socket']:
                 self.modlist.append('socket')
             elif opt in ['-s', '--swap']:
@@ -267,6 +269,7 @@ Dstat options:
   -n, --net              enable network stats
      -N eth1,total          include eth1 and total
   -p, --proc             enable process stats
+  -r, --io               enable io stats (I/O requests completed)
   -s, --swap             enable swap stats
      -S swap1,total         include swap1 and total
   -t, --time             enable time/date output
@@ -1011,6 +1014,72 @@ class dstat_int24(dstat):
 #                       self.cn2[mod] = long(l[1])
         for name in self.cn2.keys():
             self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+        if step == op.delay:
+            self.cn1.update(self.cn2)
+
+class dstat_io(dstat):
+    def __init__(self):
+        self.format = ('f', 5, 1000)
+        self.open('/proc/diskstats')
+        self.nick = ('read', 'writ')
+        self.discover = self.discover()
+        self.vars = self.vars()
+        self.name = ['io/'+name for name in self.vars]
+        self.init(self.vars + ['total',], 3)
+
+    def discover(self, *objlist):
+        ret = []
+        for line in self.readlines():
+            l = line.split()
+            if len(l) < 13: continue
+            if l[3:] == ['0',] * 11: continue
+            name = l[2]
+            ret.append(name)
+        for item in objlist: ret.append(item)
+        return ret
+
+    def vars(self):
+        ret = []
+        if op.disklist:
+            varlist = op.disklist
+        elif not op.full:
+            varlist = ('total',)
+        else:
+            varlist = []
+            blockdevices = [os.path.basename(filename) for filename in glob.glob('/sys/block/*')]
+            for name in self.discover:
+                if re.match('(md[0-9]+|dm-[0-9]+)', name): continue
+                if name not in blockdevices: continue
+                varlist.append(name)
+#           if len(varlist) > 2: varlist = varlist[0:2]
+            varlist.sort()
+        for name in varlist:
+            if name in self.discover + ['total'] + op.diskset.keys():
+                ret.append(name)
+        return ret
+
+    def extract(self):
+        for name in self.vars: self.cn2[name] = (0, 0)
+        for line in self.readlines():
+            l = line.split()
+            if len(l) < 13: continue
+            if l[3] == '0' and l[7] == '0': continue
+            name = l[2]
+            if l[3:] == ['0',] * 11: continue
+            if not re.match('(md[0-9]+|dm-[0-9]+)', name):
+                self.cn2['total'] = ( self.cn2['total'][0] + long(l[3]), self.cn2['total'][1] + long(l[7]) )
+            if name in self.vars and name != 'total':
+                self.cn2[name] = ( self.cn2[name][0] + long(l[3]), self.cn2[name][1] + long(l[7]) )
+            for diskset in self.vars:
+                if diskset in op.diskset.keys():
+                    for disk in op.diskset[diskset]:
+                        if re.match('^'+disk+'$', name):
+                            self.cn2[diskset] = ( self.cn2[diskset][0] + long(l[3]), self.cn2[diskset][1] + long(l[7]) )
+        for name in self.cn2.keys():
+            self.val[name] = (
+                (self.cn2[name][0] - self.cn1[name][0]) * 1.0 / tick,
+                (self.cn2[name][1] - self.cn1[name][1]) * 1.0 / tick,
+            )
         if step == op.delay:
             self.cn1.update(self.cn2)
 
