@@ -2,7 +2,7 @@
 .\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
 .\" Instead of manually editing it, you probably should edit the DocBook XML
 .\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
-.TH "DSTAT" "1" "09/12/2008" "" ""
+.TH "DSTAT" "1" "12/02/2008" "" ""
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -34,19 +34,19 @@ Users of Sleuthkit might find Sleuthkit's dstat being renamed to datastat to avo
 .SH "OPTIONS"
 .TP
 \-c, \-\-cpu
-enable cpu stats
+enable cpu stats (system, user, idle, wait, hardware interrupt, software interrupt)
 .TP
 \-C 0,3,total
 include cpu0, cpu3 and total
 .TP
 \-d, \-\-disk
-enable disk stats
+enable disk stats (read, write)
 .TP
 \-D total,hda
 include hda and total
 .TP
 \-g, \-\-page
-enable page stats
+enable page stats (page in, page out)
 .TP
 \-i, \-\-int
 enable interrupt stats
@@ -55,22 +55,25 @@ enable interrupt stats
 include interrupt 5 and 10
 .TP
 \-l, \-\-load
-enable load stats
+enable load average stats (1 min, 5 mins, 15mins)
 .TP
 \-m, \-\-mem
-enable memory stats
+enable memory stats (used, buffers, cache, free)
 .TP
 \-n, \-\-net
-enable network stats
+enable network stats (receive, send)
 .TP
 \-N eth1,total
 include eth1 and total
 .TP
 \-p, \-\-proc
-enable process stats
+enable process stats (runnable, uninterruptible, new)
+.TP
+\-r, \-\-io
+enable I/O request stats (read, write requests)
 .TP
 \-s, \-\-swap
-enable swap stats
+enable swap stats (used, free)
 .TP
 \-S swap1,total
 include swap1 and total
@@ -82,34 +85,46 @@ enable time/date output
 enable time counter (seconds since epoch)
 .TP
 \-y, \-\-sys
-enable system stats
+enable system stats (interrupts, context switches)
+.TP
+\-\-aio
+enable aio stats (asynchronous I/O)
+.TP
+\-\-fs
+enable filesystem stats (open files, inodes)
 .TP
 \-\-ipc
-enable ipc stats
+enable ipc stats (message queue, semaphores, shared memory)
 .TP
 \-\-lock
-enable lock stats
+enable file lock stats (posix, flock, read, write)
 .TP
 \-\-raw
-enable raw stats
+enable raw stats (raw sockets)
+.TP
+\-\-socket
+enable socket stats (total, tcp, udp, raw, ip\-fragments)
 .TP
 \-\-tcp
-enable tcp stats
+enable tcp stats (listen, established, syn, time_wait, close)
 .TP
 \-\-udp
-enable udp stats
+enable udp stats (listen, active)
 .TP
 \-\-unix
-enable unix stats
+enable unix stats (datagram, stream, listen, active)
+.TP
+\-\-vm
+enable vm stats (hard pagefaults, soft pagefaults, allocated, free))
 .TP
 \-M stat1,stat2
-enable internal stats and external plugin stats
+enable internal and external plugin stats
 .TP
 Possible internal stats are
-cpu, cpu24, disk, disk24, disk24old, epoch, int, int24, ipc, load, lock, mem, net, page, page24, proc, raw, swap, swapold, sys, tcp, time, udp, unix
+aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc, load, lock, mem, net, page, page24, proc, raw, socket, swap, swapold, sys, tcp, time, udp, unix, vm
 .TP
-Possible external plugin stats can be listed using
-dstat \-M list
+Possible plugin stats can be listed using
+dstat \-\-list
 .TP
 \-a, \-\-all
 equals \-cdngy (default)
@@ -119,6 +134,9 @@ expand \-C, \-D, \-I, \-N and \-S discovery lists
 .TP
 \-v, \-\-vmstat
 equals \-pmgdsc \-D total
+.TP
+\-\-list
+list the internal and external plugin names
 .TP
 \-\-integer
 show integer values
@@ -189,7 +207,7 @@ Since it is practically impossible to test dstat on every possible permutation o
 Please see the TODO file for known bugs and future plans.
 .sp
 .SH "FILES"
-Paths that may contain external dstat_* plugins:
+Paths that may contain external dstat_*.py plugins:
 .sp
 .sp
 .nf
@@ -249,14 +267,14 @@ xdpyinfo(1), xrestop(1)
 .SS "Other useful info"
 .sp
 .nf
-proc(5)
+collectl(1), proc(5), procinfo(8)
 .fi
 .SH "AUTHOR"
 Written by Dag Wieers [1]\&\fIdag@wieers.com\fR
 .sp
 Homepage at [2]\&\fIhttp://dag.wieers.com/home\-made/dstat/\fR
 .sp
-This manpage was initially written by Andrew Pollock [3]\&\fIapollock@debian.org\fR for the Debian GNU/Linux system, and updated by Dag Wieers [1]\&\fIdag@wieers.com\fR
+This manpage was initially written by Andrew Pollock [3]\&\fIapollock@debian.org\fR for the Debian GNU/Linux system.
 .sp
 .SH "REFERENCES"
 .TP 3

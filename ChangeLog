@@ -1,14 +1,14 @@
-* 0.6.8svn - ... - release 01/12/2008
+* 0.6.9 - Locarno - release 02/12/2008
 - Input text color is now gray (again)
 - Added external dstat_luster plugin (Brock Palen, Kilian Vavalotti)
 - Validate integer values in /proc/swaps (Bert de Bruijn)
 - Added VMware guest dstat_vmmemctl plugin (Bert de Bruijn)
-- Added internal dstat_fs plugin to show number of open files/inodes
+- Added internal dstat_fs plugin showing number of open files/inodes
 - Added internal dstat_socket plugin to show total number of various sockets
 - Added internal dstat_aio plugin to see number of asynchronous I/O requests
 - Listing modules (-M list) now also lists internal plugins
 - Added internal dstat_vm plugin showing page faults, allocations and frees
-- Added internal dstat_io plugin showing number of completed I/O reuests
+- Added internal dstat_io plugin showing number of completed I/O requests
 
 * 0.6.8 - Buenos Aires - release 12/09/2008
 - Added improved tick patch (Kelly Long)

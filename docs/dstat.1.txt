@@ -1,6 +1,6 @@
 = dstat(1)
 Dag Wieers <dag@wieers.com>
-v0.6.4, December 2006
+v0.6.9, December 2006
 
 
 == NAME
@@ -40,19 +40,20 @@ information.
 
 == OPTIONS
 -c, --cpu::
-    enable cpu stats
+    enable cpu stats (system, user, idle, wait, hardware interrupt, software
+    interrupt)
 
 -C 0,3,total::
     include cpu0, cpu3 and total
 
 -d, --disk::
-    enable disk stats
+    enable disk stats (read, write)
 
 -D total,hda::
     include hda and total
 
 -g, --page::
-    enable page stats
+    enable page stats (page in, page out)
 
 -i, --int::
     enable interrupt stats
@@ -61,22 +62,25 @@ information.
     include interrupt 5 and 10
 
 -l, --load::
-    enable load stats
+    enable load average stats (1 min, 5 mins, 15mins)
 
 -m, --mem::
-    enable memory stats
+    enable memory stats (used, buffers, cache, free)
 
 -n, --net::
-    enable network stats
+    enable network stats (receive, send)
 
 -N eth1,total::
     include eth1 and total
 
 -p, --proc::
-    enable process stats
+    enable process stats (runnable, uninterruptible, new)
+
+-r, --io::
+    enable I/O request stats (read, write requests)
 
 -s, --swap::
-    enable swap stats
+    enable swap stats (used, free)
 
 -S swap1,total::
     include swap1 and total
@@ -88,35 +92,48 @@ information.
     enable time counter (seconds since epoch)
 
 -y, --sys::
-    enable system stats
+    enable system stats (interrupts, context switches)
+
+--aio::
+    enable aio stats (asynchronous I/O)
+
+--fs::
+    enable filesystem stats (open files, inodes)
 
 --ipc::
-    enable ipc stats
+    enable ipc stats (message queue, semaphores, shared memory)
 
 --lock::
-    enable lock stats
+    enable file lock stats (posix, flock, read, write)
 
 --raw::
-    enable raw stats
+    enable raw stats (raw sockets)
+
+--socket::
+    enable socket stats (total, tcp, udp, raw, ip-fragments)
 
 --tcp::
-    enable tcp stats
+    enable tcp stats (listen, established, syn, time_wait, close)
 
 --udp::
-    enable udp stats
+    enable udp stats (listen, active)
 
 --unix::
-    enable unix stats
+    enable unix stats (datagram, stream, listen, active)
+
+--vm::
+    enable vm stats (hard pagefaults, soft pagefaults, allocated, free))
 
 -M stat1,stat2::
-    enable internal stats and external plugin stats
+    enable internal and external plugin stats
 
 Possible internal stats are::
-  cpu, cpu24, disk, disk24, disk24old, epoch, int, int24, ipc, load, lock, mem,
-  net, page, page24, proc, raw, swap, swapold, sys, tcp, time, udp, unix
+    aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc,
+    load, lock, mem, net, page, page24, proc, raw, socket, swap, swapold,
+    sys, tcp, time, udp, unix, vm
 
-Possible external plugin stats can be listed using::
-  dstat -M list
+Possible plugin stats can be listed using::
+    dstat --list
 
 -a, --all::
     equals -cdngy (default)
@@ -126,6 +143,9 @@ Possible external plugin stats can be listed using::
 
 -v, --vmstat::
     equals -pmgdsc -D total
+
+--list::
+    list the internal and external plugin names
 
 --integer::
     show integer values
@@ -201,7 +221,7 @@ Please see the TODO file for known bugs and future plans.
 
 
 == FILES
-Paths that may contain external dstat_* plugins:
+Paths that may contain external dstat_*.py plugins:
 
     ~/.dstat/
     ./
@@ -241,7 +261,7 @@ Paths that may contain external dstat_* plugins:
     xdpyinfo(1), xrestop(1)
 
 === Other useful info
-    proc(5)
+    collectl(1), proc(5), procinfo(8)
 
 
 == AUTHOR
@@ -250,5 +270,4 @@ Written by Dag Wieers mailto:dag@wieers.com[]
 Homepage at http://dag.wieers.com/home-made/dstat/[]
 
 This manpage was initially written by Andrew Pollock
-mailto:apollock@debian.org[] for the Debian GNU/Linux system, and
-updated by Dag Wieers mailto:dag@wieers.com[]
+mailto:apollock@debian.org[] for the Debian GNU/Linux system.

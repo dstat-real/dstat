@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.8svn'
+VERSION = '0.6.9'
 
 def inspath(path):
     if os.path.isdir(path) and path not in sys.path:
@@ -118,9 +118,7 @@ class Options:
         self.modlist = []
 
         for opt, arg in opts:
-            if opt in ['--aio']:
-                self.modlist.append('aio')
-            elif opt in ['-c', '--cpu']:
+            if opt in ['-c', '--cpu']:
                 self.modlist.append('cpu')
             elif opt in ['-C']:
                 self.cpulist = arg.split(',')
@@ -128,22 +126,14 @@ class Options:
                 self.modlist.append('disk')
             elif opt in ['-D']:
                 self.disklist = arg.split(',')
-            elif opt in ['--debug']:
-                self.debug = self.debug + 1
-            elif opt in ['--fs', '--filesystem']:
-                self.modlist.append('fs')
             elif opt in ['-g', '--page']:
                 self.modlist.append('page')
             elif opt in ['-i', '--int']:
                 self.modlist.append('int')
             elif opt in ['-I']:
                 self.intlist = arg.split(',')
-            elif opt in ['--ipc']:
-                self.modlist.append('ipc')
             elif opt in ['-l', '--load']:
                 self.modlist.append('load')
-            elif opt in ['--lock']:
-                self.modlist.append('lock')
             elif opt in ['-m', '--mem']:
                 self.modlist.append('mem')
             elif opt in ['-M', '--mods', '--modules']:
@@ -154,30 +144,39 @@ class Options:
                 self.netlist = arg.split(',')
             elif opt in ['-p', '--proc']:
                 self.modlist.append('proc')
-            elif opt in ['--raw']:
-                self.modlist.append('raw')
             elif opt in ['-r', '--io']:
                 self.modlist.append('io')
-            elif opt in ['--socket']:
-                self.modlist.append('socket')
             elif opt in ['-s', '--swap']:
                 self.modlist.append('swap')
             elif opt in ['-S']:
                 self.swaplist = arg.split(',')
-            elif opt in ['--tcp']:
-                self.modlist.append('tcp')
             elif opt in ['-t', '--time']:
                 self.modlist.append('time')
             elif opt in ['-T', '--epoch']:
                 self.modlist.append('epoch')
+            elif opt in ['-y', '--sys']:
+                self.modlist.append('sys')
+
+            elif opt in ['--aio']:
+                self.modlist.append('aio')
+            elif opt in ['--fs', '--filesystem']:
+                self.modlist.append('fs')
+            elif opt in ['--ipc']:
+                self.modlist.append('ipc')
+            elif opt in ['--lock']:
+                self.modlist.append('lock')
+            elif opt in ['--raw']:
+                self.modlist.append('raw')
+            elif opt in ['--socket']:
+                self.modlist.append('socket')
+            elif opt in ['--tcp']:
+                self.modlist.append('tcp')
             elif opt in ['--udp']:
                 self.modlist.append('udp')
             elif opt in ['--unix']:
                 self.modlist.append('unix')
             elif opt in ['--vm']:
                 self.modlist.append('vm')
-            elif opt in ['-y', '--sys']:
-                self.modlist.append('sys')
 
             elif opt in ['-a', '--all']:
                 self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys' ]
@@ -186,8 +185,13 @@ class Options:
             elif opt in ['-f', '--full']:
                 self.full = True
 
+            elif opt in ['--debug']:
+                self.debug = self.debug + 1
             elif opt in ['--integer']:
                 self.integer = True
+            elif opt in ['--list']:
+                listmodules()
+                sys.exit(0)
             elif opt in ['--nocolor']:
                 self.color = False
                 self.update = False
@@ -199,9 +203,6 @@ class Options:
                 self.output = arg
             elif opt in ['--pidfile']:
                 self.pidfile = arg
-            elif opt in ['--list']:
-                listmodules()
-                sys.exit(0)
             elif opt in ['-h', '--help']:
                 self.usage()
                 self.help()
