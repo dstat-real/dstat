@@ -1057,7 +1057,7 @@ class dstat_io(dstat):
     def extract(self):
         for name in self.vars: self.cn2[name] = (0, 0)
         for line in self.readlines():
-            l = line.split()
+            l = string.split(line)
             if len(l) < 13: continue
             if l[3] == '0' and l[7] == '0': continue
             name = l[2]
