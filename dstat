@@ -498,7 +498,7 @@ class dstat_aio(dstat):
         for line in self.readlines():
             l = line.split()
             if len(l) < 1: continue
-            self.val['aio'] = float(l[0])
+            self.val['aio'] = long(l[0])
 
 class dstat_cpu(dstat):
     def __init__(self):
@@ -861,11 +861,11 @@ class dstat_fs(dstat):
         for line in dopen('/proc/sys/fs/file-nr').readlines():
             l = line.split()
             if len(l) < 1: continue
-            self.val['files'] = float(l[0])
+            self.val['files'] = long(l[0])
         for line in dopen('/proc/sys/fs/inode-nr').readlines():
             l = line.split()
             if len(l) < 2: continue
-            self.val['inodes'] = float(l[0]) - float(l[1])
+            self.val['inodes'] = long(l[0]) - long(l[1])
 
 class dstat_int(dstat):
     def __init__(self):
@@ -1218,9 +1218,9 @@ class dstat_proc(dstat):
 class dstat_raw(dstat):
     def __init__(self):
         self.name = 'raw'
-        self.format = ('f', 3, 10)
+        self.format = ('d', 3, 100)
         self.open('/proc/net/raw')
-        self.nick = ('soc',)
+        self.nick = ('raw',)
         self.vars = ('sockets',)
         self.init(self.vars, 1)
 
@@ -1235,9 +1235,9 @@ class dstat_raw(dstat):
 class dstat_socket(dstat):
     def __init__(self):
         self.name = 'sockets'
-        self.format = ('d', 4, 100)
+        self.format = ('d', 3, 100)
         self.open('/proc/net/sockstat')
-        self.nick = ('unix', 'tcp', 'udp', 'raw', 'frag')
+        self.nick = ('tot', 'tcp', 'udp', 'raw', 'frg')
         self.vars = ('sockets:', 'TCP:', 'UDP:', 'RAW:', 'FRAG:')
         self.init(self.vars, 1)
 
@@ -1245,7 +1245,8 @@ class dstat_socket(dstat):
         for line in self.readlines():
             l = line.split()
             if len(l) < 3: continue
-            self.val[l[0]] = float(l[2])
+            self.val[l[0]] = long(l[2])
+	self.val['other'] = self.val['sockets:'] - self.val['TCP:'] - self.val['UDP:'] - self.val['RAW:'] - self.val['FRAG:']
 
 class dstat_swap(dstat):
     def __init__(self):
@@ -1396,7 +1397,7 @@ class dstat_time(dstat):
 class dstat_udp(dstat):
     def __init__(self):
         self.name = 'udp'
-        self.format = ('f', 3, 100)
+        self.format = ('d', 3, 100)
         self.open('/proc/net/udp', '/proc/net/udp6')
         self.nick = ('lis', 'act')
         self.vars = ('listen', 'established')
@@ -1412,9 +1413,9 @@ class dstat_udp(dstat):
 class dstat_unix(dstat):
     def __init__(self):
         self.name = 'unix sockets'
-        self.format = ('d', 4, 100)
+        self.format = ('d', 3, 100)
         self.open('/proc/net/unix')
-        self.nick = ('dgrm', 'strm', 'lis', 'act')
+        self.nick = ('dgm', 'str', 'lis', 'act')
         self.vars = ('datagram', 'stream', 'listen', 'established')
         self.init(self.vars, 1)
 
