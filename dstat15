@@ -1840,6 +1840,8 @@ def gettermsize():
     "Return the dynamic terminal geometry"
     global termsize
 
+    termsize = None, None
+
 #    if not termsize[0] and not termsize[1]:
     if not termsize[0]:
         try:
