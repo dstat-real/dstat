@@ -557,7 +557,7 @@ class dstat_cpu(dstat):
                     self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
                 else:
                     self.val[name][i] = 0
-#                    print >>sys.stderr, "Error: tick problem detected, this should never happen !"
+#                    print "Error: tick problem detected, this should never happen !"
         if step == op.delay:
             self.cn1.update(self.cn2)
 
@@ -1802,11 +1802,11 @@ def showcsvtitle(nr, totlist):
 def info(level, str):
     "Output info message"
 #   if level <= op.verbose:
-    print >>sys.stderr, str
+    print str
 
 def die(ret, str):
     "Print error and exit with errorcode"
-    print >>sys.stderr, str
+    print str
     exit(ret)
 
 def getenv(key):
@@ -1864,7 +1864,7 @@ def gettermcolor(color=True):
             if curses.tigetnum('colors') < 0:
                 return False
         except:
-            print >>sys.stderr, 'Color support is disabled, python-curses is not installed.'
+            print 'Color support is disabled, python-curses is not installed.'
             return False
     return color
 
@@ -2038,7 +2038,7 @@ def main():
             pidfile.write(str(os.getpid()))
             pidfile.close()
         except Exception, e:
-            print >>sys.stderr, 'Failed to create pidfile %s' % op.pidfile, e
+            print 'Failed to create pidfile %s' % op.pidfile, e
             op.pidfile = False
 
     ### Empty ansi database if no colors are requested
@@ -2086,7 +2086,7 @@ def main():
 #                        print o.__module__
 #                        print o.name
                     else:
-                        print >>sys.stderr, 'Module %s is of unknown type.' % mod
+                        print 'Module %s is of unknown type.' % mod
 
                     ### Remove defect stat objects and calculate line length
                     if not o.check():
@@ -2096,9 +2096,9 @@ def main():
 #                print o.__module__
             except Exception, e:
                 if mod == mods[-1]:
-                    print >>sys.stderr, 'Module %s failed to load. (%s)' % (mod, e)
+                    print 'Module %s failed to load. (%s)' % (mod, e)
                 elif op.debug:
-                    print >>sys.stderr, 'Module %s failed to load, trying another. (%s)' % (mod, e)
+                    print 'Module %s failed to load, trying another. (%s)' % (mod, e)
                 if op.debug >= 3:
                     raise
 #                tb = sys.exc_info()[2]
@@ -2206,7 +2206,7 @@ def perform(update):
         ### Display header
         if showheader:
             if loop == 0 and totlist != vislist:
-                print >>sys.stderr, 'Terminal width too small, trimming output.'
+                print 'Terminal width too small, trimming output.'
             showheader = False
             showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
             showtitle(2, totlist, vislist, ansi['gray'] + char['pipe'], ansi['darkblue'] + char['gt'])
