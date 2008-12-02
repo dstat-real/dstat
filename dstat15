@@ -1605,7 +1605,7 @@ def dopen(filename):
     global fds
     if not os.path.exists(filename): return None
     if 'fds' not in globals().keys(): fds = {}
-    if file not in fds.keys():
+    if filename not in fds.keys():
         fds[filename] = open(filename, 'r', 0)
     else:
         fds[filename].seek(0)
