@@ -107,7 +107,7 @@ class Options:
             opts, args = getopt.getopt (args, 'acdfghilmno:pstTvyC:D:I:M:N:S:V',
                 ['aio', 'cpu', 'disk', 'epoch', 'fs', 'filesystem', 'int', 'ipc',
                  'load', 'lock', 'mem', 'net', 'page', 'proc', 'raw', 'socket',
-                 'swap', 'sys', 'tcp', 'time', 'udp', 'unix',
+                 'swap', 'sys', 'tcp', 'time', 'udp', 'unix', 'vm',
                  'all', 'debug', 'full', 'help', 'integer', 'list', 'mods', 'modules',
                  'nocolor', 'noheaders', 'noupdate', 'output=', 'pidfile=', 'version',
                  'vmstat'])
@@ -172,13 +172,15 @@ class Options:
                 self.modlist.append('udp')
             elif opt in ['--unix']:
                 self.modlist.append('unix')
+            elif opt in ['--vm']:
+                self.modlist.append('vm')
             elif opt in ['-y', '--sys']:
                 self.modlist.append('sys')
 
             elif opt in ['-a', '--all']:
-                self.modlist = self.modlist + ( 'cpu', 'disk', 'net', 'page', 'sys' )
+                self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys' ]
             elif opt in ['-v', '--vmstat']:
-                self.modlist = self.modlist + ( 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' )
+                self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
             elif opt in ['-f', '--full']:
                 self.full = True
 
@@ -280,6 +282,7 @@ Dstat options:
   --tcp                  enable tcp stats
   --udp                  enable udp stats
   --unix                 enable unix stats
+  --vm                   enable vm stats
 
   -M stat1,stat2         enable external plugins
      --mods stat1,stat2
@@ -850,8 +853,8 @@ class dstat_fs(dstat):
     def __init__(self):
         self.name = 'filesystem'
         self.format = ('d', 6, 1000)
-        self.nick = ('#file', '#inode')
-        self.vars = ('files', 'inodes')
+        self.nick = ('files', 'inodes')
+        self.vars = self.nick
         self.init(self.vars, 1)
 
     def extract(self):
@@ -1427,6 +1430,26 @@ class dstat_unix(dstat):
                     self.val['listen'] = self.val['listen'] + 1
                 elif l[5] == '03':
                     self.val['established'] = self.val['established'] + 1
+
+class dstat_vm(dstat):
+    def __init__(self):
+        self.name = 'virtual memory'
+        self.format = ('d', 5, 1000)
+        self.open('/proc/vmstat')
+        self.nick = ('fault', 'alloc', 'free')
+        self.vars = ('pgfault', 'pgalloc_normal', 'pgfree')
+        self.init(self.vars, 1)
+
+    def extract(self):
+        for line in self.readlines():
+            l = line.split()
+            if len(l) < 2: continue
+            if l[0] not in self.vars: continue
+            self.cn2[l[0]] = long(l[1])
+        for name in self.vars:
+            self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+        if step == op.delay:
+            self.cn1.update(self.cn2)
 
 ### END STATS DEFINITIONS ###
 
