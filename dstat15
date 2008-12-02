@@ -1433,7 +1433,7 @@ class dstat_tcp(dstat):
 class dstat_time(dstat):
     def __init__(self):
         self.name = 'time'
-        self.timefmt = os.getenv('DSTAT_TIMEFMT')
+        self.timefmt = getenv('DSTAT_TIMEFMT')
         if self.timefmt:
             tmp = time.strftime(self.timefmt, time.localtime())
             self.format = ('s', len(tmp), 0)
