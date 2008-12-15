@@ -623,6 +623,7 @@ class dstat_cpu24(dstat):
 class dstat_disk(dstat):
     def __init__(self):
         self.format = ('f', 5, 1024)
+        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/diskstats')
         self.nick = ('read', 'writ')
         self.discover = self.discover()
@@ -651,7 +652,7 @@ class dstat_disk(dstat):
         else:
             varlist = []
             for name in self.discover:
-                if not re.match('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)', name):
+                if not self.diskfilter.match(name):
                     varlist.append(name)
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
@@ -668,7 +669,7 @@ class dstat_disk(dstat):
             if l[5] == '0' and l[9] == '0': continue
             name = l[2]
             if l[3:] == ['0',] * 11: continue
-            if not re.match('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)', name):
+            if not self.diskfilter.match(name):
                 self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
             if name in self.vars and name != 'total':
                 self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
@@ -688,6 +689,7 @@ class dstat_disk(dstat):
 class dstat_disk24(dstat):
     def __init__(self):
         self.format = ('f', 5, 1024)
+        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/partitions')
         self.nick = ('read', 'writ')
         self.discover = self.discover()
@@ -717,7 +719,7 @@ class dstat_disk24(dstat):
         else:
             varlist = []
             for name in self.discover:
-                if not re.match('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)', name):
+                if not self.diskfilter.match(name):
                     varlist.append(name)
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
@@ -732,7 +734,7 @@ class dstat_disk24(dstat):
             l = string.split(line)
             if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
             name = l[3]
-            if not re.match('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)', name):
+            if not self.diskfilter.match(name):
                 self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
             if name in self.vars:
                 self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
@@ -753,6 +755,7 @@ class dstat_disk24(dstat):
 class dstat_disk24old(dstat):
     def __init__(self):
         self.format = ('f', 5, 1024)
+        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/stat')
         self.nick = ('read', 'writ')
         self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
@@ -789,7 +792,7 @@ class dstat_disk24old(dstat):
         else:
             varlist = []
             for name in self.discover:
-                if not re.match('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)', name):
+                if not self.diskfilter.match(name):
                     varlist.append(name)
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
@@ -811,7 +814,7 @@ class dstat_disk24old(dstat):
                 l = m.groups()
                 if len(l) < 4: continue
                 name = dev(int(l[0]), int(l[1]))
-                if not re.match('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)', name):
+                if not self.diskfilter.match(name):
                     self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
                 if name in self.vars and name != 'total':
                     self.cn2[name] = ( self.cn2[name][0] + long(l[2]), self.cn2[name][1] + long(l[3]) )
@@ -1017,6 +1020,7 @@ class dstat_int24(dstat):
 class dstat_io(dstat):
     def __init__(self):
         self.format = ('f', 5, 1000)
+        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/diskstats')
         self.nick = ('read', 'writ')
         self.discover = self.discover()
@@ -1045,7 +1049,7 @@ class dstat_io(dstat):
         else:
             varlist = []
             for name in self.discover:
-                if not re.match('(md[0-9]+|dm-[0-9]+)', name):
+                if not self.diskfilter.match(name):
                     varlist.append(name)
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
@@ -1062,7 +1066,7 @@ class dstat_io(dstat):
             if l[3] == '0' and l[7] == '0': continue
             name = l[2]
             if l[3:] == ['0',] * 11: continue
-            if not re.match('(md[0-9]+|dm-[0-9]+)', name):
+            if not self.diskfilter.match(name):
                 self.cn2['total'] = ( self.cn2['total'][0] + long(l[3]), self.cn2['total'][1] + long(l[7]) )
             if name in self.vars and name != 'total':
                 self.cn2[name] = ( self.cn2[name][0] + long(l[3]), self.cn2[name][1] + long(l[7]) )

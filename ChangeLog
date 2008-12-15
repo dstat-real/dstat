@@ -1,5 +1,6 @@
 * 0.6.9svn - ... - release 15/12/2008
 - Fixed dstat_disk plugin for total calculation on 2.6.25+ kernels (Noel J. Bergman)
+- Precompile regular expressions used as a disk filter (self.diskfilter)
 
 * 0.6.9 - Locarno - release 02/12/2008
 - Input text color is now gray (again)
