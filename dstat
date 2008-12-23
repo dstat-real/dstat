@@ -647,6 +647,8 @@ class dstat_disk(dstat):
             name = l[2]
             ret.append(name)
         for item in objlist: ret.append(item)
+        if not ret:
+            raise Exception, "No suitable block devices found to monitor"
         return ret
 
     def vars(self):
@@ -715,6 +717,8 @@ class dstat_disk24(dstat):
             name = l[3]
             ret.append(name)
         for item in objlist: ret.append(item)
+        if not ret:
+            raise Exception, "No suitable block devices found to monitor"
         return ret
 
     def vars(self):
@@ -726,8 +730,8 @@ class dstat_disk24(dstat):
         else:
             varlist = []
             for name in self.discover:
-                if not self.diskfilter.match(name):
-                    varlist.append(name)
+                if self.diskfilter.match(name): continue
+                varlist.append(name)
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
         for name in varlist:
@@ -787,6 +791,8 @@ class dstat_disk24old(dstat):
                 ret.append(name)
             break
         for item in objlist: ret.append(item)
+        if not ret:
+            raise Exception, "No suitable block devices found to monitor"
         return ret
 
     def vars(self):
@@ -798,8 +804,8 @@ class dstat_disk24old(dstat):
         else:
             varlist = []
             for name in self.discover:
-                if not self.diskfilter.match(name):
-                    varlist.append(name)
+                if self.diskfilter.match(name): continue
+                varlist.append(name)
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
         for name in varlist:
@@ -1041,6 +1047,8 @@ class dstat_io(dstat):
             name = l[2]
             ret.append(name)
         for item in objlist: ret.append(item)
+        if not ret:
+            raise Exception, "No suitable block devices found to monitor"
         return ret
 
     def vars(self):
@@ -1179,6 +1187,8 @@ class dstat_net(dstat):
                 ret.append(name)
         ret.sort()
         for item in objlist: ret.append(item)
+        if not ret:
+            raise Exception, "No suitable network interfaces found to monitor"
         return ret
 
     def vars(self):
@@ -1363,6 +1373,8 @@ class dstat_swap(dstat):
         for name in varlist:
             if name in self.discover + ['total']:
                 ret.append(name)
+        if not ret:
+            raise Exception, "No suitable swap devices found to monitor"
         return ret
 
     def extract(self):
