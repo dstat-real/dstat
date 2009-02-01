@@ -2,10 +2,12 @@
 - Fixed dstat_disk plugin for total calculation on 2.6.25+ kernels (Noel J. Bergman)
 - Precompile regular expressions used as a disk filter (self.diskfilter)
 - Raise a warning when discovery returns empty
+- Improvements to dstat_battery and dstat_cpufreq
+- Added external dstat_power plugin to show ACPI power usage
 
 * 0.6.9 - Locarno - release 02/12/2008
 - Input text color is now gray (again)
-- Added external dstat_luster plugin (Brock Palen, Kilian Vavalotti)
+- Added external dstat_lustre plugin (Brock Palen, Kilian Vavalotti)
 - Validate integer values in /proc/swaps (Bert de Bruijn)
 - Added VMware guest dstat_vmmemctl plugin (Bert de Bruijn)
 - Added internal dstat_fs plugin showing number of open files/inodes

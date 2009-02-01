@@ -9,7 +9,7 @@ import string
 class dstat_battery(dstat):
     def __init__(self):
         self.name = 'battery'
-        self.format = ('f', 4, 34)
+        self.format = ('p', 4, 34)
         self.vars = []
         for battery in os.listdir('/proc/acpi/battery/'):
             for line in dopen('/proc/acpi/battery/'+battery+'/state').readlines():
@@ -17,6 +17,7 @@ class dstat_battery(dstat):
                 if len(l) < 2: continue
                 if l[0] == 'present:' and l[1] == 'yes':
                     self.vars.append(battery)
+        self.vars.sort()
 #       self.nick = [string.lower(name) for name in self.vars]
         self.nick = []
         for name in self.vars:

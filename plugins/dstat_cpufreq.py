@@ -20,6 +20,7 @@ class dstat_cpufreq(dstat):
             name = os.path.basename(name)
             self.vars.append(name)
             self.nick.append(string.lower(name))
+        self.nick.sort()
         self.init(self.vars, 1)
 
     def check(self): 
@@ -40,6 +41,14 @@ class dstat_cpufreq(dstat):
                 cur = int(l[0])
             ### Need to close because of bug in sysfs (?)
             dclose('/sys/devices/system/cpu/'+cpu+'/cpufreq/scaling_cur_freq')
-            self.val[cpu] = cur * 100.0 / max
+            self.cn1[cpu] = self.cn1[cpu] + cur * 100.0 / max
+
+            if op.update:
+                self.val[cpu] = self.cn1[cpu] / tick
+            else:
+                self.val[cpu] = self.cn1[cpu]
+
+            if step == op.delay:
+                self.cn1[cpu] = 0
 
 # vim:ts=4:sw=4:et
