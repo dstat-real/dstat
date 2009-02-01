@@ -22,9 +22,10 @@ class dstat_power(dstat):
                 break
         self.init(self.vars, 1)
 
-    def check(self):·
+    def check(self):
         if not self.batteries:
-            raise Exception, 'No ACPI battery information found'
+            raise Exception, 'No battery information found, no power usage statistics'
+        return True
 
     def extract(self):
         amperes_drawn = 0
