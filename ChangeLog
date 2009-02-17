@@ -4,6 +4,8 @@
 - Raise a warning when discovery returns empty
 - Improvements to dstat_battery and dstat_cpufreq
 - Added external dstat_power plugin to show ACPI power usage
+- Simplified logic inside dstat_time
+- Added external dstat_ntp to show time from an NTP server
 
 * 0.6.9 - Locarno - release 02/12/2008
 - Input text color is now gray (again)

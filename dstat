@@ -1451,27 +1451,22 @@ class dstat_tcp(dstat):
 ### FIXME: If timefmt < len(self.nick) output is fucked up
 class dstat_time(dstat):
     def __init__(self):
-        self.name = 'time'
-        self.timefmt = os.getenv('DSTAT_TIMEFMT')
-        if self.timefmt:
-            tmp = time.strftime(self.timefmt, time.localtime())
-            self.format = ('s', len(tmp), 0)
-        elif op.debug:
-            self.format = ('s', 18, 0)
+        self.name = 'system'
+        self.timefmt = os.getenv('DSTAT_TIMEFMT') or '%d-%m %H:%M:%S'
+        if op.debug:
+            self.format = ('s', len(time.strftime(self.timefmt, time.localtime())) + 4, 0)
         else:
-            self.format = ('s', 14, 0)
+            self.format = ('s', len(time.strftime(self.timefmt, time.localtime())), 0)
         self.nick = ('date/time',)
         self.vars = ('time',)
         self.init(self.vars, 1)
 
     ### We are now using the starttime for this plugin, not the execution time of this plugin
     def extract(self):
-        if self.timefmt:
-            self.val['time'] = time.strftime(self.timefmt, time.localtime(starttime))
-        elif op.debug:
-            self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime(starttime)) + ".%03d" % (round(starttime * 1000 % 1000 ))
+        if op.debug:
+            self.val['time'] = time.strftime(self.timefmt, time.localtime(starttime)) + ".%03d" % (round(starttime * 1000 % 1000 ))
         else:
-            self.val['time'] = time.strftime('%d-%m %H:%M:%S', time.localtime(starttime))
+            self.val['time'] = time.strftime(self.timefmt, time.localtime(starttime))
 
     def show(self):
         if step == op.delay:
