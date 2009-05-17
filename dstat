@@ -2166,6 +2166,7 @@ def main():
         scheduler.enterabs(inittime + update, 1, perform, (update,))
 #        scheduler.enter(1, 1, perform, (update,))
         scheduler.run()
+        sys.stdout.flush()
         update = update + interval
 
     if op.update:
@@ -2289,7 +2290,6 @@ def perform(update):
         ### Finish the line
         if not op.update:
             sys.stdout.write('\n')
-        sys.stdout.flush()
 
 ### Main entrance
 if __name__ == '__main__':
