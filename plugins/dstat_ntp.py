@@ -41,11 +41,11 @@ class dstat_ntp(dstat):
 
     def check(self):
         try:
-            t = self.gettime()
+            self.gettime()
         except socket.gaierror:
-            raise Exception, 'Failed to connect to NTP server.'
+            raise Exception, 'Failed to connect to NTP server %s.' % self.ntpserver
         except socket.error:
-            raise Exception, 'Error connecting to NTP server.'
+            raise Exception, 'Error connecting to NTP server %s.' % self.ntpserver
         return True
 
     def extract(self):

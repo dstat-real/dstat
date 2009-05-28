@@ -6,6 +6,8 @@
 global string
 import string
 
+global cpunr
+
 class dstat_topcpu(dstat):
     def __init__(self):
         self.name = 'most expensive'
@@ -34,7 +36,7 @@ class dstat_topcpu(dstat):
                     self.cn1[pid] = 0
 
                 self.cn2[pid] = int(l[13]) + int(l[14])
-                usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick
+                usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick / cpunr
 
                 ### Is it a new topper ?
                 if usage < self.val['max']: continue

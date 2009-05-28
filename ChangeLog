@@ -1,4 +1,4 @@
-* 0.6.9svn - ... - release 15/12/2008
+* 0.6.9svn - ... - release 28/05/2009
 - Fixed dstat_disk plugin for total calculation on 2.6.25+ kernels (Noel J. Bergman)
 - Precompile regular expressions used as a disk filter (self.diskfilter)
 - Raise a warning when discovery returns empty
@@ -7,6 +7,9 @@
 - Simplified logic inside dstat_time
 - Added external dstat_ntp to show time from an NTP server
 - Flush sys.stdout later in the loop
+- Filtering out more interfaces (eg. bonding) in total values (Bert de Bruijn)
+- Provide error output when now power information is available (AC power)
+- Make topcpu plugin SMP aware (values are not percent per CPU)
 
 * 0.6.9 - Locarno - release 02/12/2008
 - Input text color is now gray (again)

@@ -48,6 +48,10 @@ class dstat_power(dstat):
 
             self.rate = self.rate + watts_drawn + voltage * amperes_drawn
 
+        ### Return error if we found no information
+        if self.rate == 0:
+            self.rate = -1
+
         if op.update:
             self.val['rate'] = self.rate / tick
         else:

@@ -67,7 +67,7 @@ class dstat_topbio(dstat):
         if self.val['usage'] == 0.0:
             self.val['process'] = ''
         else:
-            self.val['process'] = self.val['name']
+            self.val['process'] = os.path.basename(self.val['name'])
 
             ### Debug (show PID)
 #           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
