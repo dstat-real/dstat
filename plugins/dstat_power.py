@@ -3,9 +3,6 @@
 ###
 ### Authority: dag@wieers.com
 
-global string
-import string
-
 class dstat_power(dstat):
     def __init__(self):
         self.name = 'power'
@@ -16,7 +13,7 @@ class dstat_power(dstat):
         self.rate = 0
         for battery in os.listdir('/proc/acpi/battery/'):
             for line in dopen('/proc/acpi/battery/'+battery+'/state').readlines():
-                l = string.split(line)
+                l = line.split()
                 if len(l) < 2: continue
                 self.batteries.append(battery)
                 break
@@ -33,7 +30,7 @@ class dstat_power(dstat):
         watts_drawn = 0
         for battery in self.batteries:
             for line in dopen('/proc/acpi/battery/'+battery+'/state').readlines():
-                l = string.split(line)
+                l = line.split()
                 if len(l) < 3: continue
                 if l[0] == 'present:' and l[1] != 'yes': continue
                 if l[0:2] == ['charging','state:'] and l[2] != 'discharging':

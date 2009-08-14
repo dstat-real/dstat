@@ -3,9 +3,6 @@
 ###
 ### Authority: dag@wieers.com
 
-global string
-import string
-
 global cpunr
 
 class dstat_topcpu(dstat):
@@ -28,7 +25,7 @@ class dstat_topcpu(dstat):
                 if pid == self.pid: continue
 
                 ### Using dopen() will cause too many open files
-                l = string.split(open('/proc/%s/stat' % pid).read())
+                l = open('/proc/%s/stat' % pid).read().split()
                 if len(l) < 15: continue
 
                 ### Reset previous value if it doesn't exist

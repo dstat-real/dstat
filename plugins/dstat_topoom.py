@@ -3,9 +3,6 @@
 ###
 ### Authority: dag@wieers.com
 
-global string
-import string
-
 class dstat_topoom(dstat):
     def __init__(self):
         self.name = 'out of memory'
@@ -31,7 +28,7 @@ class dstat_topoom(dstat):
                 if pid == self.pid: continue
 
                 ### Using dopen() will cause too many open files
-                l = string.split(open('/proc/%s/oom_score' % pid).read())
+                l = open('/proc/%s/oom_score' % pid).read().split()
                 if len(l) < 1: continue
                 oom_score = int(l[0])
 
@@ -39,7 +36,7 @@ class dstat_topoom(dstat):
                 if oom_score < self.val['max']: continue
 
                 ### Extract name
-                l = string.split(open('/proc/%s/stat' % pid).read())
+                l = open('/proc/%s/stat' % pid).read().split()
                 name = l[1][1:-1]
 
             except ValueError:

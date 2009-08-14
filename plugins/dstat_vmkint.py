@@ -39,9 +39,7 @@ class dstat_vmkint(dstat):
         ret = []
         # default cpu number is 2
         ret = 2
-        self.fd[0].seek(0)
-        for line in self.fd[0].readlines():
-            l = line.split()
+        for l in self.fd[0].splitlines():
             if l[0] == 'Vector': 
                 ret = int( int( l[-1] ) + 1 )
         return ret

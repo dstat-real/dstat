@@ -3,9 +3,6 @@
 ###
 ### Authority: dag@wieers.com
 
-global string
-import string
-
 class dstat_topmem(dstat):
     def __init__(self):
         self.name = 'most expensive'
@@ -26,7 +23,7 @@ class dstat_topmem(dstat):
                 if pid == self.pid: continue
 
                 ### Using dopen() will cause too many open files
-                l = string.split(open('/proc/%s/stat' % pid).read())
+                l = open('/proc/%s/stat' % pid).read().split()
                 if len(l) < 23: continue
                 usage = int(l[23]) * pagesize
 

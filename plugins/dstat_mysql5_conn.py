@@ -2,8 +2,6 @@
 # 2007-09-04 - lefred@inuits.be
 global MySQLdb
 import MySQLdb
-global string, select
-import string, select
 
 global mysql_user
 global mysql_pwd

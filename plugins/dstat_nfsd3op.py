@@ -1,6 +1,3 @@
-global string
-import string
-
 class dstat_nfsd3op(dstat):
     def __init__(self):
         self.name = 'extended nfs3 server operations'
@@ -12,8 +9,7 @@ class dstat_nfsd3op(dstat):
         info(1, 'Module dstat_nfsd3op is still experimental.')
 
     def extract(self):
-        for line in self.readlines():
-            l = line.split()
+        for l in self.splitlines():
             if not l or l[0] != 'proc3': continue
             for i, name in enumerate(self.vars):
                 self.cn2[name] = long(l[i+2])

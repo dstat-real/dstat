@@ -9,7 +9,7 @@ class dstat_postfix(dstat):
         self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
         self.init(self.vars, 1)
 
-    def check(self): 
+    def check(self):
         if not os.access('/var/spool/postfix/active', os.R_OK):
             raise Exception, 'Cannot access postfix queues'
         return True

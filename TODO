@@ -56,7 +56,6 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 
 ### General issues
 + Implement better (?) protection against counter rollovers (see mail from Sebastien Prud'homme)
-+ Plugins currently have to be written in python 1.5 to work for dstat15 (lowest common denominator)
 
 ### Plugin issues
 + plugins that use /proc/pid are reasonably slow

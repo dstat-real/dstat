@@ -1,6 +1,3 @@
-global string, select
-import string, select
-
 global mysql_options
 mysql_options = os.getenv('DSTAT_MYSQL')
 

@@ -23,8 +23,7 @@ class dstat_vmmemctl(dstat):
 			raise Exception, 'Needs VMware Tools (modprobe vmmemctl)'
 
 	def extract(self):
-		for line in self.readlines():
-			l = line.split()
+		for l in self.splitlines():
 			if len(l) < 3: continue
 			if l[0] != 'current:': continue
 			if l[2] != 'pages': continue

@@ -3,49 +3,50 @@ class dstat_net_packets(dstat):
         self.format = ('f', 5, 1000)
         self.open('/proc/net/dev')
         self.nick = ('#recv', '#send')
+        self.totalfilter = re.compile('^(lo|bond[0-9]+|face|.+\.[0-9]+)$')
         self.discover = self.discover()
         self.vars = self.vars()
         self.name = ['pkt/'+name for name in self.vars]
         self.init(self.vars + ['total',], 2)
 
-    def discover(self, *list):
+    def discover(self, *objlist):
         ret = []
-        for line in self.readlines():
-            l = line.replace(':', ' ').split()
+        for l in self.splitlines(replace=':'):
             if len(l) < 17: continue
             if l[2] == '0' and l[10] == '0': continue
             name = l[0]
             if name not in ('lo', 'face'):
                 ret.append(name)
         ret.sort()
-        for item in list: ret.append(item)
+        for item in objlist: ret.append(item)
         return ret
 
     def vars(self):
         ret = []
         if op.netlist:
-            list = op.netlist
+            varlist = op.netlist
         elif not op.full:
-            list = ('total',)
+            varlist = ('total',)
         else:
-            list = self.discover
-#           if len(list) > 2: list = list[0:2]
-            list.sort()
-        for name in list:
+            varlist = self.discover
+#           if len(varlist) > 2: varlist = varlist[0:2]
+            varlist.sort()
+        for name in varlist:
             if name in self.discover + ['total', 'lo']:
                 ret.append(name)
+        if not ret:
+            raise Exception, "No suitable network interfaces found to monitor"
         return ret
 
     def extract(self):
         self.cn2['total'] = [0, 0]
-        for line in self.readlines():
-            l = line.replace(':', ' ').split()
+        for l in self.splitlines(replace=':'):
             if len(l) < 17: continue
             if l[2] == '0' and l[10] == '0': continue
             name = l[0]
             if name in self.vars :
                 self.cn2[name] = ( long(l[2]), long(l[10]) )
-            if name not in ('lo','face'):
+            if not self.totalfilter.match(name):
                 self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[10]))
         if update:
             for name in self.cn2.keys():

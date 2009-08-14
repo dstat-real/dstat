@@ -3,9 +3,6 @@
 ###
 ### Authority: dag@wieers.com
 
-global string
-import string
-
 class dstat_topbio(dstat):
     def __init__(self):
         self.name = 'most expensive'
@@ -37,12 +34,11 @@ class dstat_topbio(dstat):
                     self.cn1[pid] = {'read_bytes:': 0, 'write_bytes:': 0}
 
                 ### Extract name
-                l = string.split(open('/proc/%s/stat' % pid).read())
-                name = l[1][1:-1]
+                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
 
                 ### Extract counters
                 for line in open('/proc/%s/io' % pid).readlines():
-                    l = string.split(line)
+                    l = line.split()
                     if len(l) != 2: continue
                     self.cn2[pid][l[0]] = int(l[1])
 

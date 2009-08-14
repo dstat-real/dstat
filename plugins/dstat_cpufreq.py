@@ -3,9 +3,7 @@
 ###
 ### Authority: dag@wieers.com
 
-global string
 global glob
-import string
 import glob
 
 class dstat_cpufreq(dstat):
@@ -13,13 +11,13 @@ class dstat_cpufreq(dstat):
         self.name = 'frequency'
         self.format = ('p', 4, 34)
 #       self.vars = os.listdir('/sys/devices/system/cpu/')
-#       self.nick = [string.lower(name) for name in self.vars]
+#       self.nick = [name.lower() for name in self.vars]
         self.vars = []
         self.nick = []
         for name in glob.glob('/sys/devices/system/cpu/cpu[0-9]*'):
             name = os.path.basename(name)
             self.vars.append(name)
-            self.nick.append(string.lower(name))
+            self.nick.append(name.lower())
         self.nick.sort()
         self.init(self.vars, 1)
 
@@ -34,10 +32,10 @@ class dstat_cpufreq(dstat):
     def extract(self):
         for cpu in self.vars:
             for line in dopen('/sys/devices/system/cpu/'+cpu+'/cpufreq/scaling_max_freq').readlines():
-                l = string.split(line)
+                l = line.split()
                 max = int(l[0])
             for line in dopen('/sys/devices/system/cpu/'+cpu+'/cpufreq/scaling_cur_freq').readlines():
-                l = string.split(line)
+                l = line.split()
                 cur = int(l[0])
             ### Need to close because of bug in sysfs (?)
             dclose('/sys/devices/system/cpu/'+cpu+'/cpufreq/scaling_cur_freq')

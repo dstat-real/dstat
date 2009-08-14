@@ -1,6 +1,3 @@
-global string, select
-import string, select
-
 class dstat_gpfs(dstat):
     def __init__(self):
         self.name = 'gpfs i/o'

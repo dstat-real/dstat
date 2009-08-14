@@ -426,11 +426,11 @@ Also on VMware virtual machines, the number of ticks can cause clock issues,
 so in that case if you want to see what is happening, you can simply do:
 
 ----
-dstat -ti -I0
+dstat -ti -I0 -M snooze --debug
 ----
 
 Dstat nowadays can also detect lost ticks (when the number of ticks do not
-much the time progress. This is useful to correlate VM issues with other
+match the time progress. This is useful to correlate VM issues with other
 problems.
 
 

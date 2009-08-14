@@ -24,8 +24,7 @@ class dstat_vmknic(dstat):
 
 	def discover(self, *list):
 		ret = []
-		for line in self.fd[0].readlines():
-			l = line.replace(' /','/').split()
+		for l in self.fd[0].splitlines(replace=' /', delim='/'):
 			if len(l) != 12: continue
 			if l[2][:5] == '<Link': continue
 			if ','.join(l) == 'Name,Mtu/TSO,Network,Address,Ipkts,Ierrs,Ibytes,Opkts,Oerrs,Obytes,Coll,Time': continue

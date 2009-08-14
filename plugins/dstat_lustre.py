@@ -1,5 +1,3 @@
-global string
-import string
 global os
 import os
 

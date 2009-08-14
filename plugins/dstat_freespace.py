@@ -2,8 +2,6 @@
 ### FIXME: Would be nice to have a total by default (half implemented)
 
 ### FIXME: Apparently needs python 2.0, possibly python 2.2
-global string
-import string
 
 class dstat_freespace(dstat):
     def __init__(self):
@@ -19,8 +17,7 @@ class dstat_freespace(dstat):
 
     def vars(self):
         ret = []
-        for line in self.readlines():
-            l = string.split(line)
+        for l in self.splitlines():
             if len(l) < 6: continue
             if l[2] in ('binfmt_misc', 'devpts', 'iso9660', 'none', 'proc', 'sysfs', 'usbfs'): continue
             ### FIXME: Excluding 'none' here may not be what people want (/dev/shm)

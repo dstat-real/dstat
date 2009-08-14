@@ -1,6 +1,3 @@
-global string
-import string
-
 class dstat_rpcd(dstat):
     def __init__(self):
         self.name = 'rpc server'
@@ -11,8 +8,7 @@ class dstat_rpcd(dstat):
         self.init(self.vars, 1)
 
     def extract(self):
-        for line in self.readlines():
-            l = line.split()
+        for l in self.splitlines():
             if not l or l[0] != 'rpc': continue
             for i, name in enumerate(self.vars):
                 self.cn2[name] = long(l[i+1])

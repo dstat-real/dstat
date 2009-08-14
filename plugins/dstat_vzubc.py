@@ -1,6 +1,3 @@
-global string
-import string
-
 class dstat_vzubc(dstat):
     def __init__(self):
         self.format = ('d', 5, 1000)
@@ -14,8 +11,7 @@ class dstat_vzubc(dstat):
 
     def discover(self, *list):
         ret = []
-        for line in self.readlines():
-            l = line.split()
+        for l in self.splitlines():
             if len(l) < 7 or l[0] in ('uid', '0:'): continue
             ret.append(l[0][0:-1])
         ret.sort()
@@ -45,8 +41,7 @@ class dstat_vzubc(dstat):
     def extract(self):
         for name in self.vars + ['total']:
             self.cn2[name] = 0
-        for line in self.readlines():
-            l = line.split() 
+        for l in self.splitlines():
             if len(l) < 6 or l[0] == 'uid':
                 continue
             elif len(l) == 7:

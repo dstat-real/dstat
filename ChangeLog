@@ -5,11 +5,14 @@
 - Improvements to dstat_battery and dstat_cpufreq
 - Added external dstat_power plugin to show ACPI power usage
 - Simplified logic inside dstat_time
-- Added external dstat_ntp to show time from an NTP server
+- Added external dstat_ntp plugin to show time from an NTP server
 - Flush sys.stdout later in the loop
 - Filtering out more interfaces (eg. bonding) in total values (Bert de Bruijn)
 - Provide error output when now power information is available (AC power)
 - Make topcpu plugin SMP aware (values are not percent per CPU)
+- Drop support for Python 1.5
+- Introduced splitlines() function that allows a replace/split on readlines()
+- Added external dstat_fan plugin to show fan speed
 
 * 0.6.9 - Locarno - release 02/12/2008
 - Input text color is now gray (again)

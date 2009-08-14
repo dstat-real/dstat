@@ -1,5 +1,3 @@
-global string
-import string
 
 #Version: 2.2
 #VEID   user    nice    system   uptime     idle             strv   uptime          used           maxlat  totlat  numsched
@@ -19,8 +17,7 @@ class dstat_vzcpu(dstat):
 
     def discover(self, *list):
         ret = []
-        for line in self.readlines():
-            l = line.split()
+        for l in self.splitlines():
             if len(l) < 6 or l[0] == 'VEID': continue
             ret.append(l[0])
         ret.sort()
@@ -49,8 +46,7 @@ class dstat_vzcpu(dstat):
 
     def extract(self):
         self.cn2['total'] = [0, 0, 0, 0]
-        for line in self.readlines():
-            l = line.split() 
+        for line in self.splitlines():
             if len(l) < 6 or l[0] == 'VEID': continue
             name = l[0]
             self.cn2[name] = ( long(l[1]), long(l[3]), long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), long(l[2]) )
