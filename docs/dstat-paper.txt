@@ -1,6 +1,6 @@
 = Dstat: plugin-based real-time monitoring
 Dag Wieers <dag@wieers.com>
-5767, Thu Aug 2 2007
+$Id$
 
 == Introduction
 Many tools exist to monitor hardware resources and software behaviour, but few
@@ -78,7 +78,7 @@ counters in the shifted output.
 
 
 === Colour highlighting units
-After I added colours to help improve indicating unites, I noticed that the
+After I added colours to help improve indicating units, I noticed that the
 colours also helped to show patterns. This of course is very limited,
 nevertheless it instantly shows when numbers are flat or changes are taking
 place.
@@ -178,24 +178,29 @@ as a self-contained file to other systems.
 The plugins that have been selected to be part of the Dstat tool itself, and
 therefor have no dependencies other than procfs, are:
 
-    - cpu, cpu24: CPU counters
-    - disk, disk24, disk24old: disk counters
-    - epoch: seconds since Epoch
-    - int, int24: interrupts per IRQ
+    - aio: asynchronous I/O counters
+    - cpu, cpu24: CPU counters (+-c+ and +-C+)
+    - disk, disk24, disk24old: disk counters (+-d+ and +-D+)
+    - epoch: seconds since Epoch (+-T+)
+    - fs: file system counters
+    - int, int24: interrupts per IRQ (+-i+ and +-I+)
+    - io: I/O requests completed (+-r+)
     - ipc: IPC counters
-    - load: load counters
+    - load: load counters (+-l+)
     - lock: locking counters
-    - mem: memory usage
-    - net: network usage
-    - page, page24: paging counters
-    - proc: process counters
+    - mem: memory usage (+-m+)
+    - net: network usage (+-n+ and +-N+)
+    - page, page24: paging counters (+-g+)
+    - proc: process counters (+-p+)
     - raw: raw socket counters
-    - swap, swapold: swap usage
-    - sys: system (kernel) counters
+    - swap, swapold: swap usage (+-s+ and +-S+)
+    - socket: socket counters
+    - sys: system (kernel) countersA (+-y+)
     - tcp: TCP socket counters
-    - time: date and time
+    - time: date and time (+-t+)
     - udp: UDP socket counters
     - unix: unix socket counters
+    - vm: virtual memory counters
 
 For backward compatibility with older kernels there is a cascading system that
 selects the most appropriate internal plugin for your kernel. (eg. the
@@ -205,29 +210,41 @@ moment there is no such system for external plugins.
 
 === External plugins
 This basic functionality is easily extended by writing your own plugins
-(subclasses of the Dstat class) which are then inserted at runtime
+(subclasses of the python Dstat class) which are then inserted at runtime
 into Dstat. A set of 'external' modules exist for:
 
     - battery: battery usage
     - cpufreq: CPU frequency
     - dbus: DBUS connections
+    - fan: Fan speed
     - freespace: free space on filesystems
     - gpfsop: GPFS operations counters
     - gpfs: GPFS IO counters
+    - helloworld: Hello world dispenser
+    - innodb_buffer: innodb buffer counters
     - innodb_io: innodb I/O counters
     - innodb_keys: innodb key operation counters
     - innodb_ops: innodb operations counters
+    - lustre: lustre throughput counters
+    - memcache_hits: Memcache hit counters
+    - mysql5_com: MySQL communication counters
+    - mysql5_conn: MySQL connection counters
+    - mysql5_io: MySQL I/O counters
+    - mysql5_keys: MySQL keys counters
     - mysql_io: MySQL I/O counters
     - mysql_ops: MySQL operations counters
     - nfs3op: NFS3 client operations counters
     - nfs3: NFS3 client counters
     - nfsd3op: NFS3 server operations counters
     - nfsd3: NFS3 server counters
+    - ntp: NTP time counters
     - postfix: postfix queue counters
+    - power: Power usage counters
     - rpcd: RPC server counters
     - rpc: RPC client counters
     - sendmail: sendmail queue counters
-    - thermal: thermal counters
+    - snooze: Dstat time delay counters
+    - thermal: Thermal counters
     - topbio: most expensive block I/O process
     - topcpu: most expensive cpu process
     - topio: most expensive I/O process
@@ -236,6 +253,8 @@ into Dstat. A set of 'external' modules exist for:
     - utmp: utmp counters
     - vmkhba: VMware kernel HBA counters
     - vmkint: VMware kernel interrupt counters
+    - vmknic: VMware kernel NIC counters
+    - vmmemctl: VMware guest memory counters
     - vzcpu: OpenVZ CPU counters
     - vzubc: OpenVZ user beancounters
     - wifi: WIFI quality information
@@ -414,7 +433,7 @@ bad performance with hardware interrupts, you can run a command like:
 
 ----
 dstat -tyif
-dstat -tyi -I 12,58,ipw2200 -f 5
+dstat -tyi -I 12,58,iwlagn -f 5
 ----
 
 === How much ticks per second on my kernel ?
@@ -456,7 +475,7 @@ devices is generating. The 'cpu' stats already show this in percentage as
 number of interrupts, but the 'int' stats go into detail. And you can specify
 exactly what IRQs you want to watch.
 
-Much like +watch -n1 -d cat /proc/interrupts+ on speed.
+Much like +watch -n1 -d cat /proc/interrupts+ on steroids.
 
 ----
 dstat -t -y -i -f
@@ -536,25 +555,28 @@ output.
 class dstat_helloworld(dstat):
     def __init__(self):
         self.name = 'plugin title'          <1>
-        self.format = ('s', 12, 100)        <2>
-        self.nick = ('counter',)            <3>
-        self.vars = ('text',)               <4>
-        self.init(self.vars, 1)             <5>
+        self.type = 's'                     <2>
+        self.width = 12                     <3>
+        self.scale = 100                    <4>
+        self.nick = ('counter',)            <5>
+        self.vars = ('text',)               <6>
+        self.init(self.vars, 1)             <7>
 
     def extract(self):
-        self.val['text'] = 'Hello world!'   <6>
+        self.val['text'] = 'Hello world!'   <8>
 ----
 
 In this example, there are several components:
 
  . +self.name+ contains the plugin's visible title.
- . +self.format+ is a list containing: the counter type, the counter length
-    and how the colouring is done.
- . +self.nick+ is a list of the counter names.
- . +self.vars+ is a list of the variable names for each counter.
+ . +self.type+ defines the counter type: string, percentage, integer, float
+ . +self.width+ defines the column width
+ . +self.scale+ influences the coloring and unit type
+ . +self.nick+ is a list of the counter names
+ . +self.vars+ is a list of the variable names for each counter
  . +self.init()+ is a function that initialises the counter structures
-   (+self.cn1+, +self.cn2+ and +self.val+).
- . +self.val+ contains the counter values that are being displayed.
+   (+self.cn1+, +self.cn2+ and +self.val+)
+ . +self.val+ contains the counter values that are being displayed
 
 
 === Parsing counters
@@ -570,7 +592,9 @@ import glob
 class dstat_postfix(dstat):
     def __init__(self):
         self.name = 'postfix'
-        self.format = ('d', 4, 100)                                        <2>
+        self.type = 'd'                                                    <2>
+        self.width = 4
+        self.scale = 100
         self.vars = ('incoming', 'active', 'deferred', 'bounce', 'defer')
         self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
         self.init(self.vars, 1)
@@ -588,12 +612,12 @@ class dstat_postfix(dstat):
 This example shows the following items:
 
  . Since the plugin is imported at runtime, it is important that these are 
-   are included in the global scope to reuse them.
- . +self.format+ indicates values are in decimal, counters are 4 characters
-   wide and colouring differs every multiplication of 100.
- . The +check()+ method tests conditions and bails out of they are not met.
+   are included in the global scope to reuse them
+ . type, width and scale specify decimal, column width a,d coloring based on
+   multiplication of 100
+ . The +check()+ method tests conditions and bails out of they are not met
  . To make processing easier we have opted to use as value names (+self.vars+)
-   the name of the postfix queues and store counts in +self.val+.
+   the name of the postfix queues and store counts in +self.val+
 
 
 === Opening files

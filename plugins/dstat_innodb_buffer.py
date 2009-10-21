@@ -4,7 +4,9 @@ mysql_options = os.getenv('DSTAT_MYSQL')
 class dstat_innodb_buffer(dstat):
     def __init__(self):
         self.name = 'innodb pool'
-        self.format = ('f', 3, 1000)
+        self.type = 'f'
+        self.width = 3
+        self.scale = 1000
         self.vars = ('read', 'created', 'written')
         self.nick = ('crt', 'rea', 'wri')
         self.init(self.vars, 1)

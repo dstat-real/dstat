@@ -8,6 +8,9 @@ import sys
 sys.path.insert(0, '/usr/share/dstat/')
 import dstat, time
 
+### Set default theme
+dstat.theme = dstat.set_theme()
+
 ### Allow arguments
 try: delay = float(sys.argv[1])
 except: delay = 0.2
@@ -16,6 +19,8 @@ except: count = 10
 
 ### Load stats
 stats = []
+dstat.starttime = time.time()
+dstat.tick = dstat.ticks()
 for o in (dstat.dstat_epoch(), dstat.dstat_cpu(), dstat.dstat_mem(), dstat.dstat_load(), dstat.dstat_disk(), dstat.dstat_sys()):
     try: o.check()
     except Exception, e: print e
@@ -25,11 +30,11 @@ for o in (dstat.dstat_epoch(), dstat.dstat_cpu(), dstat.dstat_mem(), dstat.dstat
 stats[0].format = ('t', 14, 0)
 
 ### Print headers
-title1 = title2 = ''
+title = subtitle = ''
 for o in stats:
-    title1 = title1 + '  ' + o.title1()
-    title2 = title2 + '  ' + o.title2()
-print '\n' + title1 + '\n' + title2
+    title = title + '  ' + o.title()
+    subtitle = subtitle + '  ' + o.subtitle()
+print '\n' + title + '\n' + subtitle
 
 ### Print stats
 for dstat.update in range(count):

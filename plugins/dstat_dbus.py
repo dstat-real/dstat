@@ -6,7 +6,9 @@
 class dstat_dbus(dstat):
     def __init__(self):
         self.name = 'dbus'
-        self.format = ('d', 3, 100)
+        self.type = 'd'
+        self.width = 3
+        self.scale = 100
         self.nick = ('sys', 'ses')
         self.vars = ('system', 'session')
         self.init(self.vars, 1)

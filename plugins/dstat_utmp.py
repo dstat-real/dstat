@@ -1,7 +1,9 @@
 class dstat_utmp(dstat):
     def __init__(self):
         self.name = 'utmp'
-        self.format = ('d', 3, 10)
+        self.type = 'd'
+        self.width = 3
+        self.scale = 10
         self.nick = ('ses', 'usr', 'adm' )
         self.vars = ('sessions', 'users', 'root')
         self.init(self.vars, 1)

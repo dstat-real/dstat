@@ -11,7 +11,9 @@ mysql_pwd = os.getenv('DSTAT_MYSQL_PWD')
 class dstat_mysql5_com(dstat):
     def __init__(self):
         self.name = 'mysql5 com'
-        self.format = ('i', 5, 1)
+        self.type = 'i'
+        self.width = 5
+        self.scale = 1
         self.vars = ('Com_select', 'Com_insert','Com_update','Com_delete')
         self.nick = ('sel', 'ins','upd','del')
         self.init(self.vars, 1)

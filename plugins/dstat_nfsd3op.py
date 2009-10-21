@@ -1,7 +1,9 @@
 class dstat_nfsd3op(dstat):
     def __init__(self):
         self.name = 'extended nfs3 server operations'
-        self.format = ('d', 5, 1000)
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1000
         self.open('/proc/net/rpc/nfsd')
         self.vars = ('null', 'getattr', 'setattr', 'lookup', 'access', 'readlink', 'read', 'write', 'create', 'mkdir', 'symlink', 'mknod', 'remove', 'rmdir', 'rename', 'link', 'readdir', 'readdirplus', 'fsstat', 'fsinfo', 'pathconf', 'commit')
         self.nick = ('null', 'gatr', 'satr', 'look', 'aces', 'rdln', 'read', 'writ', 'crea', 'mkdr', 'syml', 'mknd', 'rm', 'rmdr', 'ren', 'link', 'rdir', 'rdr+', 'fstt', 'fsnf', 'path', 'cmmt')

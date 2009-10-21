@@ -8,7 +8,9 @@ global cpunr
 class dstat_topcpu(dstat):
     def __init__(self):
         self.name = 'most expensive'
-        self.format = ('s', 16, 0)
+        self.type = 's'
+        self.width = 16
+        self.scale = 0
         self.nick = ('cpu process',)
         self.vars = self.nick
         self.pid = str(os.getpid())
@@ -72,16 +74,16 @@ class dstat_topcpu(dstat):
 #                       break
 
             ### Debug (show PID)
-#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
+#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
         if step == op.delay:
             self.cn1.update(self.cn2)
 
     def show(self):
         if self.val['max'] == 0.0:
-            return '%-*s' % (self.format[1], '')
+            return '%-*s' % (self.width, '')
         else:
-            return '%s%-*s%s' % (ansi['default'], self.format[1]-3, self.val['process'][0:self.format[1]-3], cprint(self.val['max'], ('p', 3, 34)))
+            return '%s%-*s%s' % (theme['default'], self.width-3, self.val['process'][0:self.width-3], cprint(self.val['max'], 'p', 3, 34))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])

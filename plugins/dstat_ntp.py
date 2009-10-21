@@ -22,7 +22,9 @@ class dstat_ntp(dstat):
         self.name = 'ntp'
         self.timefmt = os.getenv('DSTAT_TIMEFMT') or '%d-%m %H:%M:%S'
         self.ntpserver = os.getenv('DSTAT_NTPSERVER') or '0.fedora.pool.ntp.org'
-        self.format = ('s', len(time.strftime(self.timefmt, time.localtime())), 0)
+        self.type = 's'
+        self.width = len(time.strftime(self.timefmt, time.localtime()))
+        self.scale = 0
         self.nick = ('date/time',)
         self.vars = ('time',)
         self.epoch = 2208988800L
@@ -59,6 +61,6 @@ class dstat_ntp(dstat):
         if self.val['time']:
             return ansi[color] + time.strftime(self.timefmt, time.localtime(self.val['time']))
         else:
-            return ansi['white'] + ansi['redbg'] + '-'.rjust(self.format[1]-1) + ' ' + ansi['default']
+            return theme['error'] + '-'.rjust(self.width-1) + ' ' + theme['default']
 
 # vim:ts=4:sw=4:et

@@ -14,7 +14,9 @@
 class dstat_vmknic(dstat):
 	def __init__(self):
 		self.name = 'vmknic'
-		self.format = ('f', 5, 1024)
+		self.type = 'f'
+        self.width = 5
+        self.scale = 1024
 		self.open('/proc/vmware/net/tcpip/ifconfig')
 		self.nick = ('recv', 'send')
 		self.discover = self.discover()

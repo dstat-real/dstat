@@ -4,7 +4,9 @@ mysql_options = os.getenv('DSTAT_MYSQL')
 class dstat_mysql_io(dstat):
     def __init__(self):
         self.name = 'mysql io'
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.vars = ('Bytes_received', 'Bytes_sent')
         self.nick = ('recv', 'sent')
         self.init(self.vars, 1)

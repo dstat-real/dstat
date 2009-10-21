@@ -4,7 +4,9 @@ mysql_options = os.getenv('DSTAT_MYSQL')
 class dstat_innodb_io(dstat):
     def __init__(self):
         self.name = 'innodb io ops '
-        self.format = ('f', 3, 1000)
+        self.type = 'f'
+        self.width = 3
+        self.scale = 1000
         self.vars = ('rea', 'wri', 'syn')
         self.nick = self.vars
         self.init(self.vars, 1)

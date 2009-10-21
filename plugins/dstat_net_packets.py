@@ -1,6 +1,8 @@
 class dstat_net_packets(dstat):
     def __init__(self):
-        self.format = ('f', 5, 1000)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1000
         self.open('/proc/net/dev')
         self.nick = ('#recv', '#send')
         self.totalfilter = re.compile('^(lo|bond[0-9]+|face|.+\.[0-9]+)$')

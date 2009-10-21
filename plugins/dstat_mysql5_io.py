@@ -11,7 +11,9 @@ mysql_pwd = os.getenv('DSTAT_MYSQL_PWD')
 class dstat_mysql5_io(dstat):
     def __init__(self):
         self.name = 'mysql5 io'
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.vars = ('Bytes_received', 'Bytes_sent')
         self.nick = ('recv', 'sent')
         self.init(self.vars, 1)

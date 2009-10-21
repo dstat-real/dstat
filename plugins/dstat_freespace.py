@@ -5,7 +5,9 @@
 
 class dstat_freespace(dstat):
     def __init__(self):
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.open('/etc/mtab')
         self.vars = self.vars()
 #       self.name = ['/' + os.path.basename(name) for name in self.vars]

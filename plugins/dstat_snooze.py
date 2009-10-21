@@ -1,7 +1,9 @@
 class dstat_snooze(dstat):
     def __init__(self):
         self.name = 'snooze'
-        self.format = ('s', 6, 0)
+        self.type = 's'
+        self.width = 6
+        self.scale = 0
         self.nick = ('snooze',)
         self.vars = self.nick
         self.before = time.time()

@@ -10,7 +10,9 @@
 class dstat_vmmemctl(dstat):
 	def __init__(self):
 		self.name = 'memctl'
-		self.format = ('f', 6, 1024)
+		self.type = 'f'
+        self.width = 6
+        self.scale = 1024
 		self.open('/proc/vmmemctl')
 		self.nick = ('size',)
 		self.vars = ('balloon',)

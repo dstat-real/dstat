@@ -16,7 +16,9 @@ class dstat_vmkhba(dstat):
     def __init__(self):
         self.name = 'vmkhba'
         self.discover = self.discover()
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.nick = ('read', 'writ')
         self.vars = self.vars()
         self.name = self.vars

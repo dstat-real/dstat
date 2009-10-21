@@ -6,7 +6,9 @@
 class dstat_topoom(dstat):
     def __init__(self):
         self.name = 'out of memory'
-        self.format = ('s', 18, 0)
+        self.type = 's'
+        self.width = 18
+        self.scale = 0
         self.nick = ('kill score',)
         self.vars = self.nick
         self.pid = str(os.getpid())
@@ -54,13 +56,13 @@ class dstat_topoom(dstat):
             self.val['process'] = self.val['name']
 
             ### Debug (show PID)
-#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
+#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def show(self):
         if self.val['max'] == 0.0:
-            return '%-*s' % (self.format[1], '')
+            return '%-*s' % (self.width, '')
         else:
-            return '%s%-*s%s' % (ansi['default'], self.format[1]-4, self.val['process'][0:self.format[1]-4], cprint(self.val['max'], ('f', 4, 1000)))
+            return '%s%-*s%s' % (ansi['default'], self.width-4, self.val['process'][0:self.width-4], cprint(self.val['max'], 'f', 4, 1000))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])

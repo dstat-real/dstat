@@ -11,7 +11,9 @@ mysql_pwd = os.getenv('DSTAT_MYSQL_PWD')
 class dstat_mysql5_keys(dstat):
     def __init__(self):
         self.name = 'mysql5 key status'
-        self.format = ('f', 4, 1000)
+        self.type = 'f'
+        self.width = 4
+        self.scale = 1000
         self.vars = ('Key_blocks_used', 'Key_reads', 'Key_writes', 'Key_read_requests', 'Key_write_requests')
         self.nick = ('used', 'read', 'writ', 'rreq', 'wreq')
         self.init(self.vars, 1)

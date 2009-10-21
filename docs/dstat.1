@@ -2,7 +2,7 @@
 .\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
 .\" Instead of manually editing it, you probably should edit the DocBook XML
 .\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
-.TH "DSTAT" "1" "04/10/2009" "" ""
+.TH "DSTAT" "1" "10/21/2009" "" ""
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -117,8 +117,11 @@ enable unix stats (datagram, stream, listen, active)
 \-\-vm
 enable vm stats (hard pagefaults, soft pagefaults, allocated, free))
 .TP
+\-\-stat1 \-\-stat2
+enable internal and external plugin stats by plugin name
+.TP
 \-M stat1,stat2
-enable internal and external plugin stats
+enable internal and external plugin stats by plugin name
 .TP
 Possible internal stats are
 aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc, load, lock, mem, net, page, page24, proc, raw, socket, swap, swapold, sys, tcp, time, udp, unix, vm

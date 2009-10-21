@@ -124,8 +124,11 @@ information.
 --vm::
     enable vm stats (hard pagefaults, soft pagefaults, allocated, free))
 
+--stat1 --stat2::
+    enable internal and external plugin stats by plugin name
+
 -M stat1,stat2::
-    enable internal and external plugin stats
+    enable internal and external plugin stats by plugin name
 
 Possible internal stats are::
     aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc,

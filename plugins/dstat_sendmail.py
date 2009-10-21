@@ -5,7 +5,9 @@ import glob
 class dstat_sendmail(dstat):
     def __init__(self):
         self.name = 'sendmail'
-        self.format = ('d', 4, 100)
+        self.type = 'd'
+        self.width = 4
+        self.scale = 100
         self.vars = ('queue',)
         self.nick = ('queu',)
         self.init(self.vars, 1)

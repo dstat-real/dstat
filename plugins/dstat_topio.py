@@ -6,7 +6,9 @@
 class dstat_topio(dstat):
     def __init__(self):
         self.name = 'most expensive'
-        self.format = ('s', 22, 0)
+        self.type = 's'
+        self.width = 22
+        self.scale = 0
         self.nick = ('i/o process',)
         self.vars = self.nick
         self.pid = str(os.getpid())
@@ -65,10 +67,10 @@ class dstat_topio(dstat):
         if self.val['usage'] == 0.0:
             self.val['process'] = ''
         else:
-            self.val['process'] = self.val['name']
+            self.val['process'] = os.path.basename(self.val['name'])
 
             ### Debug (show PID)
-#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
+#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
         if step == op.delay:
             for pid in self.cn2.keys():
@@ -76,9 +78,9 @@ class dstat_topio(dstat):
 
     def show(self):
         if self.val['usage'] == 0.0:
-            return '%-*s' % (self.format[1], '')
+            return '%-*s' % (self.width, '')
         else:
-            return '%s%-*s%s:%s' % (ansi['default'], self.format[1]-11, self.val['process'][0:self.format[1]-11], cprint(self.val['read_usage'], ('f', 5, 1024)), cprint(self.val['write_usage'], ('f', 5, 1024)))
+            return '%s%-*s%s:%s' % (ansi['default'], self.width-11, self.val['process'][0:self.width-11], cprint(self.val['read_usage'], 'f', 5, 1024), cprint(self.val['write_usage'], 'f', 5, 1024))
 
     def showcsv(self):
         return '%s / %d:%d' % (self.val['name'], self.val['read_usage'], self.val['write_usage'])

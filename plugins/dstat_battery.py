@@ -6,7 +6,9 @@
 class dstat_battery(dstat):
     def __init__(self):
         self.name = 'battery'
-        self.format = ('p', 4, 34)
+        self.type = 'p'
+        self.width = 4
+        self.scale = 34
         self.vars = []
         for battery in os.listdir('/proc/acpi/battery/'):
             for line in dopen('/proc/acpi/battery/'+battery+'/state').readlines():

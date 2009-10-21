@@ -6,7 +6,9 @@
 class dstat_power(dstat):
     def __init__(self):
         self.name = 'power'
-        self.format = ('f', 5, 1)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1
         self.vars = ( 'rate', )
         self.nick = ( 'usage', )
         self.batteries = []

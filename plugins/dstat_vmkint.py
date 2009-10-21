@@ -16,7 +16,9 @@ class dstat_vmkint(dstat):
         self.name = 'vmkint'
         self.open('/proc/vmware/interrupts')
         self.discover = self.discover()
-        self.format = ('d', 4, 1000)
+        self.type = 'd'
+        self.width = 4
+        self.scale = 1000
 #       self.intmap = self.intmap()
         self.vars = self.vars()
         self.nick = self.vars

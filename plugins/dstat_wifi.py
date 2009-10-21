@@ -4,7 +4,9 @@ from pythonwifi import iwlibs
 class dstat_wifi(dstat):
     def __init__(self):
         self.name = 'wifi'
-        self.format = ('d', 3, 33)
+        self.type = 'd'
+        self.width = 3
+        self.scale = 33
         self.check()
         self.vars = iwlibs.getNICnames()
         self.name = self.vars

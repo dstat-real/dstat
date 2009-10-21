@@ -18,9 +18,11 @@ from __future__ import generators
 
 VERSION = '0.6.9svn'
 
+theme = { 'default': '' }
+
 def inspath(path):
     if os.path.isdir(path) and path not in sys.path:
-        sys.path.insert(1, path)
+        sys.path.insert(0, path)
 
 try:
     import sys, os, time, sched, re
@@ -73,6 +75,7 @@ if sys.version_info < (2, 3):
 class Options:
     def __init__(self, args):
         self.args = args
+        self.blackonwhite = False
         self.count = -1
         self.cpulist = None
         self.debug = 0
@@ -89,6 +92,12 @@ class Options:
         self.output = False
         self.pidfile = False
 
+        ### List of available modules
+        self.modules = listmodules()
+
+        ### List of modules to show
+        self.modlist = []
+
         ### Implicit if no terminal is used
         if not sys.stdout.isatty():
             self.color = False
@@ -104,79 +113,56 @@ class Options:
 
         try:
             import getopt
-            opts, args = getopt.getopt (args, 'acdfghilmno:prstTvyC:D:I:M:N:S:V',
-                ['aio', 'cpu', 'disk', 'epoch', 'fs', 'filesystem', 'int', 'io', 'ipc',
-                 'load', 'lock', 'mem', 'net', 'page', 'proc', 'raw', 'socket', 'swap',
-                 'sys', 'tcp', 'time', 'udp', 'unix', 'vm',
-                 'all', 'debug', 'full', 'help', 'integer', 'list', 'mods', 'modules',
-                 'nocolor', 'noheaders', 'noupdate', 'output=', 'pidfile=', 'version',
-                 'vmstat'])
+            opts, args = getopt.getopt(args, 'acdfghilmno:prstTvyC:D:I:M:N:S:V',
+                ['all', 'bw', 'blackonwhite', 'debug', 'filesystem', 'full',
+                 'help', 'integer', 'list', 'mods', 'modules', 'nocolor',
+                 'noheaders', 'noupdate', 'output=', 'pidfile=', 'version',
+                 'vmstat'] + self.modules)
         except getopt.error, exc:
             print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
             sys.exit(1)
 
-        self.modlist = []
-
         for opt, arg in opts:
-            if opt in ['-c', '--cpu']:
+            if opt in ['-c']:
                 self.modlist.append('cpu')
             elif opt in ['-C']:
                 self.cpulist = arg.split(',')
-            elif opt in ['-d', '--disk']:
+            elif opt in ['-d']:
                 self.modlist.append('disk')
             elif opt in ['-D']:
                 self.disklist = arg.split(',')
-            elif opt in ['-g', '--page']:
+            elif opt in ['--filesystem']:
+                self.modlist.append('fs')
+            elif opt in ['-g']:
                 self.modlist.append('page')
-            elif opt in ['-i', '--int']:
+            elif opt in ['-i']:
                 self.modlist.append('int')
             elif opt in ['-I']:
                 self.intlist = arg.split(',')
-            elif opt in ['-l', '--load']:
+            elif opt in ['-l']:
                 self.modlist.append('load')
-            elif opt in ['-m', '--mem']:
+            elif opt in ['-m']:
                 self.modlist.append('mem')
             elif opt in ['-M', '--mods', '--modules']:
                 self.modlist = self.modlist + arg.split(',')
-            elif opt in ['-n', '--net']:
+            elif opt in ['-n']:
                 self.modlist.append('net')
             elif opt in ['-N']:
                 self.netlist = arg.split(',')
-            elif opt in ['-p', '--proc']:
+            elif opt in ['-p']:
                 self.modlist.append('proc')
-            elif opt in ['-r', '--io']:
+            elif opt in ['-r']:
                 self.modlist.append('io')
-            elif opt in ['-s', '--swap']:
+            elif opt in ['-s']:
                 self.modlist.append('swap')
             elif opt in ['-S']:
                 self.swaplist = arg.split(',')
-            elif opt in ['-t', '--time']:
+            elif opt in ['-t']:
                 self.modlist.append('time')
-            elif opt in ['-T', '--epoch']:
+            elif opt in ['-T']:
                 self.modlist.append('epoch')
-            elif opt in ['-y', '--sys']:
+            elif opt in ['-y']:
                 self.modlist.append('sys')
-
-            elif opt in ['--aio']:
-                self.modlist.append('aio')
-            elif opt in ['--fs', '--filesystem']:
-                self.modlist.append('fs')
-            elif opt in ['--ipc']:
-                self.modlist.append('ipc')
-            elif opt in ['--lock']:
-                self.modlist.append('lock')
-            elif opt in ['--raw']:
-                self.modlist.append('raw')
-            elif opt in ['--socket']:
-                self.modlist.append('socket')
-            elif opt in ['--tcp']:
-                self.modlist.append('tcp')
-            elif opt in ['--udp']:
-                self.modlist.append('udp')
-            elif opt in ['--unix']:
-                self.modlist.append('unix')
-            elif opt in ['--vm']:
-                self.modlist.append('vm')
 
             elif opt in ['-a', '--all']:
                 self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys' ]
@@ -185,12 +171,14 @@ class Options:
             elif opt in ['-f', '--full']:
                 self.full = True
 
+            elif opt in ['--bw', '--black-on-white']:
+                self.blackonwhite = True
             elif opt in ['--debug']:
                 self.debug = self.debug + 1
             elif opt in ['--integer']:
                 self.integer = True
             elif opt in ['--list']:
-                listmodules()
+                showmodules()
                 sys.exit(0)
             elif opt in ['--nocolor']:
                 self.color = False
@@ -210,6 +198,11 @@ class Options:
             elif opt in ['-V', '--version']:
                 self.version()
                 sys.exit(0)
+            elif opt.startswith('--'):
+                self.modlist.append(opt[2:])
+            else:
+                print 'dstat: option %s unknown to getopt, try dstat -h for a list of all the options' % opt
+                sys.exit(1)
 
         if not self.modlist:
             self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
@@ -249,7 +242,7 @@ class Options:
 
         global op
         op = self
-        listmodules()
+        showmodules()
 
     def usage(self):
         print 'Usage: dstat [-afv] [options..] [delay [count]]'
@@ -297,6 +290,7 @@ Dstat options:
   -f, --full             expand -C, -D, -I, -N and -S discovery lists
   -v, --vmstat           equals -pmgdsc -D total
 
+  --bw, --blackonwhite   change colors for white background terminal
   --integer              show integer values
   --nocolor              disable colors (implies --noupdate)
   --noheaders            disable repetitive headers
@@ -313,7 +307,9 @@ class dstat:
     vars = None
     name = None
     nick = None
-    format = ()
+    type = 'f'
+    width = 4
+    scale = 1000
 
     ### Initialise default variables
     def init(self, vars=(), len=0):
@@ -360,49 +356,49 @@ class dstat:
 
     def statwidth(self):
         "Return complete stat width"
-        return len(self.vars) * self.width() + len(self.vars) - 1
+        return len(self.vars) * self.colwidth() + len(self.vars) - 1
 
-    def width(self):
+    def colwidth(self):
         "Return column width"
         if isinstance(self.name, types.StringType):
-            return self.format[1]
+            return self.width
         else:
-            return len(self.nick) * self.format[1] + len(self.nick) - 1
+            return len(self.nick) * self.width + len(self.nick) - 1
 
-    def title(self, nr):
+    def printtitle(self, nr):
         if nr == 1:
-            return self.title1()
+            return self.title()
         else:
-            return self.title2()
+            return self.subtitle()
 
-    def title1(self):
-        ret = ansi['darkblue']
+    def title(self):
+        ret = theme['title']
         if isinstance(self.name, types.StringType):
             maxlen = self.statwidth()
-            return ret + self.name[0:maxlen].center(maxlen).replace(' ', '-') + ansi['default']
+            return ret + self.name[0:maxlen].center(maxlen).replace(' ', '-') + theme['default']
         for i, name in enumerate(self.name):
-            maxlen = self.width()
+            maxlen = self.colwidth()
             ret = ret + name[0:maxlen].center(maxlen).replace(' ', '-')
             if i + 1 != len(self.name):
                 if op.color:
-                    ret = ret + ansi['blue'] + char['dash'] + ansi['darkblue']
+                    ret = ret + theme['frame'] + char['dash'] + theme['title']
                 else:
                     ret = ret + char['space']
         return ret
 
-    def title2(self):
+    def subtitle(self):
         ret = ''
         if isinstance(self.name, types.StringType):
             for i, nick in enumerate(self.nick):
-                ret = ret + ansi['blue'] + ansi['underline'] + nick.center(self.format[1]) + ansi['default']
+                ret = ret + theme['subtitle'] + nick.center(self.width) + theme['default']
                 if i + 1 != len(self.nick): ret = ret + char['space']
             return ret
         else:
             for i, name in enumerate(self.name):
                 for j, nick in enumerate(self.nick):
-                    ret = ret + ansi['blue'] + ansi['underline'] + nick.center(self.format[1]) + ansi['default']
+                    ret = ret + theme['subtitle'] + nick.center(self.width) + theme['default']
                     if j + 1 != len(self.nick): ret = ret + char['space']
-                if i + 1 != len(self.name): ret = ret + ansi['gray'] + char['colon']
+                if i + 1 != len(self.name): ret = ret + theme['frame'] + char['colon']
             return ret
 
     def titlecsv(self, nr):
@@ -444,7 +440,7 @@ class dstat:
             raise Exception, 'No objects found, no stats available'
         if not self.discover:
             raise Exception, 'No objects discovered, no stats available'
-        if self.width():
+        if self.colwidth():
             return True
         raise Exception, 'Unknown problem, please report'
 
@@ -456,10 +452,10 @@ class dstat:
         line = ''
         for i, name in enumerate(self.vars):
             if isinstance(self.val[name], types.TupleType) or isinstance(self.val[name], types.ListType):
-                line = line + cprintlist(self.val[name], self.format)
-                sep = ansi['gray'] + char['colon']
+                line = line + cprintlist(self.val[name], self.type, self.width, self.scale)
+                sep = theme['frame'] + char['colon']
             else:
-                line = line + cprint(self.val[name], self.format)
+                line = line + cprint(self.val[name], self.type, self.width, self.scale)
                 sep = char['space']
             if i + 1 != len(self.vars):
                 line = line + sep
@@ -467,9 +463,9 @@ class dstat:
 
     def showend(self, totlist, vislist):
         if self is not vislist[-1]:
-            return ansi['gray'] + char['pipe']
+            return theme['frame'] + char['pipe']
         elif totlist != vislist:
-            return ansi['gray'] + char['gt']
+            return theme['frame'] + char['gt']
         return ''
 
     def showcsv(self):
@@ -503,7 +499,8 @@ class dstat:
 class dstat_aio(dstat):
     def __init__(self):
         self.name = 'async'
-        self.format = ('d', 5, 1000)
+        self.type = 'd'
+        self.width = 5;
         self.open('/proc/sys/fs/aio-nr')
         self.nick = ('#aio',)
         self.vars = ('aio',)
@@ -516,7 +513,9 @@ class dstat_aio(dstat):
 
 class dstat_cpu(dstat):
     def __init__(self):
-        self.format = ('p', 3, 34)
+        self.type = 'p'
+        self.width = 3
+        self.scale = 34
         self.open('/proc/stat')
         self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
         self.discover = self.discover()
@@ -578,7 +577,9 @@ class dstat_cpu(dstat):
 
 class dstat_cpu24(dstat):
     def __init__(self):
-        self.format = ('p', 3, 34)
+        self.type = 'p'
+        self.width = 3
+        self.scale = 34
         self.open('/proc/stat')
         self.nick = ( 'usr', 'sys', 'idl')
         self.discover = self.discover()
@@ -635,7 +636,9 @@ class dstat_cpu24(dstat):
 
 class dstat_disk(dstat):
     def __init__(self):
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)$')
         self.open('/proc/diskstats')
         self.nick = ('read', 'writ')
@@ -702,7 +705,9 @@ class dstat_disk(dstat):
 
 class dstat_disk24(dstat):
     def __init__(self):
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/partitions')
         self.nick = ('read', 'writ')
@@ -767,7 +772,9 @@ class dstat_disk24(dstat):
 ### FIXME: Needs rework, does anyone care ?
 class dstat_disk24old(dstat):
     def __init__(self):
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/stat')
         self.nick = ('read', 'writ')
@@ -847,9 +854,13 @@ class dstat_disk24old(dstat):
 class dstat_epoch(dstat):
     def __init__(self):
         self.name = 'epoch'
-        self.format = ('t', 10, 0)
+        self.type = 't'
+        self.width = 10
+        self.scale = 0
         if op.debug:
-            self.format = ('t', 14, 0)
+            self.type = 't'
+        self.width = 14
+        self.scale = 0
         self.nick = ('epoch',)
         self.vars = self.nick
         self.init(self.vars, 1)
@@ -865,7 +876,9 @@ class dstat_epoch(dstat):
 class dstat_fs(dstat):
     def __init__(self):
         self.name = 'filesystem'
-        self.format = ('d', 6, 1000)
+        self.type = 'd'
+        self.width = 6
+        self.scale = 1000
         self.nick = ('files', 'inodes')
         self.vars = self.nick
         self.init(self.vars, 1)
@@ -883,7 +896,9 @@ class dstat_fs(dstat):
 class dstat_int(dstat):
     def __init__(self):
         self.name = 'interrupts'
-        self.format = ('d', 5, 1000)
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1000
         self.open('/proc/stat')
         self.discover = self.discover()
         self.intmap = self.intmap()
@@ -951,7 +966,9 @@ class dstat_int(dstat):
 class dstat_int24(dstat):
     def __init__(self):
         self.name = 'interrupts'
-        self.format = ('d', 5, 1000)
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1000
         self.open('/proc/interrupts')
         self.discover = self.discover()
         self.vars = self.vars()
@@ -1022,7 +1039,9 @@ class dstat_int24(dstat):
 
 class dstat_io(dstat):
     def __init__(self):
-        self.format = ('f', 5, 1000)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1000
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/diskstats')
         self.nick = ('read', 'writ')
@@ -1090,7 +1109,9 @@ class dstat_io(dstat):
 class dstat_ipc(dstat):
     def __init__(self):
         self.name = 'sysv ipc'
-        self.format = ('d', 3, 10)
+        self.type = 'd'
+        self.width = 3
+        self.scale = 10
         self.vars = ('msg', 'sem', 'shm')
         self.nick = self.vars
         self.init(self.vars, 1)
@@ -1102,7 +1123,9 @@ class dstat_ipc(dstat):
 class dstat_load(dstat):
     def __init__(self):
         self.name = 'load avg'
-        self.format = ('f', 4, 10)
+        self.type = 'f'
+        self.width = 4
+        self.scale = 10
         self.open('/proc/loadavg')
         self.nick = ('1m', '5m', '15m')
         self.vars = ('load1', 'load5', 'load15')
@@ -1118,7 +1141,9 @@ class dstat_load(dstat):
 class dstat_lock(dstat):
     def __init__(self):
         self.name = 'file locks'
-        self.format = ('f', 3, 10)
+        self.type = 'f'
+        self.width = 3
+        self.scale = 10
         self.open('/proc/locks')
         self.nick = ('pos', 'lck', 'rea', 'wri')
         self.vars = ('posix', 'flock', 'read', 'write')
@@ -1140,7 +1165,9 @@ class dstat_lock(dstat):
 class dstat_mem(dstat):
     def __init__(self):
         self.name = 'memory usage'
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.open('/proc/meminfo')
         self.nick = ('used', 'buff', 'cach', 'free')
         self.vars = ('MemUsed', 'Buffers', 'Cached', 'MemFree')
@@ -1156,7 +1183,9 @@ class dstat_mem(dstat):
 
 class dstat_net(dstat):
     def __init__(self):
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.open('/proc/net/dev')
         self.nick = ('recv', 'send')
         self.totalfilter = re.compile('^(lo|bond[0-9]+|face|.+\.[0-9]+)$')
@@ -1216,7 +1245,9 @@ class dstat_net(dstat):
 class dstat_page(dstat):
     def __init__(self):
         self.name = 'paging'
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.open('/proc/vmstat')
         self.nick = ('in', 'out')
         self.vars = ('pswpin', 'pswpout')
@@ -1236,7 +1267,9 @@ class dstat_page(dstat):
 class dstat_page24(dstat):
     def __init__(self):
         self.name = 'paging'
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.open('/proc/stat')
         self.nick = ('in', 'out')
         self.vars = ('pswpin', 'pswpout')
@@ -1258,7 +1291,9 @@ class dstat_page24(dstat):
 class dstat_proc(dstat):
     def __init__(self):
         self.name = 'procs'
-        self.format = ('f', 3, 10)
+        self.type = 'f'
+        self.width = 3
+        self.scale = 10
         self.open('/proc/stat')
         self.nick = ('run', 'blk', 'new')
         self.vars = ('procs_running', 'procs_blocked', 'processes')
@@ -1286,7 +1321,9 @@ class dstat_proc(dstat):
 class dstat_raw(dstat):
     def __init__(self):
         self.name = 'raw'
-        self.format = ('d', 3, 100)
+        self.type = 'd'
+        self.width = 3
+        self.scale = 100
         self.open('/proc/net/raw')
         self.nick = ('raw',)
         self.vars = ('sockets',)
@@ -1303,7 +1340,9 @@ class dstat_raw(dstat):
 class dstat_socket(dstat):
     def __init__(self):
         self.name = 'sockets'
-        self.format = ('d', 3, 100)
+        self.type = 'd'
+        self.width = 3
+        self.scale = 100
         self.open('/proc/net/sockstat')
         self.nick = ('tot', 'tcp', 'udp', 'raw', 'frg')
         self.vars = ('sockets:', 'TCP:', 'UDP:', 'RAW:', 'FRAG:')
@@ -1318,7 +1357,9 @@ class dstat_socket(dstat):
 class dstat_swap(dstat):
     def __init__(self):
         self.name = 'swap'
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.open('/proc/swaps')
         self.nick = ('used', 'free')
         self.discover = self.discover()
@@ -1370,7 +1411,9 @@ class dstat_swap(dstat):
 class dstat_swapold(dstat):
     def __init__(self):
         self.name = 'swap'
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.open('/proc/meminfo')
         self.nick = ('used', 'free')
         self.vars = ('SwapUsed', 'SwapFree')
@@ -1387,7 +1430,9 @@ class dstat_swapold(dstat):
 class dstat_sys(dstat):
     def __init__(self):
         self.name = 'system'
-        self.format = ('d', 5, 1000)
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1000
         self.open('/proc/stat')
         self.nick = ('int', 'csw')
         self.vars = ('intr', 'ctxt')
@@ -1407,7 +1452,9 @@ class dstat_sys(dstat):
 class dstat_tcp(dstat):
     def __init__(self):
         self.name = 'tcp sockets'
-        self.format = ('f', 3, 100)
+        self.type = 'f'
+        self.width = 3
+        self.scale = 100
         self.open('/proc/net/tcp', '/proc/net/tcp6')
         self.nick = ('lis', 'act', 'syn', 'tim', 'clo')
         self.vars = ('listen', 'established', 'syn', 'wait', 'close')
@@ -1431,10 +1478,12 @@ class dstat_time(dstat):
     def __init__(self):
         self.name = 'system'
         self.timefmt = os.getenv('DSTAT_TIMEFMT') or '%d-%m %H:%M:%S'
+        self.type = 's'
         if op.debug:
-            self.format = ('s', len(time.strftime(self.timefmt, time.localtime())) + 4, 0)
+            self.width = len(time.strftime(self.timefmt, time.localtime())) + 4
         else:
-            self.format = ('s', len(time.strftime(self.timefmt, time.localtime())), 0)
+            self.width = len(time.strftime(self.timefmt, time.localtime()))
+        self.scale = 0
         self.nick = ('date/time',)
         self.vars = ('time',)
         self.init(self.vars, 1)
@@ -1448,15 +1497,17 @@ class dstat_time(dstat):
 
     def show(self):
         if step == op.delay:
-            color = 'silver'
+            color = 'text_lo'
         else:
-            color = 'gray'
-        return ansi[color] + self.val['time']
+            color = 'text_hi'
+        return theme[color] + self.val['time']
 
 class dstat_udp(dstat):
     def __init__(self):
         self.name = 'udp'
-        self.format = ('d', 3, 100)
+        self.type = 'd'
+        self.width = 3
+        self.scale = 100
         self.open('/proc/net/udp', '/proc/net/udp6')
         self.nick = ('lis', 'act')
         self.vars = ('listen', 'established')
@@ -1471,7 +1522,9 @@ class dstat_udp(dstat):
 class dstat_unix(dstat):
     def __init__(self):
         self.name = 'unix sockets'
-        self.format = ('d', 3, 100)
+        self.type = 'd'
+        self.width = 3
+        self.scale = 100
         self.open('/proc/net/unix')
         self.nick = ('dgm', 'str', 'lis', 'act')
         self.vars = ('datagram', 'stream', 'listen', 'established')
@@ -1492,7 +1545,9 @@ class dstat_unix(dstat):
 class dstat_vm(dstat):
     def __init__(self):
         self.name = 'virtual memory'
-        self.format = ('d', 5, 1000)
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1000
         self.open('/proc/vmstat')
         self.nick = ('majpf', 'minpf', 'alloc', 'free')
         self.vars = ('pgmajfault', 'pgfault', 'pgalloc_normal', 'pgfree')
@@ -1518,9 +1573,9 @@ ansi = {
     'darkblue': '\033[0;34m',
     'darkmagenta': '\033[0;35m',
     'darkcyan': '\033[0;36m',
-    'silver': '\033[0;37m',
+    'gray': '\033[0;37m',
 
-    'gray': '\033[1;30m',
+    'darkgray': '\033[1;30m',
     'red': '\033[1;31m',
     'green': '\033[1;32m',
     'yellow': '\033[1;33m',
@@ -1566,6 +1621,43 @@ char = {
     'space': ' ',
     'dash': '-',
 }
+
+def set_theme():
+    if op.blackonwhite:
+        theme = {
+            'title': ansi['darkblue'],
+            'subtitle': ansi['darkcyan'] + ansi['underline'],
+            'frame': ansi['darkgray'],
+            'default': ansi['default'],
+            'error': ansi['white'] + ansi['redbg'],
+            'roundtrip': ansi['darkblue'],
+            'debug': ansi['darkred'],
+            'input': ansi['darkgray'],
+            'text_lo': ansi['black'],
+            'text_hi': ansi['darkgray'],
+            'colors_lo': (ansi['darkred'], ansi['darkmagenta'], ansi['darkgreen'], ansi['darkblue'],
+                          ansi['darkcyan'], ansi['gray'], ansi['red'], ansi['green']),
+            'colors_hi': (ansi['red'], ansi['magenta'], ansi['green'], ansi['blue'],
+                          ansi['cyan'], ansi['white'], ansi['darkred'], ansi['darkgreen']),
+        }
+    else:
+        theme = {
+            'title': ansi['darkblue'],
+            'subtitle': ansi['blue'] + ansi['underline'],
+            'frame': ansi['darkgray'],
+            'default': ansi['default'],
+            'error': ansi['white'] + ansi['redbg'],
+            'roundtrip': ansi['darkblue'],
+            'debug': ansi['darkred'],
+            'input': ansi['darkgray'],
+            'text_lo': ansi['gray'],
+            'text_hi': ansi['darkgray'],
+            'colors_lo': (ansi['red'], ansi['yellow'], ansi['green'], ansi['blue'],
+                          ansi['cyan'], ansi['white'], ansi['darkred'], ansi['darkgreen']),
+            'colors_hi': (ansi['darkred'], ansi['darkyellow'], ansi['darkgreen'], ansi['darkblue'],
+                          ansi['darkcyan'], ansi['gray'], ansi['red'], ansi['green']),
+        }
+    return theme
 
 def ticks():
     "Return the number of 'ticks' since bootup"
@@ -1697,19 +1789,19 @@ def fchg(var, maxlen, base):
         c = -1
     return ret, c
 
-def cprintlist(varlist, format):
+def cprintlist(varlist, type, width, scale):
     "Return all columns color printed"
     ret = sep = ''
     for var in varlist:
-        ret = ret + sep + cprint(var, format)
+        ret = ret + sep + cprint(var, type, width, scale)
         sep = ' '
     return ret
 
-def cprint(var, format = ('f', 4, 1000)):
+def cprint(var, type = 'f', width = 4, scale = 1000):
     "Color print one column"
-    vartype = format[0]
-    maxlen = format[1]
-    mp = format[2]
+    vartype = type
+    maxlen = width
+    mp = scale
 
     base = 1000
     if mp == 1024:
@@ -1724,9 +1816,9 @@ def cprint(var, format = ('f', 4, 1000)):
     ### If this is a negative value, return a dash
     if var < 0:
         if unit:
-            return ansi['white'] + ansi['redbg'] + '-'.rjust(maxlen) + ' ' + ansi['default']
+            return theme['error'] + '-'.rjust(maxlen) + ' ' + theme['default']
         else:
-            return ansi['white'] + ansi['redbg'] + '-'.rjust(maxlen) + ansi['default']
+            return theme['error'] + '-'.rjust(maxlen) + theme['default']
 
     if base == 1024:
         units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
@@ -1734,9 +1826,9 @@ def cprint(var, format = ('f', 4, 1000)):
         units = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 
     if step == op.delay:
-        colors = ('red', 'yellow', 'green', 'blue', 'magenta', 'cyan', 'white', 'darkred', 'darkgreen')
+        colors = theme['colors_lo']
     else:
-        colors = ('darkred', 'darkyellow', 'darkgreen', 'darkblue', 'darkmagenta', 'darkcyan', 'silver', 'red', 'green')
+        colors = theme['colors_hi']
 
     ### Convert value to string given base and field-length
     if op.integer and vartype in ('d', 'p', 'f'):
@@ -1750,26 +1842,33 @@ def cprint(var, format = ('f', 4, 1000)):
     else:
         ret, c = str(var), -1
 
+    if step == op.delay:
+        colors = theme['colors_lo']
+        text = theme['text_lo']
+    else:
+        colors = theme['colors_hi']
+        text = theme['text_hi']
+
     ### Set the counter color
     if ret == '0':
-        color = 'default'
+        color = text
     elif vartype in ('d', 'p'):
         color = colors[int(round(var)/mp)%len(colors)]
     elif vartype in ('f'):
         color = colors[c%len(colors)]
     else:
-        color = 'default'
+        color = text
 
     ### Justify value to left if string
     if vartype in ('s',):
-        ret = ansi[color] + ret.ljust(maxlen)
+        ret = color + ret.ljust(maxlen)
     else:
-        ret = ansi[color] + ret.rjust(maxlen)
+        ret = color + ret.rjust(maxlen)
 
     ### Add unit to output
     if unit:
         if c != -1 and round(var) != 0:
-            ret = ret + ansi['default'] + units[c]
+            ret = ret + text + units[c]
         else:
             ret = ret + ' '
 
@@ -1778,7 +1877,7 @@ def cprint(var, format = ('f', 4, 1000)):
 def showtitle(nr, totlist, vislist, midchar, endchar):
     line = ''
     for o in vislist:
-        line = line + o.title(nr)
+        line = line + o.printtitle(nr)
         if o is not vislist[-1]:
             line = line + midchar
         elif totlist != vislist:
@@ -1961,6 +2060,19 @@ def exit(ret):
     sys.exit(ret)
 
 def listmodules():
+    modules = []
+    remod = re.compile('dstat_(.+)$')
+    for filename in globals():
+        if filename.startswith('dstat_'):
+            modules.append(remod.match(filename).groups()[0])
+    remod = re.compile('.+/dstat_(.+).py$')
+    for path in sys.path:
+        for filename in glob.glob(path + '/dstat_*.py'):
+            modules.append(remod.match(filename).groups()[0])
+    modules.sort()
+    return modules
+
+def showmodules():
     rows, cols = gettermsize()
     print 'internal:\n\t',
     remod = re.compile('dstat_(.+)$')
@@ -1995,7 +2107,7 @@ def listmodules():
         print
 
 def main():
-    global pagesize, cpunr, ansi, outputfile
+    global pagesize, cpunr, ansi, theme, outputfile
     global totlist, inittime
     global update, missed
 
@@ -2054,11 +2166,15 @@ def main():
             print >>sys.stderr, 'Failed to create pidfile %s' % op.pidfile, e
             op.pidfile = False
 
-    ### Empty ansi database if no colors are requested
+    ### Empty ansi and theme database if no colors are requested
     if not op.color:
         op.update = False
         for key in ansi.keys():
             ansi[key] = ''
+        for key in theme.keys():
+            theme[key] = ''
+        theme['colors_hi'] = (ansi['default'],)
+        theme['colors_lo'] = (ansi['default'],)
 #        print ansi['blackbg']
 
     if not op.update:
@@ -2069,7 +2185,7 @@ def main():
     totlist = []
     for module in op.modlist:
         if module in ('list', 'help'):
-            listmodules()
+            showmodules()
             exit(0)
         elif module == 'cpu':  mods = ( 'cpu', 'cpu24' )
         elif module == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
@@ -2222,14 +2338,14 @@ def perform(update):
             if loop == 0 and totlist != vislist:
                 print >>sys.stderr, 'Terminal width too small, trimming output.'
             showheader = False
-            showtitle(1, totlist, vislist, ansi['darkblue'] + char['space'], ansi['darkblue'] + char['gt'])
-            showtitle(2, totlist, vislist, ansi['gray'] + char['pipe'], ansi['darkblue'] + char['gt'])
+            showtitle(1, totlist, vislist, theme['frame'] + char['space'], theme['title'] + char['gt'])
+            showtitle(2, totlist, vislist, theme['frame'] + char['pipe'], theme['title'] + char['gt'])
 
         ### Prepare the colors for intermediate updates, last step in a loop is definitive
         if step == op.delay:
-            ansi['default'] = ansi['reset']
+            theme['default'] = ansi['reset']
         else:
-            ansi['default'] = ansi['gray']
+            theme['default'] = theme['text_lo']
 
         ### Calculate all objects (visible, invisible)
         line = ''
@@ -2252,32 +2368,34 @@ def perform(update):
             if loop == 0:
                 totaltime = totaltime * step
             if op.debug == 1:
-                sys.stdout.write('%s%6.2fms%s' % (ansi['darkblue'], totaltime / step, ansi['default']))
+                sys.stdout.write('%s%6.2fms%s' % (theme['roundtrip'], totaltime / step, theme['default']))
             elif op.debug == 2:
-                sys.stdout.write('%s%6.2f %s%d:%d%s' % (ansi['darkblue'], totaltime / step, ansi['darkred'], loop, step, ansi['default']))
+                sys.stdout.write('%s%6.2f %s%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, theme['default']))
             elif op.debug > 2:
-                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (ansi['darkblue'], totaltime / step, ansi['darkred'], loop, step, update, ansi['default']))
+                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, update, theme['default']))
 
         if missed > 0:
-#            sys.stdout.write(' '+ansi['redbg']+ansi['white']+'= warn =')
-            sys.stdout.write(' '+ansi['redbg']+ansi['white']+'missed '+str(missed+1)+' ticks')
+#            sys.stdout.write(' '+theme['error']+'= warn =')
+            sys.stdout.write(' '+theme['error']+'missed '+str(missed+1)+' ticks')
             missed = 0
 
         ### Additional input in gray
-        sys.stdout.write(ansi['gray'])
+        sys.stdout.write(theme['input'])
 
         ### Finish the line
         if not op.update:
             sys.stdout.write('\n')
+
 
 ### Main entrance
 if __name__ == '__main__':
     try:
         initterm()
         op = Options(sys.argv[1:])
+        theme = set_theme()
         main()
     except KeyboardInterrupt, e:
-        print ansi['default']
+        print theme['default']
 
     if op.pidfile and os.path.exists(op.pidfile):
         os.remove(op.pidfile)

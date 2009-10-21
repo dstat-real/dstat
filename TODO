@@ -31,7 +31,9 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 ### Extending statistics (help welcome!)
 + Add slab plugin (see /proc/slabinfo and slabtop)
 + Add xorg plugin (xdpyinfo, xrestop)
-+ Add icmp and ntp plugin ?
+  - Add 'most expensive X app' (look at xrestop)
+  - Add number of (active) X sessions and X clients
++ Add icmp plugin ?
 + Add application plugin (-a or -A pid,cmd)
 + Add user plugin (number of users logged on, utmp is not that useful, /proc/key-users)
 + Look into interfacing with apps (bind, sendmail, postfix, squid, amavisd, laus, samba)
@@ -42,8 +44,6 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Allow for SNMP counters to be added
 + Add LVM stats
 + Add 'most expensive io app' based on /proc/pid/io (topio_ops)
-+ Add 'most expensive X app' (look at xrestop)
-+ Add number of (active) X sessions and X clients
 + Allow to have multiple '1st expensive ... app' and '2nd expensive ... app'
 + Add 'most iowaiting app' plugin
 
@@ -58,7 +58,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Implement better (?) protection against counter rollovers (see mail from Sebastien Prud'homme)
 
 ### Plugin issues
-+ plugins that use /proc/pid are reasonably slow
++ plugins that use /proc/pid are reasonably slow (implement in C and cache file-content between plugins)
 + disk plugin: /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible?
 + proc plugin: (run and blk) does not work on 2.4.24+, to be confirmed
 + swap plugin: (new one) is slower than swapold

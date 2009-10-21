@@ -6,7 +6,9 @@
 class dstat_helloworld(dstat):
     def __init__(self):
         self.name = 'plugin title'
-        self.format = ('s', 12, 0)
+        self.type = 's'
+        self.width = 12
+        self.scale = 0
         self.nick = ('counter',)
         self.vars = ('text',)
         self.init(self.vars, 1)

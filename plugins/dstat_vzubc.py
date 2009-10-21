@@ -1,6 +1,8 @@
 class dstat_vzubc(dstat):
     def __init__(self):
-        self.format = ('d', 5, 1000)
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1000
         self.open('/proc/user_beancounters')
         self.nick = ('fcnt', )
         self.discover = self.discover()

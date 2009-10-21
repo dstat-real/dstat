@@ -11,7 +11,9 @@ mysql_pwd = os.getenv('DSTAT_MYSQL_PWD')
 class dstat_mysql5_conn(dstat):
     def __init__(self):
         self.name = 'mysql5 conn'
-        self.format = ('f', 4, 1)
+        self.type = 'f'
+        self.width = 4
+        self.scale = 1
         self.vars = ('Threads_connected', 'Threads')
         self.nick = ('ThCon', '%Con')
         self.init(self.vars, 1)

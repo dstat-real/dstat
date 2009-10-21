@@ -6,7 +6,9 @@
 class dstat_topmem(dstat):
     def __init__(self):
         self.name = 'most expensive'
-        self.format = ('s', 16, 0)
+        self.type = 's'
+        self.width = 16
+        self.scale = 0
         self.nick = ('memory process',)
         self.vars = self.nick
         self.pid = str(os.getpid())
@@ -55,10 +57,10 @@ class dstat_topmem(dstat):
 #                       break
 
             ### Debug (show PID)
-#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.format[1]-6, self.val['name'])
+#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def show(self):
-        return '%s%-*s%s' % (ansi['default'], self.format[1]-5, self.val['process'][0:self.format[1]-5], cprint(self.val['max'], ('f', 5, 1024)))
+        return '%s%-*s%s' % (ansi['default'], self.width-5, self.val['process'][0:self.width-5], cprint(self.val['max'], 'f', 5, 1024))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])

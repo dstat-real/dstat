@@ -1,7 +1,9 @@
 class dstat_thermal(dstat):
     def __init__(self):
         self.name = 'thermal'
-        self.format = ('d', 3, 20)
+        self.type = 'd'
+        self.width = 3
+        self.scale = 20
         if os.path.exists('/proc/acpi/ibm/thermal'):
             self.namelist = ['cpu', 'pci', 'hdd', 'cpu', 'ba0', 'unk', 'ba1', 'unk']
             self.nick = []

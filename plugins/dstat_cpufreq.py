@@ -9,7 +9,9 @@ import glob
 class dstat_cpufreq(dstat):
     def __init__(self):
         self.name = 'frequency'
-        self.format = ('p', 4, 34)
+        self.type = 'p'
+        self.width = 4
+        self.scale = 34
 #       self.vars = os.listdir('/sys/devices/system/cpu/')
 #       self.nick = [name.lower() for name in self.vars]
         self.vars = []

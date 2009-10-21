@@ -6,7 +6,9 @@
 
 class dstat_vzcpu(dstat):
     def __init__(self):
-        self.format = ('p', 3, 34)
+        self.type = 'p'
+        self.width = 3
+        self.scale = 34
         self.open('/proc/vz/vestat')
         self.nick = ('usr', 'sys', 'idl', 'nic')
         self.discover = self.discover()

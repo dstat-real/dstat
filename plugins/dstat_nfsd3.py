@@ -1,7 +1,9 @@
 class dstat_nfsd3(dstat):
     def __init__(self):
         self.name = 'nfs3 server'
-        self.format = ('d', 5, 1000)
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1000
         self.open('/proc/net/rpc/nfsd')
         self.vars = ('read', 'write', 'readdir', 'inode', 'filesystem', 'commit')
         self.nick = ('read', 'writ', 'rdir', 'inod', 'fs', 'cmmt')

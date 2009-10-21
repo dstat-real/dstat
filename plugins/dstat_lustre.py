@@ -9,7 +9,9 @@ class dstat_lustre(dstat):
             for mount in os.listdir('/proc/fs/lustre/llite'):
                 self.vars.append(mount)
                 self.name.append(mount[:mount.rfind('-')])
-        self.format = ('f', 5, 1024)
+        self.type = 'f'
+        self.width = 5
+        self.scale = 1024
         self.nick = ('read', 'write')
         self.init(self.vars, 2)
         info(1, 'Module dstat_lustre is still experimental.')
