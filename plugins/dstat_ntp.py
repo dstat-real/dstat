@@ -55,9 +55,9 @@ class dstat_ntp(dstat):
 
     def show(self):
         if step == op.delay:
-            color = 'silver'
-        else:
             color = 'gray'
+        else:
+            color = 'darkgray'
         if self.val['time']:
             return ansi[color] + time.strftime(self.timefmt, time.localtime(self.val['time']))
         else:
