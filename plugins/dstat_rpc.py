@@ -7,16 +7,15 @@ class dstat_rpc(dstat):
         self.open('/proc/net/rpc/nfs')
         self.vars = ('calls', 'retransmits', 'autorefreshes')
         self.nick = ('call', 'retr', 'refr')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
             if not l or l[0] != 'rpc': continue
             for i, name in enumerate(self.vars):
-                self.cn2[name] = long(l[i+1])
+                self.set2[name] = long(l[i+1])
         for name in self.vars:
-            self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 # vim:ts=4:sw=4:et

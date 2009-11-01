@@ -11,20 +11,18 @@ class dstat_power(dstat):
         self.scale = 1
         self.vars = ( 'rate', )
         self.nick = ( 'usage', )
-        self.batteries = []
         self.rate = 0
+        self.batteries = []
         for battery in os.listdir('/proc/acpi/battery/'):
             for line in dopen('/proc/acpi/battery/'+battery+'/state').readlines():
                 l = line.split()
                 if len(l) < 2: continue
                 self.batteries.append(battery)
                 break
-        self.init(self.vars, 1)
 
     def check(self):
         if not self.batteries:
             raise Exception, 'No battery information found, no power usage statistics'
-        return True
 
     def extract(self):
         amperes_drawn = 0

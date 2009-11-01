@@ -6,13 +6,11 @@ class dstat_utmp(dstat):
         self.scale = 10
         self.nick = ('ses', 'usr', 'adm' )
         self.vars = ('sessions', 'users', 'root')
-        self.init(self.vars, 1)
 
     def check(self): 
         try:
             global utmp
             import utmp
-            return True
         except:
             raise Exception, 'Needs python-utmp module'
 

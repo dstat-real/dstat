@@ -9,15 +9,13 @@ class dstat_topio(dstat):
         self.type = 's'
         self.width = 22
         self.scale = 0
-        self.nick = ('i/o process',)
-        self.vars = self.nick
+        self.vars = ('i/o process',)
         self.pid = str(os.getpid())
-        self.cn1 = {}; self.cn2 = {}; self.val = {}
+        self.pidset1 = {}; self.pidset2 = {}
 
     def check(self):
         if not os.access('/proc/self/io', os.R_OK):
             raise Exception, 'Kernel has no I/O accounting, use at least 2.6.20'
-        return True
 
     def extract(self):
         self.val['usage'] = 0.0
@@ -30,10 +28,10 @@ class dstat_topio(dstat):
                 if pid == self.pid: continue
 
                 ### Reset values
-                if not self.cn2.has_key(pid):
-                    self.cn2[pid] = {'rchar:': 0, 'wchar:': 0}
-                if not self.cn1.has_key(pid):
-                    self.cn1[pid] = {'rchar:': 0, 'wchar:': 0}
+                if not self.pidset2.has_key(pid):
+                    self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0}
+                if not self.pidset1.has_key(pid):
+                    self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0}
 
                 ### Extract name
                 name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
@@ -42,15 +40,15 @@ class dstat_topio(dstat):
                 for line in open('/proc/%s/io' % pid).readlines():
                     l = line.split()
                     if len(l) != 2: continue
-                    self.cn2[pid][l[0]] = int(l[1])
+                    self.pidset2[pid][l[0]] = int(l[1])
 
             except ValueError:
                 continue
             except IOError:
                 continue
 
-            read_usage = (self.cn2[pid]['rchar:'] - self.cn1[pid]['rchar:']) * 1.0 / tick
-            write_usage = (self.cn2[pid]['wchar:'] - self.cn1[pid]['wchar:']) * 1.0 / tick
+            read_usage = (self.pidset2[pid]['rchar:'] - self.pidset1[pid]['rchar:']) * 1.0 / tick
+            write_usage = (self.pidset2[pid]['wchar:'] - self.pidset1[pid]['wchar:']) * 1.0 / tick
             usage = read_usage + write_usage
 #            if usage > 0.0:
 #                print '%s %s:%s' % (pid, read_usage, write_usage)
@@ -62,19 +60,19 @@ class dstat_topio(dstat):
                 self.val['write_usage'] = write_usage
                 self.val['pid'] = pid
                 self.val['name'] = name
-                st = os.stat("/proc/%s" % pid)
+#                st = os.stat("/proc/%s" % pid)
 
         if self.val['usage'] == 0.0:
             self.val['process'] = ''
         else:
             self.val['process'] = os.path.basename(self.val['name'])
 
-            ### Debug (show PID)
-#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+        ### Debug (show PID)
+#       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
         if step == op.delay:
-            for pid in self.cn2.keys():
-                self.cn1[pid].update(self.cn2[pid])
+            for pid in self.pidset2.keys():
+                self.pidset1[pid].update(self.pidset2[pid])
 
     def show(self):
         if self.val['usage'] == 0.0:

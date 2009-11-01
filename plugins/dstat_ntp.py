@@ -31,7 +31,6 @@ class dstat_ntp(dstat):
 #        socket.setdefaulttimeout(0.25)
         self.socket = socket.socket( socket.AF_INET, socket.SOCK_DGRAM )
         self.socket.settimeout(0.25)
-        self.init(self.vars, 1)
 
     def gettime(self):
         try:
@@ -48,7 +47,6 @@ class dstat_ntp(dstat):
             raise Exception, 'Failed to connect to NTP server %s.' % self.ntpserver
         except socket.error:
             raise Exception, 'Error connecting to NTP server %s.' % self.ntpserver
-        return True
 
     def extract(self):
         self.val['time'] = self.gettime()

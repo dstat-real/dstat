@@ -9,12 +9,10 @@ class dstat_postfix(dstat):
         self.scale = 100
         self.vars = ('incoming', 'active', 'deferred', 'bounce', 'defer')
         self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
-        self.init(self.vars, 1)
 
     def check(self):
         if not os.access('/var/spool/postfix/active', os.R_OK):
             raise Exception, 'Cannot access postfix queues'
-        return True
 
     def extract(self):
         for item in self.vars:

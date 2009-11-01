@@ -9,15 +9,12 @@ class dstat_topoom(dstat):
         self.type = 's'
         self.width = 18
         self.scale = 0
-        self.nick = ('kill score',)
-        self.vars = self.nick
+        self.vars = ('kill score',)
         self.pid = str(os.getpid())
-        self.cn1 = {}; self.cn2 = {}; self.val = {}
 
     def check(self):
         if not os.access('/proc/self/oom_score', os.R_OK):
             raise Exception, 'Kernel does not support /proc/pid/oom_score, use at least 2.6.11.'
-        return True
 
     def extract(self):
         self.val['max'] = 0.0
@@ -55,8 +52,8 @@ class dstat_topoom(dstat):
         else:
             self.val['process'] = self.val['name']
 
-            ### Debug (show PID)
-#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+        ### Debug (show PID)
+#       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def show(self):
         if self.val['max'] == 0.0:

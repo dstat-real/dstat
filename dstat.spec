@@ -9,7 +9,7 @@
 
 Summary: Versatile resource statistics tool
 Name: dstat
-Version: 0.6.9svn
+Version: 0.7.0
 Release: 1
 License: GPL
 Group: System Environment/Base

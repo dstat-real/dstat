@@ -11,10 +11,7 @@ class dstat_vzcpu(dstat):
         self.scale = 34
         self.open('/proc/vz/vestat')
         self.nick = ('usr', 'sys', 'idl', 'nic')
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.name = self.name()
-        self.init(self.vars + ['total'], 4)
+        self.cols = 4
         info(1, 'Module dstat_vzcpu is still experimental.')
 
     def discover(self, *list):
@@ -47,16 +44,16 @@ class dstat_vzcpu(dstat):
         return ret
 
     def extract(self):
-        self.cn2['total'] = [0, 0, 0, 0]
+        self.set2['total'] = [0, 0, 0, 0]
         for line in self.splitlines():
             if len(l) < 6 or l[0] == 'VEID': continue
             name = l[0]
-            self.cn2[name] = ( long(l[1]), long(l[3]), long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), long(l[2]) )
-            self.cn2['total'] = ( self.cn2['total'][0] + long(l[1]), self.cn2['total'][1] + long(l[3]), self.cn2['total'][2] + long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), self.cn2['total'][3] + long(l[2]) )
+            self.set2[name] = ( long(l[1]), long(l[3]), long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), long(l[2]) )
+            self.set2['total'] = ( self.set2['total'][0] + long(l[1]), self.set2['total'][1] + long(l[3]), self.set2['total'][2] + long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), self.set2['total'][3] + long(l[2]) )
         for name in self.vars:
             for i in range(4):
-                self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
+                self.val[name][i] = 100.0 * (self.set2[name][i] - self.set1[name][i]) / (sum(self.set2[name]) - sum(self.set1[name]))
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 # vim:ts=4:sw=4:et

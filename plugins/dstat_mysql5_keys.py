@@ -16,14 +16,12 @@ class dstat_mysql5_keys(dstat):
         self.scale = 1000
         self.vars = ('Key_blocks_used', 'Key_reads', 'Key_writes', 'Key_read_requests', 'Key_write_requests')
         self.nick = ('used', 'read', 'writ', 'rreq', 'wreq')
-        self.init(self.vars, 1)
 
     def check(self): 
-            try:
-                self.db=MySQLdb.connect(user=mysql_user, passwd=mysql_pwd)
-            except:
-                raise Exception, 'Cannot interface with MySQL server'
-            return True
+        try:
+            self.db = MySQLdb.connect(user=mysql_user, passwd=mysql_pwd)
+        except:
+            raise Exception, 'Cannot interface with MySQL server'
 
     def extract(self):
         try:
@@ -33,13 +31,13 @@ class dstat_mysql5_keys(dstat):
             for line in lines:
                 if len(line[1]) < 2: continue
                 if line[0] in self.vars:
-                    self.cn2[line[0]] = float(line[1])
+                    self.set2[line[0]] = float(line[1])
 
             for name in self.vars:
-                self.val[name] = self.cn2[name] * 1.0 / tick
+                self.val[name] = self.set2[name] * 1.0 / tick
 
             if step == op.delay:
-                self.cn1.update(self.cn2)
+                self.set1.update(self.set2)
 
         except Exception, e:
             for name in self.vars:

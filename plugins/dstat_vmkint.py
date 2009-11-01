@@ -20,9 +20,7 @@ class dstat_vmkint(dstat):
         self.width = 4
         self.scale = 1000
 #       self.intmap = self.intmap()
-        self.vars = self.vars()
-        self.nick = self.vars
-        self.init(self.vars, 1)
+        info(1, 'The vmkint module is an EXPERIMENTAL module.')
 
 #   def intmap(self):
 #       ret = {}
@@ -76,14 +74,10 @@ class dstat_vmkint(dstat):
         return ret
 
     def check(self): 
-        info(1, 'The vmkint module is an EXPERIMENTAL module.')
-        ret = True
         try:
             os.listdir('/proc/vmware')
         except:
-            ret = False
             raise Exception, 'Needs VMware ESX'
-        return ret
 
     def extract(self):
         self.fd[0].seek(0)
@@ -92,12 +86,12 @@ class dstat_vmkint(dstat):
             if len(l) < self.vmkcpunr()+1: continue
             name = l[0].split(':')[0]
             if name in self.vars:
-                self.cn2[name] = 0
+                self.set2[name] = 0
                 for i in l[1:1+self.vmkcpunr()]:
-                    self.cn2[name] = self.cn2[name] + long(i)
-        for name in self.cn2.keys():
-            self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+                    self.set2[name] = self.set2[name] + long(i)
+        for name in self.set2.keys():
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 # vim:ts=4:sw=4

@@ -5,10 +5,7 @@ class dstat_vzubc(dstat):
         self.scale = 1000
         self.open('/proc/user_beancounters')
         self.nick = ('fcnt', )
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.name = self.name()
-        self.init(self.vars + ['total'], 1)
+        self.cols = 1 ### Is this correct ?
         info(1, 'Module dstat_vzubc is still experimental.')
 
     def discover(self, *list):
@@ -42,24 +39,24 @@ class dstat_vzubc(dstat):
 
     def extract(self):
         for name in self.vars + ['total']:
-            self.cn2[name] = 0
+            self.set2[name] = 0
         for l in self.splitlines():
             if len(l) < 6 or l[0] == 'uid':
                 continue
             elif len(l) == 7:
                 name = l[0][0:-1]
                 if name in self.vars:
-                    self.cn2[name] = self.cn2[name] + long(l[6])
-                self.cn2['total'] = self.cn2['total'] + long(l[6])
+                    self.set2[name] = self.set2[name] + long(l[6])
+                self.set2['total'] = self.set2['total'] + long(l[6])
             elif name == '0':
                 continue
             else:
                 if name in self.vars:
-                    self.cn2[name] = self.cn2[name] + long(l[5])
-                self.cn2['total'] = self.cn2['total'] + long(l[5])
+                    self.set2[name] = self.set2[name] + long(l[5])
+                self.set2['total'] = self.set2['total'] + long(l[5])
         for name in self.vars:
-            self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 # vim:ts=4:sw=4:et

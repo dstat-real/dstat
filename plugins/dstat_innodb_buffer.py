@@ -7,9 +7,8 @@ class dstat_innodb_buffer(dstat):
         self.type = 'f'
         self.width = 3
         self.scale = 1000
-        self.vars = ('read', 'created', 'written')
+        self.vars = ('created', 'read', 'written')
         self.nick = ('crt', 'rea', 'wri')
-        self.init(self.vars, 1)
 
     def check(self): 
         if os.access('/usr/bin/mysql', os.X_OK):
@@ -27,15 +26,15 @@ class dstat_innodb_buffer(dstat):
 
             if line:
                 l = line.split()
-                self.cn2['read'] = int(l[2].rstrip(','))
-                self.cn2['created'] = int(l[4].rstrip(','))
-                self.cn2['written'] = int(l[6])
+                self.set2['read'] = int(l[2].rstrip(','))
+                self.set2['created'] = int(l[4].rstrip(','))
+                self.set2['written'] = int(l[6])
 
             for name in self.vars:
-                self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+                self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
 
             if step == op.delay:
-                self.cn1.update(self.cn2)
+                self.set1.update(self.set2)
 
         except IOError, e:
             if op.debug: print 'dstat_innodb_buffer: lost pipe to mysql,', e

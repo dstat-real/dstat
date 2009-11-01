@@ -1,12 +1,8 @@
 class dstat_gpfs(dstat):
     def __init__(self):
         self.name = 'gpfs i/o'
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.vars = ('_br_', '_bw_')
         self.nick = ('read', 'write')
-        self.init(self.vars, 1)
 
     def check(self): 
         if os.access('/usr/lpp/mmfs/bin/mmpmon', os.X_OK):
@@ -27,9 +23,9 @@ class dstat_gpfs(dstat):
                 if not line: continue
                 l = line.split()
                 for name in self.vars:
-                    self.cn2[name] = long(l[l.index(name)+1])
+                    self.set2[name] = long(l[l.index(name)+1])
             for name in self.vars:
-                self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+                self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
         except IOError, e:
             for name in self.vars: self.val[name] = -1
 #           print 'dstat_gpfs: lost pipe to mmpmon,', e
@@ -38,6 +34,6 @@ class dstat_gpfs(dstat):
 #           print 'dstat_gpfs: exception', e
 
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 # vim:ts=4:sw=4:et

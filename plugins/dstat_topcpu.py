@@ -11,10 +11,9 @@ class dstat_topcpu(dstat):
         self.type = 's'
         self.width = 16
         self.scale = 0
-        self.nick = ('cpu process',)
-        self.vars = self.nick
+        self.vars = ('cpu process',)
         self.pid = str(os.getpid())
-        self.cn1 = {}; self.cn2 = {}; self.val = {}
+        self.pidset1 = {}; self.pidset2 = {}
 
     def extract(self):
         self.val['max'] = 0.0
@@ -31,11 +30,11 @@ class dstat_topcpu(dstat):
                 if len(l) < 15: continue
 
                 ### Reset previous value if it doesn't exist
-                if not self.cn1.has_key(pid):
-                    self.cn1[pid] = 0
+                if not self.pidset1.has_key(pid):
+                    self.pidset1[pid] = 0
 
-                self.cn2[pid] = int(l[13]) + int(l[14])
-                usage = (self.cn2[pid] - self.cn1[pid]) * 1.0 / tick / cpunr
+                self.pidset2[pid] = int(l[13]) + int(l[14])
+                usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / tick / cpunr
 
                 ### Is it a new topper ?
                 if usage < self.val['max']: continue
@@ -73,11 +72,11 @@ class dstat_topcpu(dstat):
 #                       self.val['name'] = os.path.basename(x)
 #                       break
 
-            ### Debug (show PID)
-#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+        ### Debug (show PID)
+#       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.pidset1.update(self.pidset2)
 
     def show(self):
         if self.val['max'] == 0.0:

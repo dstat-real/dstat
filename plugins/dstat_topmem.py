@@ -9,10 +9,8 @@ class dstat_topmem(dstat):
         self.type = 's'
         self.width = 16
         self.scale = 0
-        self.nick = ('memory process',)
-        self.vars = self.nick
+        self.vars = ('memory process',)
         self.pid = str(os.getpid())
-        self.cn1 = {}; self.cn2 = {}; self.val = {}
 
     def extract(self):
         self.val['max'] = 0.0
@@ -56,8 +54,8 @@ class dstat_topmem(dstat):
 #                       self.val['name'] = os.path.basename(x)
 #                       break
 
-            ### Debug (show PID)
-#           self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+        ### Debug (show PID)
+#       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def show(self):
         return '%s%-*s%s' % (ansi['default'], self.width-5, self.val['process'][0:self.width-5], cprint(self.val['max'], 'f', 5, 1024))

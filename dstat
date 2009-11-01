@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.6.9svn'
+VERSION = '0.7.0'
 
 theme = { 'default': '' }
 
@@ -308,20 +308,37 @@ class dstat:
     name = None
     nick = None
     type = 'f'
-    width = 4
-    scale = 1000
+    width = 5
+    scale = 1024
+    cols = 0
+#    val = {}
+#    set1 = {}
+#    set2 = {}
 
-    ### Initialise default variables
-    def init(self, vars=(), len=0):
-        if vars:
-            self.val = {}; self.cn1 = {}; self.cn2 = {}
-            for name in vars:
-                if len <= 1:
-                    self.val[name] = self.cn1[name] = self.cn2[name] = 0
-                else:
-                    self.val[name] = self.cn1[name] = self.cn2[name] = range(len)
-                    for i in range(len):
-                        self.val[name][i] = self.cn1[name][i] = self.cn2[name][i] = 0
+    def prepare(self):
+        if callable(self.discover):
+            self.discover = self.discover()
+        if callable(self.vars):
+            self.vars = self.vars()
+        if not self.vars:
+            raise Exception, 'No counter objects to monitor'
+        if callable(self.name):
+            self.name = self.name()
+        if callable(self.nick):
+            self.nick = self.nick()
+        if not self.nick:
+            self.nick = self.vars
+
+        self.val = {}; self.set1 = {}; self.set2 = {}
+        if self.cols <= 0:
+            for name in self.vars:
+                self.val[name] = self.set1[name] = self.set2[name] = 0
+        else:
+            for name in self.vars + [ 'total', ]:
+                self.val[name] = self.set1[name] = self.set2[name] = range(self.cols)
+                for i in range(self.cols):
+                    self.val[name][i] = self.set1[name][i] = self.set2[name][i] = 0
+#        print self.val
 
     def open(self, *filenames):
         "Open stat file descriptor"
@@ -333,7 +350,7 @@ class dstat:
                 self.file.append(filename)
                 self.fd.append(fd)
         if not self.fd:
-            raise Exception, 'Cannot open file %s.' % filename
+            raise Exception, 'Cannot open file %s' % filename
 
     def readlines(self):
         "Return lines from any file descriptor"
@@ -390,13 +407,13 @@ class dstat:
         ret = ''
         if isinstance(self.name, types.StringType):
             for i, nick in enumerate(self.nick):
-                ret = ret + theme['subtitle'] + nick.center(self.width) + theme['default']
+                ret = ret + theme['subtitle'] + nick[0:self.width].center(self.width) + theme['default']
                 if i + 1 != len(self.nick): ret = ret + char['space']
             return ret
         else:
             for i, name in enumerate(self.name):
                 for j, nick in enumerate(self.nick):
-                    ret = ret + theme['subtitle'] + nick.center(self.width) + theme['default']
+                    ret = ret + theme['subtitle'] + nick[0:self.width].center(self.width) + theme['default']
                     if j + 1 != len(self.nick): ret = ret + char['space']
                 if i + 1 != len(self.name): ret = ret + theme['frame'] + char['colon']
             return ret
@@ -504,7 +521,6 @@ class dstat_aio(dstat):
         self.open('/proc/sys/fs/aio-nr')
         self.nick = ('#aio',)
         self.vars = ('aio',)
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
@@ -518,10 +534,7 @@ class dstat_cpu(dstat):
         self.scale = 34
         self.open('/proc/stat')
         self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.name = self.name()
-        self.init(self.vars + ['total',], 6)
+        self.cols = 6
 
     def discover(self, *objlist):
         ret = []
@@ -530,15 +543,6 @@ class dstat_cpu(dstat):
             ret.append(l[0][3:])
         ret.sort()
         for item in objlist: ret.append(item)
-        return ret
-
-    def name(self):
-        ret = []
-        for name in self.vars:
-            if name == 'total':
-                ret.append('total cpu usage')
-            else:
-                ret.append('cpu' + name + ' usage')
         return ret
 
     def vars(self):
@@ -559,21 +563,30 @@ class dstat_cpu(dstat):
                 ret.append(name)
         return ret
 
+    def name(self):
+        ret = []
+        for name in self.vars:
+            if name == 'total':
+                ret.append('total cpu usage')
+            else:
+                ret.append('cpu' + name + ' usage')
+        return ret
+
     def extract(self):
         for l in self.splitlines():
             if len(l) < 8: continue
             for name in self.vars:
                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
-                    self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
+                    self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
         for name in self.vars:
             for i in range(6):
-                if sum(self.cn2[name]) > sum(self.cn1[name]):
-                    self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
+                if sum(self.set2[name]) > sum(self.set1[name]):
+                    self.val[name][i] = 100.0 * (self.set2[name][i] - self.set1[name][i]) / (sum(self.set2[name]) - sum(self.set1[name]))
                 else:
                     self.val[name][i] = 0
 #                    print >>sys.stderr, "Error: tick problem detected, this should never happen !"
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_cpu24(dstat):
     def __init__(self):
@@ -582,19 +595,7 @@ class dstat_cpu24(dstat):
         self.scale = 34
         self.open('/proc/stat')
         self.nick = ( 'usr', 'sys', 'idl')
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.name = self.name()
-        self.init(self.vars + ['total',], 3)
-
-    def name(self):
-        ret = []
-        for name in self.vars:
-            if name:
-                ret.append('cpu' + name)
-            else:
-                ret.append('cpu total')
-        return ret
+        self.cols = 3
 
     def discover(self, *objlist):
         ret = []
@@ -623,29 +624,32 @@ class dstat_cpu24(dstat):
                 ret.append(name)
         return ret
 
+    def name(self):
+        ret = []
+        for name in self.vars:
+            if name:
+                ret.append('cpu' + name)
+            else:
+                ret.append('cpu total')
+        return ret
+
     def extract(self):
         for l in self.splitlines():
             for name in self.vars:
                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
-                    self.cn2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]) )
+                    self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]) )
         for name in self.vars:
             for i in range(3):
-                self.val[name][i] = 100.0 * (self.cn2[name][i] - self.cn1[name][i]) / (sum(self.cn2[name]) - sum(self.cn1[name]))
+                self.val[name][i] = 100.0 * (self.set2[name][i] - self.set1[name][i]) / (sum(self.set2[name]) - sum(self.set1[name]))
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_disk(dstat):
     def __init__(self):
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)$')
         self.open('/proc/diskstats')
         self.nick = ('read', 'writ')
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.name = ['dsk/'+name for name in self.vars]
-        self.init(self.vars + ['total',], 2)
+        self.cols = 2
 
     def discover(self, *objlist):
         ret = []
@@ -679,44 +683,41 @@ class dstat_disk(dstat):
                 ret.append(name)
         return ret
 
+    def name(self):
+        return ['dsk/'+name for name in self.vars]
+
     def extract(self):
-        for name in self.vars: self.cn2[name] = (0, 0)
+        for name in self.vars: self.set2[name] = (0, 0)
         for l in self.splitlines():
             if len(l) < 13: continue
             if l[5] == '0' and l[9] == '0': continue
             name = l[2]
             if l[3:] == ['0',] * 11: continue
             if not self.diskfilter.match(name):
-                self.cn2['total'] = ( self.cn2['total'][0] + long(l[5]), self.cn2['total'][1] + long(l[9]) )
+                self.set2['total'] = ( self.set2['total'][0] + long(l[5]), self.set2['total'][1] + long(l[9]) )
             if name in self.vars and name != 'total':
-                self.cn2[name] = ( self.cn2[name][0] + long(l[5]), self.cn2[name][1] + long(l[9]) )
+                self.set2[name] = ( self.set2[name][0] + long(l[5]), self.set2[name][1] + long(l[9]) )
             for diskset in self.vars:
                 if diskset in op.diskset.keys():
                     for disk in op.diskset[diskset]:
                         if re.match('^'+disk+'$', name):
-                            self.cn2[diskset] = ( self.cn2[diskset][0] + long(l[5]), self.cn2[diskset][1] + long(l[9]) )
-        for name in self.cn2.keys():
+                            self.set2[diskset] = ( self.set2[diskset][0] + long(l[5]), self.set2[diskset][1] + long(l[9]) )
+        for name in self.set2.keys():
             self.val[name] = (
-                (self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
-                (self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
+                (self.set2[name][0] - self.set1[name][0]) * 512.0 / tick,
+                (self.set2[name][1] - self.set1[name][1]) * 512.0 / tick,
             )
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_disk24(dstat):
     def __init__(self):
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/partitions')
         self.nick = ('read', 'writ')
-        self.discover = self.discover()
-        self.vars = self.vars()
         if self.fd and not self.discover:
             raise Exception, 'Kernel is not compiled with CONFIG_BLK_STATS'
-        self.name = ['dsk/'+sysfs_dev(name) for name in self.vars]
-        self.init(self.vars + ['total',], 2)
+        self.cols = 2
 
     def discover(self, *objlist):
         ret = []
@@ -747,42 +748,39 @@ class dstat_disk24(dstat):
                 ret.append(name)
         return ret
 
+    def name(self):
+        return ['dsk/'+sysfs_dev(name) for name in self.vars]
+
     def extract(self):
-        for name in self.vars: self.cn2[name] = (0, 0)
+        for name in self.vars: self.set2[name] = (0, 0)
         for l in self.splitlines():
             if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
             name = l[3]
             if not self.diskfilter.match(name):
-                self.cn2['total'] = ( self.cn2['total'][0] + long(l[6]), self.cn2['total'][1] + long(l[10]) )
+                self.set2['total'] = ( self.set2['total'][0] + long(l[6]), self.set2['total'][1] + long(l[10]) )
             if name in self.vars:
-                self.cn2[name] = ( self.cn2[name][0] + long(l[6]), self.cn2[name][1] + long(l[10]) )
+                self.set2[name] = ( self.set2[name][0] + long(l[6]), self.set2[name][1] + long(l[10]) )
             for diskset in self.vars:
                 if diskset in op.diskset.keys():
                     for disk in op.diskset[diskset]:
                         if re.match('^'+disk+'$', name):
-                            self.cn2[diskset] = ( self.cn2[diskset][0] + long(l[6]), self.cn2[diskset][1] + long(l[10]) )
-        for name in self.cn2.keys():
+                            self.set2[diskset] = ( self.set2[diskset][0] + long(l[6]), self.set2[diskset][1] + long(l[10]) )
+        for name in self.set2.keys():
             self.val[name] = (
-                (self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
-                (self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
+                (self.set2[name][0] - self.set1[name][0]) * 512.0 / tick,
+                (self.set2[name][1] - self.set1[name][1]) * 512.0 / tick,
             )
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 ### FIXME: Needs rework, does anyone care ?
 class dstat_disk24old(dstat):
     def __init__(self):
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/stat')
         self.nick = ('read', 'writ')
         self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.name = ['dsk/'+name for name in self.vars]
-        self.init(self.vars + ['total',], 2)
+        self.cols = 2
 
     def discover(self, *objlist):
         ret = []
@@ -821,8 +819,11 @@ class dstat_disk24old(dstat):
                 ret.append(name)
         return ret
 
+    def name(self):
+        return ['dsk/'+name for name in self.vars]
+
     def extract(self):
-        for name in self.vars: self.cn2[name] = (0, 0)
+        for name in self.vars: self.set2[name] = (0, 0)
         for line in self.splitlines(':'):
             if len(l) < 3: continue
             name = l[0]
@@ -834,44 +835,39 @@ class dstat_disk24old(dstat):
                 if len(l) < 4: continue
                 name = dev(int(l[0]), int(l[1]))
                 if not self.diskfilter.match(name):
-                    self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[3]) )
+                    self.set2['total'] = ( self.set2['total'][0] + long(l[2]), self.set2['total'][1] + long(l[3]) )
                 if name in self.vars and name != 'total':
-                    self.cn2[name] = ( self.cn2[name][0] + long(l[2]), self.cn2[name][1] + long(l[3]) )
+                    self.set2[name] = ( self.set2[name][0] + long(l[2]), self.set2[name][1] + long(l[3]) )
                 for diskset in self.vars:
                     if diskset in op.diskset.keys():
                         for disk in op.diskset[diskset]:
                             if re.match('^'+disk+'$', name):
-                                self.cn2[diskset] = ( self.cn2[diskset][0] + long(l[2]), self.cn2[diskset][1] + long(l[3]) )
+                                self.set2[diskset] = ( self.set2[diskset][0] + long(l[2]), self.set2[diskset][1] + long(l[3]) )
             break
-        for name in self.cn2.keys():
+        for name in self.set2.keys():
             self.val[name] = (
-                (self.cn2[name][0] - self.cn1[name][0]) * 512.0 / tick,
-                (self.cn2[name][1] - self.cn1[name][1]) * 512.0 / tick,
+                (self.set2[name][0] - self.set1[name][0]) * 512.0 / tick,
+                (self.set2[name][1] - self.set1[name][1]) * 512.0 / tick,
             )
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_epoch(dstat):
     def __init__(self):
         self.name = 'epoch'
-        self.type = 't'
+        self.type = 's'
         self.width = 10
         self.scale = 0
         if op.debug:
-            self.type = 't'
-        self.width = 14
+            self.width = 13
         self.scale = 0
         self.nick = ('epoch',)
         self.vars = self.nick
-        self.init(self.vars, 1)
 
     ### We are now using the starttime instead of the execution time of this plugin
     def extract(self):
 #        self.val['epoch'] = time.time()
         self.val['epoch'] = starttime
-
-#   def show(self):
-#       return ansi['reset'] + ( '%10.2f' % self.val['epoch'] )
 
 class dstat_fs(dstat):
     def __init__(self):
@@ -881,7 +877,6 @@ class dstat_fs(dstat):
         self.scale = 1000
         self.nick = ('files', 'inodes')
         self.vars = self.nick
-        self.init(self.vars, 1)
 
     def extract(self):
         for line in dopen('/proc/sys/fs/file-nr'):
@@ -900,11 +895,7 @@ class dstat_int(dstat):
         self.width = 5
         self.scale = 1000
         self.open('/proc/stat')
-        self.discover = self.discover()
         self.intmap = self.intmap()
-        self.vars = self.vars()
-        self.nick = self.vars
-        self.init(self.vars + ['total',], 1)
 
     def intmap(self):
         ret = {}
@@ -956,12 +947,12 @@ class dstat_int(dstat):
             if not l or l[0] != 'intr': continue
             for name in self.vars:
                 if name != 'total':
-                    self.cn2[name] = long(l[int(name) + 2])
-            self.cn2['total'] = long(l[1])
+                    self.set2[name] = long(l[int(name) + 2])
+            self.set2['total'] = long(l[1])
         for name in self.vars:
-            self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_int24(dstat):
     def __init__(self):
@@ -970,10 +961,6 @@ class dstat_int24(dstat):
         self.width = 5
         self.scale = 1000
         self.open('/proc/interrupts')
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.nick = self.vars
-        self.init(self.vars, 1)
 
     def intmap(self):
         ret = {}
@@ -1025,17 +1012,17 @@ class dstat_int24(dstat):
             if len(l) < cpunr+1: continue
             name = l[0].split(':')[0]
             if name in self.vars:
-                self.cn2[name] = 0
+                self.set2[name] = 0
                 for i in l[1:1+cpunr]:
-                    self.cn2[name] = self.cn2[name] + long(i)
+                    self.set2[name] = self.set2[name] + long(i)
 #           elif len(l) > 2 + cpunr:
 #               for hw in self.vars:
 #                   for mod in l[2+cpunr:]:
-#                       self.cn2[mod] = long(l[1])
-        for name in self.cn2.keys():
-            self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+#                       self.set2[mod] = long(l[1])
+        for name in self.set2.keys():
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_io(dstat):
     def __init__(self):
@@ -1045,10 +1032,7 @@ class dstat_io(dstat):
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/diskstats')
         self.nick = ('read', 'writ')
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.name = ['io/'+name for name in self.vars]
-        self.init(self.vars + ['total',], 3)
+        self.cols = 3
 
     def discover(self, *objlist):
         ret = []
@@ -1082,29 +1066,32 @@ class dstat_io(dstat):
                 ret.append(name)
         return ret
 
+    def name(self):
+        return ['io/'+name for name in self.vars]
+
     def extract(self):
-        for name in self.vars: self.cn2[name] = (0, 0)
+        for name in self.vars: self.set2[name] = (0, 0)
         for l in self.splitlines():
             if len(l) < 13: continue
             if l[3] == '0' and l[7] == '0': continue
             name = l[2]
             if l[3:] == ['0',] * 11: continue
             if not self.diskfilter.match(name):
-                self.cn2['total'] = ( self.cn2['total'][0] + long(l[3]), self.cn2['total'][1] + long(l[7]) )
+                self.set2['total'] = ( self.set2['total'][0] + long(l[3]), self.set2['total'][1] + long(l[7]) )
             if name in self.vars and name != 'total':
-                self.cn2[name] = ( self.cn2[name][0] + long(l[3]), self.cn2[name][1] + long(l[7]) )
+                self.set2[name] = ( self.set2[name][0] + long(l[3]), self.set2[name][1] + long(l[7]) )
             for diskset in self.vars:
                 if diskset in op.diskset.keys():
                     for disk in op.diskset[diskset]:
                         if re.match('^'+disk+'$', name):
-                            self.cn2[diskset] = ( self.cn2[diskset][0] + long(l[3]), self.cn2[diskset][1] + long(l[7]) )
-        for name in self.cn2.keys():
+                            self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
+        for name in self.set2.keys():
             self.val[name] = (
-                (self.cn2[name][0] - self.cn1[name][0]) * 1.0 / tick,
-                (self.cn2[name][1] - self.cn1[name][1]) * 1.0 / tick,
+                (self.set2[name][0] - self.set1[name][0]) * 1.0 / tick,
+                (self.set2[name][1] - self.set1[name][1]) * 1.0 / tick,
             )
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_ipc(dstat):
     def __init__(self):
@@ -1114,7 +1101,6 @@ class dstat_ipc(dstat):
         self.scale = 10
         self.vars = ('msg', 'sem', 'shm')
         self.nick = self.vars
-        self.init(self.vars, 1)
 
     def extract(self):
         for name in self.vars:
@@ -1129,7 +1115,6 @@ class dstat_load(dstat):
         self.open('/proc/loadavg')
         self.nick = ('1m', '5m', '15m')
         self.vars = ('load1', 'load5', 'load15')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
@@ -1147,7 +1132,6 @@ class dstat_lock(dstat):
         self.open('/proc/locks')
         self.nick = ('pos', 'lck', 'rea', 'wri')
         self.vars = ('posix', 'flock', 'read', 'write')
-        self.init(self.vars, 1)
 
     def extract(self):
         for name in self.vars: self.val[name] = 0
@@ -1165,13 +1149,9 @@ class dstat_lock(dstat):
 class dstat_mem(dstat):
     def __init__(self):
         self.name = 'memory usage'
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.open('/proc/meminfo')
         self.nick = ('used', 'buff', 'cach', 'free')
         self.vars = ('MemUsed', 'Buffers', 'Cached', 'MemFree')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
@@ -1183,16 +1163,10 @@ class dstat_mem(dstat):
 
 class dstat_net(dstat):
     def __init__(self):
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.open('/proc/net/dev')
         self.nick = ('recv', 'send')
         self.totalfilter = re.compile('^(lo|bond[0-9]+|face|.+\.[0-9]+)$')
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.name = ['net/'+name for name in self.vars]
-        self.init(self.vars + ['total',], 2)
+        self.cols = 2
 
     def discover(self, *objlist):
         ret = []
@@ -1223,70 +1197,65 @@ class dstat_net(dstat):
             raise Exception, "No suitable network interfaces found to monitor"
         return ret
 
+    def name(self):
+        return ['net/'+name for name in self.vars]
+
     def extract(self):
-        self.cn2['total'] = [0, 0]
+        self.set2['total'] = [0, 0]
         for l in self.splitlines(replace=':'):
             if len(l) < 17: continue
             if l[2] == '0' and l[10] == '0': continue
             name = l[0]
             if name in self.vars :
-                self.cn2[name] = ( long(l[1]), long(l[9]) )
+                self.set2[name] = ( long(l[1]), long(l[9]) )
             if not self.totalfilter.match(name):
-                self.cn2['total'] = ( self.cn2['total'][0] + long(l[1]), self.cn2['total'][1] + long(l[9]))
+                self.set2['total'] = ( self.set2['total'][0] + long(l[1]), self.set2['total'][1] + long(l[9]))
         if update:
-            for name in self.cn2.keys():
+            for name in self.set2.keys():
                 self.val[name] = (
-                    (self.cn2[name][0] - self.cn1[name][0]) * 1.0 / tick,
-                    (self.cn2[name][1] - self.cn1[name][1]) * 1.0 / tick,
+                    (self.set2[name][0] - self.set1[name][0]) * 1.0 / tick,
+                    (self.set2[name][1] - self.set1[name][1]) * 1.0 / tick,
                  )
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_page(dstat):
     def __init__(self):
         self.name = 'paging'
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.open('/proc/vmstat')
         self.nick = ('in', 'out')
         self.vars = ('pswpin', 'pswpout')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
             if len(l) < 2: continue
             name = l[0]
             if name in self.vars:
-                self.cn2[name] = long(l[1])
+                self.set2[name] = long(l[1])
         for name in self.vars:
-            self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * pagesize * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_page24(dstat):
     def __init__(self):
         self.name = 'paging'
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.open('/proc/stat')
         self.nick = ('in', 'out')
         self.vars = ('pswpin', 'pswpout')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
             if len(l) < 3: continue
             name = l[0]
             if name != 'swap': continue
-            self.cn2['pswpin'] = long(l[1])
-            self.cn2['pswpout'] = long(l[2])
+            self.set2['pswpin'] = long(l[1])
+            self.set2['pswpout'] = long(l[2])
             break
         for name in self.vars:
-            self.val[name] = (self.cn2[name] - self.cn1[name]) * pagesize * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * pagesize * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_proc(dstat):
     def __init__(self):
@@ -1297,7 +1266,6 @@ class dstat_proc(dstat):
         self.open('/proc/stat')
         self.nick = ('run', 'blk', 'new')
         self.vars = ('procs_running', 'procs_blocked', 'processes')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
@@ -1305,18 +1273,18 @@ class dstat_proc(dstat):
             name = l[0]
             if name == 'processes':
                 self.val['processes'] = 0
-                self.cn2[name] = long(l[1])
+                self.set2[name] = long(l[1])
             elif name == 'procs_running':
-                self.cn2[name] = self.cn2[name] + long(l[1]) - 1
+                self.set2[name] = self.set2[name] + long(l[1]) - 1
             elif name == 'procs_blocked':
-                self.cn2[name] = self.cn2[name] + long(l[1])
-        self.val['processes'] = (self.cn2['processes'] - self.cn1['processes']) * 1.0 / tick
+                self.set2[name] = self.set2[name] + long(l[1])
+        self.val['processes'] = (self.set2['processes'] - self.set1['processes']) * 1.0 / tick
         for name in ('procs_running', 'procs_blocked'):
-            self.val[name] = self.cn2[name] * 1.0 / tick
+            self.val[name] = self.set2[name] * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
             for name in ('procs_running', 'procs_blocked'):
-                self.cn2[name] = 0
+                self.set2[name] = 0
 
 class dstat_raw(dstat):
     def __init__(self):
@@ -1327,7 +1295,6 @@ class dstat_raw(dstat):
         self.open('/proc/net/raw')
         self.nick = ('raw',)
         self.vars = ('sockets',)
-        self.init(self.vars, 1)
 
     def extract(self):
         lines = -1
@@ -1346,7 +1313,6 @@ class dstat_socket(dstat):
         self.open('/proc/net/sockstat')
         self.nick = ('tot', 'tcp', 'udp', 'raw', 'frg')
         self.vars = ('sockets:', 'TCP:', 'UDP:', 'RAW:', 'FRAG:')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
@@ -1357,15 +1323,9 @@ class dstat_socket(dstat):
 class dstat_swap(dstat):
     def __init__(self):
         self.name = 'swap'
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.open('/proc/swaps')
         self.nick = ('used', 'free')
-        self.discover = self.discover()
-        self.vars = self.vars()
-        self.name = ['swp/'+improve(name) for name in self.vars]
-        self.init(self.vars + ['total',], 2)
+        self.cols = 2
 
     def discover(self, *objlist):
         ret = []
@@ -1400,6 +1360,9 @@ class dstat_swap(dstat):
             raise Exception, "No suitable swap devices found to monitor"
         return ret
 
+    def name(self):
+        return ['swp/'+improve(name) for name in self.vars]
+
     def extract(self):
         self.val['total'] = [0, 0]
         for l in self.splitlines():
@@ -1411,13 +1374,9 @@ class dstat_swap(dstat):
 class dstat_swapold(dstat):
     def __init__(self):
         self.name = 'swap'
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.open('/proc/meminfo')
         self.nick = ('used', 'free')
         self.vars = ('SwapUsed', 'SwapFree')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
@@ -1436,18 +1395,17 @@ class dstat_sys(dstat):
         self.open('/proc/stat')
         self.nick = ('int', 'csw')
         self.vars = ('intr', 'ctxt')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
             if len(l) < 2: continue
             name = l[0]
             if name in self.vars:
-                self.cn2[name] = long(l[1])
+                self.set2[name] = long(l[1])
         for name in self.vars:
-            self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 class dstat_tcp(dstat):
     def __init__(self):
@@ -1458,7 +1416,6 @@ class dstat_tcp(dstat):
         self.open('/proc/net/tcp', '/proc/net/tcp6')
         self.nick = ('lis', 'act', 'syn', 'tim', 'clo')
         self.vars = ('listen', 'established', 'syn', 'wait', 'close')
-        self.init(self.vars, 1)
 
     def extract(self):
         for name in self.vars: self.val[name] = 0
@@ -1486,7 +1443,6 @@ class dstat_time(dstat):
         self.scale = 0
         self.nick = ('date/time',)
         self.vars = ('time',)
-        self.init(self.vars, 1)
 
     ### We are now using the starttime for this plugin, not the execution time of this plugin
     def extract(self):
@@ -1494,13 +1450,6 @@ class dstat_time(dstat):
             self.val['time'] = time.strftime(self.timefmt, time.localtime(starttime)) + ".%03d" % (round(starttime * 1000 % 1000 ))
         else:
             self.val['time'] = time.strftime(self.timefmt, time.localtime(starttime))
-
-    def show(self):
-        if step == op.delay:
-            color = 'text_lo'
-        else:
-            color = 'text_hi'
-        return theme[color] + self.val['time']
 
 class dstat_udp(dstat):
     def __init__(self):
@@ -1511,7 +1460,6 @@ class dstat_udp(dstat):
         self.open('/proc/net/udp', '/proc/net/udp6')
         self.nick = ('lis', 'act')
         self.vars = ('listen', 'established')
-        self.init(self.vars, 1)
 
     def extract(self):
         for name in self.vars: self.val[name] = 0
@@ -1528,7 +1476,6 @@ class dstat_unix(dstat):
         self.open('/proc/net/unix')
         self.nick = ('dgm', 'str', 'lis', 'act')
         self.vars = ('datagram', 'stream', 'listen', 'established')
-        self.init(self.vars, 1)
 
     def extract(self):
         for name in self.vars: self.val[name] = 0
@@ -1551,17 +1498,16 @@ class dstat_vm(dstat):
         self.open('/proc/vmstat')
         self.nick = ('majpf', 'minpf', 'alloc', 'free')
         self.vars = ('pgmajfault', 'pgfault', 'pgalloc_normal', 'pgfree')
-        self.init(self.vars, 1)
 
     def extract(self):
         for l in self.splitlines():
             if len(l) < 2: continue
             if l[0] not in self.vars: continue
-            self.cn2[l[0]] = long(l[1])
+            self.set2[l[0]] = long(l[1])
         for name in self.vars:
-            self.val[name] = (self.cn2[name] - self.cn1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)
 
 ### END STATS DEFINITIONS ###
 
@@ -1799,26 +1745,23 @@ def cprintlist(varlist, type, width, scale):
 
 def cprint(var, type = 'f', width = 4, scale = 1000):
     "Color print one column"
-    vartype = type
-    maxlen = width
-    mp = scale
 
     base = 1000
-    if mp == 1024:
+    if scale == 1024:
         base = 1024
 
     ### Use units when base is exact 1000 or 1024
     unit = False
-    if mp in (1000, 1024) and maxlen >= len(str(base)):
+    if scale in (1000, 1024) and width >= len(str(base)):
         unit = True
-        maxlen = maxlen - 1
+        width = width - 1
 
     ### If this is a negative value, return a dash
     if var < 0:
         if unit:
-            return theme['error'] + '-'.rjust(maxlen) + ' ' + theme['default']
+            return theme['error'] + '-'.rjust(width) + ' ' + theme['default']
         else:
-            return theme['error'] + '-'.rjust(maxlen) + theme['default']
+            return theme['error'] + '-'.rjust(width) + theme['default']
 
     if base == 1024:
         units = ('B', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
@@ -1827,43 +1770,40 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
 
     if step == op.delay:
         colors = theme['colors_lo']
-    else:
-        colors = theme['colors_hi']
-
-    ### Convert value to string given base and field-length
-    if op.integer and vartype in ('d', 'p', 'f'):
-        ret, c = dchg(var, maxlen, base)
-    elif vartype in ('d', 'p'):
-        ret, c = dchg(var, maxlen, base)
-    elif vartype in ('f'):
-        ret, c = fchg(var, maxlen, base)
-    elif vartype in ('t'):
-        ret, c = fchg(var, maxlen+1, base)
-    else:
-        ret, c = str(var), -1
-
-    if step == op.delay:
-        colors = theme['colors_lo']
         text = theme['text_lo']
     else:
         colors = theme['colors_hi']
         text = theme['text_hi']
 
+    ### Convert value to string given base and field-length
+    if op.integer and type in ('d', 'p', 'f'):
+        ret, c = dchg(var, width, base)
+    elif type in ('d', 'p'):
+        ret, c = dchg(var, width, base)
+    elif type in ('f'):
+        ret, c = fchg(var, width, base)
+    elif type in ('s'):
+        ret, c = str(var), text
+    elif type in ('t'):
+        ret, c = '%2dh%02d' % (var / 60, var % 60), text
+    else:
+        raise Exception, 'Type %s not known to dstat.' % type
+
     ### Set the counter color
     if ret == '0':
         color = text
-    elif vartype in ('d', 'p'):
-        color = colors[int(round(var)/mp)%len(colors)]
-    elif vartype in ('f'):
+    elif type in ('d', 'p'):
+        color = colors[int(round(var)/scale)%len(colors)]
+    elif type in ('f'):
         color = colors[c%len(colors)]
     else:
         color = text
 
     ### Justify value to left if string
-    if vartype in ('s',):
-        ret = color + ret.ljust(maxlen)
+    if type in ('s',):
+        ret = color + ret.ljust(width)
     else:
-        ret = color + ret.rjust(maxlen)
+        ret = color + ret.rjust(width)
 
     ### Add unit to output
     if unit:
@@ -2204,12 +2144,12 @@ def main():
                     ### Try loading python plugin
                     if description[0] in ('.py'):
                             execfile(pathname)
-                            exec 'o = dstat_%s()' % mod
+                            exec 'o = dstat_%s(); o.check(); o.prepare();' % mod
 
                     ### Try loading C plugin
                     elif description[0] == '.so':
                         exec 'import dstat_%s' % mod
-                        exec 'o = dstat_%s.new()' % mod
+                        exec 'o = dstat_%s.new(); o.check(); o.prepare();' % mod
 #                        exec 'o = dstat_%s.init(dstat)' % mod
 #                        print dir(o)
 #                        print o.__module__
@@ -2217,11 +2157,8 @@ def main():
                     else:
                         print >>sys.stderr, 'Module %s is of unknown type.' % mod
 
-                    ### Remove defect stat objects and calculate line length
-                    if not o.check():
-                        raise Exception, 'Unknown problem, please report'
                 else:
-                    exec 'o = dstat_%s()' % mod
+                    exec 'o = dstat_%s(); o.check(); o.prepare();' % mod
 #                print o.__module__
             except Exception, e:
                 if mod == mods[-1]:
@@ -2385,7 +2322,6 @@ def perform(update):
         ### Finish the line
         if not op.update:
             sys.stdout.write('\n')
-
 
 ### Main entrance
 if __name__ == '__main__':

@@ -11,19 +11,14 @@ mysql_pwd = os.getenv('DSTAT_MYSQL_PWD')
 class dstat_mysql5_io(dstat):
     def __init__(self):
         self.name = 'mysql5 io'
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.vars = ('Bytes_received', 'Bytes_sent')
         self.nick = ('recv', 'sent')
-        self.init(self.vars, 1)
 
     def check(self): 
-            try:
-                self.db=MySQLdb.connect(user=mysql_user, passwd=mysql_pwd)
-            except:
-                raise Exception, 'Cannot interface with MySQL server'
-            return True
+        try:
+            self.db = MySQLdb.connect(user=mysql_user, passwd=mysql_pwd)
+        except:
+            raise Exception, 'Cannot interface with MySQL server'
 
     def extract(self):
         try:
@@ -33,13 +28,13 @@ class dstat_mysql5_io(dstat):
             for line in lines:
                 if len(line[1]) < 2: continue
                 if line[0] in self.vars:
-                    self.cn2[line[0]] = float(line[1])
+                    self.set2[line[0]] = float(line[1])
 
             for name in self.vars:
-                self.val[name] = self.cn2[name] * 1.0 / tick
+                self.val[name] = self.set2[name] * 1.0 / tick
 
             if step == op.delay:
-                self.cn1.update(self.cn2)
+                self.set1.update(self.set2)
 
         except Exception, e:
             for name in self.vars:

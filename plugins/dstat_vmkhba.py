@@ -16,13 +16,9 @@ class dstat_vmkhba(dstat):
     def __init__(self):
         self.name = 'vmkhba'
         self.discover = self.discover()
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.nick = ('read', 'writ')
-        self.vars = self.vars()
-        self.name = self.vars
-        self.init(self.vars + ['total'], 2)
+        self.cols = 2
+        info(1, 'The vmkhba module is an EXPERIMENTAL module.')
 
     def discover(self, *list):
     # discover will list all vmhba's found.
@@ -57,18 +53,15 @@ class dstat_vmkhba(dstat):
         return ret
 
     def check(self): 
-        info(1, 'The vmkhba module is an EXPERIMENTAL module.')
-        ret = True
         try:
             os.listdir('/proc/vmware')
         except:
             raise Exception, 'Needs VMware ESX'
-        return ret
 
     def extract(self):
-        self.cn2['total'] = (0, 0)
+        self.set2['total'] = (0, 0)
         for name in self.vars:
-            self.cn2[name] = (0, 0)
+            self.set2[name] = (0, 0)
         for name in os.listdir('/proc/vmware/scsi/'):
             for line in dopen('/proc/vmware/scsi/%s/stats' % name).readlines():
                 l = line.split()
@@ -76,13 +69,13 @@ class dstat_vmkhba(dstat):
                 if l[0] == 'cmds': continue
                 if l[2] == '0' and l[4] == '0': continue
                 if l == ['0', ] * 13: continue
-                self.cn2['total'] = ( self.cn2['total'][0] + long(l[2]), self.cn2['total'][1] + long(l[4]) )
+                self.set2['total'] = ( self.set2['total'][0] + long(l[2]), self.set2['total'][1] + long(l[4]) )
                 if name in self.vars and name != 'total':
-                    self.cn2[name] = ( long(l[2]), long(l[4]) )
-            for name in self.cn2.keys():
+                    self.set2[name] = ( long(l[2]), long(l[4]) )
+            for name in self.set2.keys():
                 self.val[name] = (
-                    (self.cn2[name][0] - self.cn1[name][0]) * 1024.0 / tick,
-                    (self.cn2[name][1] - self.cn1[name][1]) * 1024.0 / tick
+                    (self.set2[name][0] - self.set1[name][0]) * 1024.0 / tick,
+                    (self.set2[name][1] - self.set1[name][1]) * 1024.0 / tick
                 )
         if step == op.delay:
-            self.cn1.update(self.cn2)
+            self.set1.update(self.set2)

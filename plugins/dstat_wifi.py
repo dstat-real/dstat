@@ -9,9 +9,8 @@ class dstat_wifi(dstat):
         self.scale = 33
         self.check()
         self.vars = iwlibs.getNICnames()
-        self.name = self.vars
         self.nick = ('lnk', 's/n')
-        self.init(self.vars, 2)
+        self.cols = 2
 
     def check(self): 
         global iwlibs
@@ -19,7 +18,6 @@ class dstat_wifi(dstat):
             from pythonwifi import iwlibs
         except:
             raise Exception, 'Needs python-wifi module'
-        return True
 
     def extract(self):
         for name in self.vars:

@@ -11,7 +11,6 @@ class dstat_dbus(dstat):
         self.scale = 100
         self.nick = ('sys', 'ses')
         self.vars = ('system', 'session')
-        self.init(self.vars, 1)
 
     def check(self): 
 #       dstat.info(1, 'The dbus module is an EXPERIMENTAL module.')
@@ -26,7 +25,6 @@ class dstat_dbus(dstat):
                     self.sesbus = None
             except:
                 raise Exception, 'Unable to connect to dbus message bus'
-            return True
         except:
             raise Exception, 'Needs python-dbus module'
 

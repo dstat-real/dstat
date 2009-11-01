@@ -5,17 +5,9 @@
 
 class dstat_freespace(dstat):
     def __init__(self):
-        self.type = 'f'
-        self.width = 5
-        self.scale = 1024
         self.open('/etc/mtab')
-        self.vars = self.vars()
-#       self.name = ['/' + os.path.basename(name) for name in self.vars]
-        self.name = []
-        for name in self.vars:
-            self.name.append('/' + os.path.basename(name))
         self.nick = ('used', 'free')
-        self.init(self.vars + ['total',], 2)
+        self.cols = 2
 
     def vars(self):
         ret = []
@@ -29,6 +21,9 @@ class dstat_freespace(dstat):
             if res[0] == 0: continue ### Skip zero block filesystems
             ret.append(name)
         return ret
+
+    def name(self):
+        return ['/' + os.path.basename(name) for name in self.vars]
 
     def extract(self):
         self.val['total'] = (0, 0)

@@ -21,7 +21,6 @@ class dstat_thermal(dstat):
                 self.nick.append(name.lower())
         else:
             raise Exception, 'Needs kernel ACPI or IBM-ACPI support'
-        self.init(self.vars, 1)
 
     def extract(self):
         if os.path.exists('/proc/acpi/ibm/thermal'):

@@ -4,10 +4,8 @@ class dstat_snooze(dstat):
         self.type = 's'
         self.width = 6
         self.scale = 0
-        self.nick = ('snooze',)
-        self.vars = self.nick
+        self.vars = ('snooze',)
         self.before = time.time()
-        self.init(self.vars, 1)
 
     def extract(self):
         now = time.time()

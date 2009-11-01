@@ -9,19 +9,20 @@ class dstat_battery(dstat):
         self.type = 'p'
         self.width = 4
         self.scale = 34
-        self.vars = []
+
+    def vars(self):
+        ret = []
         for battery in os.listdir('/proc/acpi/battery/'):
             for line in dopen('/proc/acpi/battery/'+battery+'/state').readlines():
                 l = line.split()
                 if len(l) < 2: continue
                 if l[0] == 'present:' and l[1] == 'yes':
-                    self.vars.append(battery)
-        self.vars.sort()
-#       self.nick = [name.lower() for name in self.vars]
-        self.nick = []
-        for name in self.vars:
-            self.nick.append(name.lower())
-        self.init(self.vars, 1)
+                    ret.append(battery)
+        ret.sort()
+        return ret
+
+    def nick(self):
+        return [name.lower() for name in self.vars]
 
     def extract(self):
         for battery in self.vars:

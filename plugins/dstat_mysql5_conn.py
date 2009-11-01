@@ -16,14 +16,12 @@ class dstat_mysql5_conn(dstat):
         self.scale = 1
         self.vars = ('Threads_connected', 'Threads')
         self.nick = ('ThCon', '%Con')
-        self.init(self.vars, 1)
 
     def check(self): 
-            try:
-                self.db=MySQLdb.connect(user=mysql_user, passwd=mysql_pwd)
-            except:
-                raise Exception, 'Cannot interface with MySQL server'
-            return True
+        try:
+            self.db = MySQLdb.connect(user=mysql_user, passwd=mysql_pwd)
+        except:
+            raise Exception, 'Cannot interface with MySQL server'
 
     def extract(self):
         try:
@@ -33,14 +31,14 @@ class dstat_mysql5_conn(dstat):
             c.execute("""show global status like 'Threads_connected';""")
             thread = c.fetchone()
             if thread[0] in self.vars:
-                    self.cn2[thread[0]] = float(thread[1])
-                    self.cn2['Threads'] = (float(thread[1]) / float(max[1]) * float(100)) 
+                    self.set2[thread[0]] = float(thread[1])
+                    self.set2['Threads'] = (float(thread[1]) / float(max[1]) * float(100)) 
 
             for name in self.vars:
-                self.val[name] = self.cn2[name] * 1.0 /tick
+                self.val[name] = self.set2[name] * 1.0 / tick
 
             if step == op.delay:
-                self.cn1.update(self.cn2)
+                self.set1.update(self.set2)
 
         except Exception, e:
             for name in self.vars:

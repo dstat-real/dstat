@@ -4,15 +4,18 @@ class dstat_fan(dstat):
         self.type = 'd'
         self.width = 4
         self.scale = 500
-        if os.path.exists('/proc/acpi/ibm/fan'):
-            for line in dopen('/proc/acpi/ibm/fan'):
-                l = line.split()
-                if l[0] == 'speed:':
-                    self.vars = ('speed',)
-            self.nick = self.vars
-        else:
+
+    def vars(self):
+        ret = None
+        for line in dopen('/proc/acpi/ibm/fan'):
+            l = line.split()
+            if l[0] == 'speed:':
+                ret = ('speed',)
+        return ret
+
+    def check(self):
+        if not os.path.exists('/proc/acpi/ibm/fan'):
             raise Exception, 'Needs kernel IBM-ACPI support'
-        self.init(self.vars, 1)
 
     def extract(self):
         if os.path.exists('/proc/acpi/ibm/fan'):
