@@ -29,7 +29,7 @@ docs-install:
 	$(MAKE) -C docs install
 
 clean:
-	rm -f dstat15.tr examples/*.pyc plugins/*.pyc
+	rm -f examples/*.pyc plugins/*.pyc
 	$(MAKE) -C docs clean
 
 dist: clean

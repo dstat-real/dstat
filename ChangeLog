@@ -15,7 +15,7 @@
 - Added external dstat_fan plugin to show fan speed
 - Added theming support (not exposed to users yet)
 - Added --bw/--blackonwhite option to use dark colors on white background
-- Allow any plugin to be added by long options (ie. --topbio)
+- Allow any plugin to be added by using long options (ie. --topbio)
 - Added external dstat_memcache_hits plugin to show memcache hits and misses (Dean Wilson)
 - Various changes to simplify plugin interface and performance improvements
 - This release was 'sponsored' by the Linux Foundation during the Japan Linux Symposium

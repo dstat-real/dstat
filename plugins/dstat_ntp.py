@@ -33,11 +33,8 @@ class dstat_ntp(dstat):
         self.socket.settimeout(0.25)
 
     def gettime(self):
-        try:
-            self.socket.sendto( '\x1b' + 47 * '\0', ( self.ntpserver, 123 ))
-            data, address = self.socket.recvfrom(1024)
-        except socket.timeout:
-            return 0
+        self.socket.sendto( '\x1b' + 47 * '\0', ( self.ntpserver, 123 ))
+        data, address = self.socket.recvfrom(1024)
         return struct.unpack( '!12I', data )[10] - self.epoch
 
     def check(self):
@@ -49,16 +46,12 @@ class dstat_ntp(dstat):
             raise Exception, 'Error connecting to NTP server %s.' % self.ntpserver
 
     def extract(self):
-        self.val['time'] = self.gettime()
+        try:
+            self.val['time'] = time.strftime(self.timefmt, time.localtime(self.gettime()))
+        except:
+            self.val['time'] = theme['error'] + '-'.rjust(self.width-1) + ' '
 
-    def show(self):
-        if step == op.delay:
-            color = 'gray'
-        else:
-            color = 'darkgray'
-        if self.val['time']:
-            return ansi[color] + time.strftime(self.timefmt, time.localtime(self.val['time']))
-        else:
-            return theme['error'] + '-'.rjust(self.width-1) + ' ' + theme['default']
+    def showcsv(self):
+        return time.strftime(self.timefmt, time.localtime(self.gettime()))
 
 # vim:ts=4:sw=4:et

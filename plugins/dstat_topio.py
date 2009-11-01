@@ -74,11 +74,10 @@ class dstat_topio(dstat):
             for pid in self.pidset2.keys():
                 self.pidset1[pid].update(self.pidset2[pid])
 
-    def show(self):
         if self.val['usage'] == 0.0:
-            return '%-*s' % (self.width, '')
+            self.val['i/o process'] = ''
         else:
-            return '%s%-*s%s:%s' % (ansi['default'], self.width-11, self.val['process'][0:self.width-11], cprint(self.val['read_usage'], 'f', 5, 1024), cprint(self.val['write_usage'], 'f', 5, 1024))
+            self.val['i/o process'] = '%-*s%s:%s' % (self.width-11, self.val['process'][0:self.width-11], cprint(self.val['read_usage'], 'f', 5, 1024), cprint(self.val['write_usage'], 'f', 5, 1024))
 
     def showcsv(self):
         return '%s / %d:%d' % (self.val['name'], self.val['read_usage'], self.val['write_usage'])

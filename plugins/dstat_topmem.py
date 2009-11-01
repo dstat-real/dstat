@@ -57,8 +57,7 @@ class dstat_topmem(dstat):
         ### Debug (show PID)
 #       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
-    def show(self):
-        return '%s%-*s%s' % (ansi['default'], self.width-5, self.val['process'][0:self.width-5], cprint(self.val['max'], 'f', 5, 1024))
+        self.val['memory process'] = '%-*s%s' % (self.width-5, self.val['process'][0:self.width-5], cprint(self.val['max'], 'f', 5, 1024))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])

@@ -78,11 +78,10 @@ class dstat_topcpu(dstat):
         if step == op.delay:
             self.pidset1.update(self.pidset2)
 
-    def show(self):
         if self.val['max'] == 0.0:
-            return '%-*s' % (self.width, '')
+            self.val['cpu process'] = ''
         else:
-            return '%s%-*s%s' % (theme['default'], self.width-3, self.val['process'][0:self.width-3], cprint(self.val['max'], 'p', 3, 34))
+            self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['process'][0:self.width-3], cprint(self.val['max'], 'p', 3, 34))
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])
