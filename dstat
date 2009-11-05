@@ -335,7 +335,9 @@ class dstat:
                 self.val[name] = self.set1[name] = self.set2[name] = 0
         else:
             for name in self.vars + [ 'total', ]:
-                self.val[name] = self.set1[name] = self.set2[name] = range(self.cols)
+                self.val[name] = range(self.cols)
+                self.set1[name] = range(self.cols)
+                self.set2[name] = range(self.cols)
                 for i in range(self.cols):
                     self.val[name][i] = self.set1[name][i] = self.set2[name][i] = 0
 #        print self.val
@@ -1631,7 +1633,8 @@ def dopen(filename):
     "Open a file for reuse, if already opened, return file descriptor"
     global fds
     if not os.path.exists(filename):
-        return None
+        raise 'File %s does not exist' % filename
+#        return None
     if 'fds' not in globals().keys():
         fds = {}
     if file not in fds.keys():

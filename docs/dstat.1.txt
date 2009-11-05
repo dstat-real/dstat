@@ -1,6 +1,6 @@
 = dstat(1)
 Dag Wieers <dag@wieers.com>
-v0.6.9, December 2006
+v0.7.0, November 2009
 
 
 == NAME
@@ -135,8 +135,8 @@ Possible internal stats are::
     load, lock, mem, net, page, page24, proc, raw, socket, swap, swapold,
     sys, tcp, time, udp, unix, vm
 
-Possible plugin stats can be listed using::
-    dstat --list
+--list::
+    list the internal and external plugin names
 
 -a, --all::
     equals -cdngy (default)
@@ -147,8 +147,8 @@ Possible plugin stats can be listed using::
 -v, --vmstat::
     equals -pmgdsc -D total
 
---list::
-    list the internal and external plugin names
+--bw, --blackonwhite::
+    change colors for white background terminal
 
 --integer::
     show integer values
@@ -192,16 +192,20 @@ Using dstat to relate disk-throughput with network-usage (eth0), total CPU-usage
 dstat -dnyc -N eth0 -C total -f 5
 ----
 
-Checking dstat's behaviour and the system's impact on dstat:
+Checking dstat's behaviour and the system impact of dstat:
 ----
 dstat -taf --debug
 ----
 
 Using the time plugin together with cpu, net, disk, system, load, proc and topcpu plugins:
 ----
-dstat -tcndylp -M topcpu
+dstat -tcndylp --topcpu
 ----
 this is identical to
+----
+dstat --time --cpu --net --disk --sys --load --proc --topcpu
+----
+and identical to
 ----
 dstat -M time,cpu,net,disk,sys,load,proc,topcpu
 ----
