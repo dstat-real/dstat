@@ -18,6 +18,9 @@
 - Allow any plugin to be added by using long options (ie. --topbio)
 - Added external dstat_memcache_hits plugin to show memcache hits and misses (Dean Wilson)
 - Various changes to simplify plugin interface and performance improvements
+- Added external dstat_proccount plugin to show total number of process (Dean Wilson)
+- Added external dstat_vzio plugin to show I/O account number per OpenVZ container
+- Added external dstat_battery_remain plugin to show how much battery time is remaining
 - This release was 'sponsored' by the Linux Foundation during the Japan Linux Symposium
 
 * 0.6.9 - Locarno - release 02/12/2008

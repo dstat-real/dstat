@@ -20,8 +20,8 @@
 
 class dstat_vzio(dstat):
     def __init__(self):
-        self.nick = ['read', 'write']
-        self.cols = 2
+        self.nick = ['read', 'write', 'dirty', 'cancel', 'missed']
+        self.cols = len(self.nick)
         info(1, 'Module dstat_vzio is still experimental.')
 
     def name(self):
@@ -35,6 +35,14 @@ class dstat_vzio(dstat):
             varlist = [os.path.basename(veid) for veid in glob.glob('/proc/vz/*')]
         ret = varlist
         return ret
+
+    def check(self):
+        if not os.path.exists('/proc/vz'):
+            raise Exception, 'System does not have OpenVZ support'
+        elif not os.path.exists('/proc/bc'):
+            raise Exception, 'System does not have (new) OpenVZ beancounter support'
+        elif not glob.glob('/proc/bc/*/ioacct'):
+            raise Exception, 'System does not have any OpenVZ containers'
 
     def extract(self):
         global update
@@ -50,10 +58,8 @@ class dstat_vzio(dstat):
                 self.set2['total'][index] = self.set2['total'][index] + long(l[1])
 #            print veid, self.val[veid], self.set2[veid][0], self.set2[veid][1]
 #            print veid, self.val[veid], self.set1[veid][0], self.set1[veid][1]
-            self.val[veid] = (
-                (self.set2[veid][0] - self.set1[veid][0]) / tick,
-                (self.set2[veid][1] - self.set1[veid][1]) / tick,
-            )
+            for i in range(len(self.nick)):
+                self.val[veid][i] = (self.set2[veid][i] - self.set1[veid][i]) / tick
         if step == op.delay:
             self.set1.update(self.set2)
 
