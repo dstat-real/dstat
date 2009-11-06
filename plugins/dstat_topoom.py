@@ -18,7 +18,7 @@ class dstat_topoom(dstat):
 
     def extract(self):
         self.val['max'] = 0.0
-        self.val['name'] = ''
+        self.val['kill score'] = ''
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -27,30 +27,28 @@ class dstat_topoom(dstat):
                 ### Filter out dstat
                 if pid == self.pid: continue
 
+                ### Extract name
+                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
+
                 ### Using dopen() will cause too many open files
                 l = open('/proc/%s/oom_score' % pid).read().split()
-                if len(l) < 1: continue
-                oom_score = int(l[0])
-
-                ### Is it a new topper ?
-                if oom_score <= self.val['max']: continue
-
-                ### Extract name
-                l = open('/proc/%s/stat' % pid).read().split()
-                name = l[1][1:-1]
 
             except ValueError:
                 continue
             except IOError:
                 continue
 
+            if len(l) < 1: continue
+            oom_score = int(l[0])
+
+            ### Is it a new topper ?
+            if oom_score <= self.val['max']: continue
+
             self.val['max'] = oom_score
             self.val['name'] = getnamebypid(pid, name)
             self.val['pid'] = pid
 
-        if self.val['max'] == 0.0:
-            self.val['kill score'] = ''
-        else:
+        if self.val['max'] != 0.0:
             self.val['kill score'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['max'], 'f', 4, 1000))
 
         ### Debug (show PID)

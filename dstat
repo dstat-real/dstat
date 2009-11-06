@@ -1903,13 +1903,15 @@ def getnamebypid(pid, name):
     ret = None
     try:
         cmdline = open('/proc/%s/cmdline' % pid).read().split('\0')
-        ret = os.path.basename(cmdline[0])
-        if ret in ('bash', 'csh', 'ksh', 'perl', 'python', 'ruby', 'sh')
-            ret = os.path.basename(cmdline[-2])
-            if ret.startswith('-'):
-                raise
+        ret = cmdline[0]
+        if ret in ('bash', 'csh', 'ksh', 'perl', 'python', 'ruby', 'sh'):
+            ret = cmdline[-2]
+            if ret.startswith('-'): raise
+        if not ret: raise
     except:
-        ret = os.path.basename(name)
+        ret = name
+    if ret.startswith('/'):
+        return os.path.basename(ret)
     return ret
 
 def getcpunr():

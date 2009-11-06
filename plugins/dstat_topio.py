@@ -19,7 +19,7 @@ class dstat_topio(dstat):
 
     def extract(self):
         self.val['usage'] = 0.0
-        self.val['name'] = ''
+        self.val['i/o process'] = ''
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -66,9 +66,7 @@ class dstat_topio(dstat):
             for pid in self.pidset2.keys():
                 self.pidset1[pid].update(self.pidset2[pid])
 
-        if self.val['usage'] == 0.0:
-            self.val['i/o process'] = ''
-        else:
+        if self.val['usage'] != 0.0:
             self.val['i/o process'] = '%-*s%s:%s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'f', 5, 1024), cprint(self.val['write_usage'], 'f', 5, 1024))
 
         ### Debug (show PID)

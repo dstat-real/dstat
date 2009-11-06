@@ -17,7 +17,7 @@ class dstat_topcpu(dstat):
 
     def extract(self):
         self.val['max'] = 0.0
-        self.val['name'] = ''
+        self.val['cpu process'] = ''
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -28,33 +28,31 @@ class dstat_topcpu(dstat):
 
                 ### Using dopen() will cause too many open files
                 l = open('/proc/%s/stat' % pid).read().split()
-                if len(l) < 15: continue
-
-                ### Reset previous value if it doesn't exist
-                if not self.pidset1.has_key(pid):
-                    self.pidset1[pid] = 0
-
-                self.pidset2[pid] = int(l[13]) + int(l[14])
-                usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / tick / cpunr
-
-                ### Is it a new topper ?
-                if usage <= self.val['max']: continue
-
-                ### Extract name
-                name = l[1][1:-1]
 
             except ValueError:
                 continue
             except IOError:
                 continue
 
+            if len(l) < 15: continue
+
+            ### Reset previous value if it doesn't exist
+            if not self.pidset1.has_key(pid):
+                self.pidset1[pid] = 0
+
+            self.pidset2[pid] = int(l[13]) + int(l[14])
+            usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / tick / cpunr
+
+            ### Is it a new topper ?
+            if usage < self.val['max']: continue
+
+            name = l[1][1:-1]
+
             self.val['max'] = usage
             self.val['pid'] = pid
             self.val['name'] = getnamebypid(pid, name)
 
-        if self.val['max'] == 0.0:
-            self.val['cpu process'] = ''
-        else:
+        if self.val['max'] != 0.0:
             self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['name'][0:self.width-3], cprint(self.val['max'], 'p', 3, 34))
 
         ### Debug (show PID)
