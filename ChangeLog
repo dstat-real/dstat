@@ -21,6 +21,7 @@
 - Added external dstat_proccount plugin to show total number of process (Dean Wilson)
 - Added external dstat_vzio plugin to show I/O account number per OpenVZ container
 - Added external dstat_battery_remain plugin to show how much battery time is remaining
+- Added getnamebypid() function to simplify finding bast process name by process id
 - This release was 'sponsored' by the Linux Foundation during the Japan Linux Symposium
 
 * 0.6.9 - Locarno - release 02/12/2008

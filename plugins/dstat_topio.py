@@ -19,6 +19,7 @@ class dstat_topio(dstat):
 
     def extract(self):
         self.val['usage'] = 0.0
+        self.val['name'] = ''
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -59,16 +60,7 @@ class dstat_topio(dstat):
                 self.val['read_usage'] = read_usage
                 self.val['write_usage'] = write_usage
                 self.val['pid'] = pid
-                self.val['name'] = name
-#                st = os.stat("/proc/%s" % pid)
-
-        if self.val['usage'] == 0.0:
-            self.val['process'] = ''
-        else:
-            self.val['process'] = os.path.basename(self.val['name'])
-
-        ### Debug (show PID)
-#       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+                self.val['name'] = getnamebypid(pid, name)
 
         if step == op.delay:
             for pid in self.pidset2.keys():
@@ -77,7 +69,10 @@ class dstat_topio(dstat):
         if self.val['usage'] == 0.0:
             self.val['i/o process'] = ''
         else:
-            self.val['i/o process'] = '%-*s%s:%s' % (self.width-11, self.val['process'][0:self.width-11], cprint(self.val['read_usage'], 'f', 5, 1024), cprint(self.val['write_usage'], 'f', 5, 1024))
+            self.val['i/o process'] = '%-*s%s:%s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'f', 5, 1024), cprint(self.val['write_usage'], 'f', 5, 1024))
+
+        ### Debug (show PID)
+#       self.val['i/o process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
         return '%s / %d:%d' % (self.val['name'], self.val['read_usage'], self.val['write_usage'])

@@ -17,6 +17,7 @@ class dstat_topcpu(dstat):
 
     def extract(self):
         self.val['max'] = 0.0
+        self.val['name'] = ''
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -37,7 +38,7 @@ class dstat_topcpu(dstat):
                 usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / tick / cpunr
 
                 ### Is it a new topper ?
-                if usage < self.val['max']: continue
+                if usage <= self.val['max']: continue
 
                 ### Extract name
                 name = l[1][1:-1]
@@ -48,40 +49,19 @@ class dstat_topcpu(dstat):
                 continue
 
             self.val['max'] = usage
-            self.val['name'] = name
             self.val['pid'] = pid
-#            st = os.stat("/proc/%s" % pid)
-#            if st:
-#                pw = pwd.getpwuid(st.st_uid)
-#                if pw:
-#                    self.val['user'] = pw[0]
-#                else:
-#                    self.val['user'] = stat.st_uid
-#            else:
-#                self.val['user'] = 'none'
-
-        if self.val['max'] == 0.0:
-            self.val['process'] = ''
-        else:
-            self.val['process'] = self.val['name']
-
-#               l = l.reverse()
-#               for x in l:
-#                   print x
-#                   if x[0] != '-':
-#                       self.val['name'] = os.path.basename(x)
-#                       break
-
-        ### Debug (show PID)
-#       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
-
-        if step == op.delay:
-            self.pidset1.update(self.pidset2)
+            self.val['name'] = getnamebypid(pid, name)
 
         if self.val['max'] == 0.0:
             self.val['cpu process'] = ''
         else:
-            self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['process'][0:self.width-3], cprint(self.val['max'], 'p', 3, 34))
+            self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['name'][0:self.width-3], cprint(self.val['max'], 'p', 3, 34))
+
+        ### Debug (show PID)
+#        self.val['cpu process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+
+        if step == op.delay:
+            self.pidset1.update(self.pidset2)
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])

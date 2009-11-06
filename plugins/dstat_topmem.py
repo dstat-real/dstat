@@ -14,6 +14,7 @@ class dstat_topmem(dstat):
 
     def extract(self):
         self.val['max'] = 0.0
+        self.val['process'] = ''
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -28,7 +29,7 @@ class dstat_topmem(dstat):
                 usage = int(l[23]) * pagesize
 
                 ### Is it a new topper ?
-                if usage < self.val['max']: continue
+                if usage <= self.val['max']: continue
 
                 ### Extract name
                 name = l[1][1:-1]
@@ -39,25 +40,13 @@ class dstat_topmem(dstat):
                 continue
 
             self.val['max'] = usage
-            self.val['name'] = name
+            self.val['name'] = getnamebypid(pid, name)
             self.val['pid'] = pid
 
-        if self.val['max'] == 0.0:
-            self.val['process'] = ''
-        else:
-            self.val['process'] = self.val['name']
-
-#               l = l.reverse()
-#               for x in l:
-#                   print x
-#                   if x[0] != '-':
-#                       self.val['name'] = os.path.basename(x)
-#                       break
+        self.val['memory process'] = '%-*s%s' % (self.width-5, self.val['name'][0:self.width-5], cprint(self.val['max'], 'f', 5, 1024))
 
         ### Debug (show PID)
-#       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
-
-        self.val['memory process'] = '%-*s%s' % (self.width-5, self.val['process'][0:self.width-5], cprint(self.val['max'], 'f', 5, 1024))
+#       self.val['memory process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])

@@ -1899,6 +1899,19 @@ def gettermcolor(color=True):
             return False
     return color
 
+def getnamebypid(pid, name):
+    ret = None
+    try:
+        cmdline = open('/proc/%s/cmdline' % pid).read().split('\0')
+        ret = os.path.basename(cmdline[0])
+        if ret in ('bash', 'csh', 'ksh', 'perl', 'python', 'ruby', 'sh')
+            ret = os.path.basename(cmdline[-2])
+            if ret.startswith('-'):
+                raise
+    except:
+        ret = os.path.basename(name)
+    return ret
+
 def getcpunr():
     "Return the number of CPUs in the system"
     cpunr = -1

@@ -18,6 +18,7 @@ class dstat_topoom(dstat):
 
     def extract(self):
         self.val['max'] = 0.0
+        self.val['name'] = ''
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -32,7 +33,7 @@ class dstat_topoom(dstat):
                 oom_score = int(l[0])
 
                 ### Is it a new topper ?
-                if oom_score < self.val['max']: continue
+                if oom_score <= self.val['max']: continue
 
                 ### Extract name
                 l = open('/proc/%s/stat' % pid).read().split()
@@ -44,21 +45,16 @@ class dstat_topoom(dstat):
                 continue
 
             self.val['max'] = oom_score
-            self.val['name'] = name
+            self.val['name'] = getnamebypid(pid, name)
             self.val['pid'] = pid
-
-        if self.val['max'] == 0.0:
-            self.val['process'] = ''
-        else:
-            self.val['process'] = self.val['name']
-
-        ### Debug (show PID)
-#       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
         if self.val['max'] == 0.0:
             self.val['kill score'] = ''
         else:
-            self.val['kill score'] = '%-*s%s' % (self.width-4, self.val['process'][0:self.width-4], cprint(self.val['max'], 'f', 4, 1000))
+            self.val['kill score'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['max'], 'f', 4, 1000))
+
+        ### Debug (show PID)
+#       self.val['kill score'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])
