@@ -453,8 +453,8 @@ class dstat:
 
     def check(self):
         "Check if stat is applicable"
-#       if hasattr(self, 'fd') and not self.fd:
-#           raise Exception, 'File %s does not exist' % self.file
+#        if hasattr(self, 'fd') and not self.fd:
+#            raise Exception, 'File %s does not exist' % self.fd
         if not self.vars:
             raise Exception, 'No objects found, no stats available'
         if not self.discover:
@@ -1633,7 +1633,7 @@ def dopen(filename):
     "Open a file for reuse, if already opened, return file descriptor"
     global fds
     if not os.path.exists(filename):
-        raise 'File %s does not exist' % filename
+        raise Exception, 'File %s does not exist' % filename
 #        return None
     if 'fds' not in globals().keys():
         fds = {}
@@ -2045,8 +2045,9 @@ def showmodules():
         if cols2 <= 0:
             print '\n\t',
             cols2 = cols - len(mod) - 10
-        print mod + ',',
-    print
+        if mod != modlist[-1]:
+            print mod+',',
+    print mod
     remod = re.compile('.+/dstat_(.+).py$')
     for path in sys.path:
         modlist = []
@@ -2061,8 +2062,9 @@ def showmodules():
             if cols2 <= 0:
                 print '\n\t',
                 cols2 = cols - len(mod) - 10
-            print mod + ',',
-        print
+            if mod != modlist[-1]:
+                print mod+',',
+        print mod
 
 def main():
     global pagesize, cpunr, ansi, theme, outputfile
