@@ -10,7 +10,7 @@ class dstat_toplatency(dstat):
     def __init__(self):
         self.name = 'highest latency'
         self.type = 's'
-        self.width = 22
+        self.width = 18
         self.scale = 0
         self.vars = ('process',)
         self.pid = str(os.getpid())
@@ -33,7 +33,7 @@ class dstat_toplatency(dstat):
 
                 ### Reset values
                 if not self.pidset1.has_key(pid):
-                    self.pidset1[pid] = {'run_ticks': 0, 'wait_ticks': 0, 'ran': 0}
+                    self.pidset1[pid] = {'wait_ticks': 0, 'ran': 0}
 
                 ### Extract name
                 name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
@@ -48,7 +48,7 @@ class dstat_toplatency(dstat):
 
             if len(l) != 3: continue
 
-            self.pidset2[pid] = {'run_ticks': long(l[0]), 'wait_ticks': long(l[1]), 'ran': long(l[2])}
+            self.pidset2[pid] = {'wait_ticks': long(l[1]), 'ran': long(l[2])}
 
             if self.pidset2[pid]['ran'] - self.pidset1[pid]['ran'] > 0:
                 avgwait = (self.pidset2[pid]['wait_ticks'] - self.pidset1[pid]['wait_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / tick
