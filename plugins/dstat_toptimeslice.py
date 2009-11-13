@@ -73,6 +73,6 @@ class dstat_toptimeslice(dstat):
 #       self.val['i/o process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
-        return '%s / %d' % (self.val['name'], self.val['topavgrun'], self.val['topavgrun'])
+        return '%s / %.4f' % (self.val['name'], self.val['topavgrun'])
 
 # vim:ts=4:sw=4:et
