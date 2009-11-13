@@ -15,6 +15,7 @@ class dstat_toplatency(dstat):
         self.vars = ('process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
+        info(1, 'Module dstat_toplatency is still experimental.')
 
     def check(self):
         if not os.access('/proc/self/schedstat', os.R_OK):
