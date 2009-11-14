@@ -7,7 +7,7 @@ class dstat_topmem(dstat):
     def __init__(self):
         self.name = 'most expensive'
         self.type = 's'
-        self.width = 16
+        self.width = 17
         self.scale = 0
         self.vars = ('memory process',)
         self.pid = str(os.getpid())

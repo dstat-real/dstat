@@ -67,7 +67,7 @@ class dstat_topbio(dstat):
                 self.pidset1[pid].update(self.pidset2[pid])
 
         if self.val['usage'] != 0.0:
-            self.val['block i/o process'] = '%-*s%s:%s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'f', 5, 1024), cprint(self.val['write_usage'], 'f', 5, 1024))
+            self.val['block i/o process'] = '%-*s%s:%s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
 
         ### Debug (show PID)
 #        self.val['block i/o process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])

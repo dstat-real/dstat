@@ -115,9 +115,9 @@ class Options:
             import getopt
             opts, args = getopt.getopt(args, 'acdfghilmno:prstTvyC:D:I:M:N:S:V',
                 ['all', 'bw', 'blackonwhite', 'debug', 'filesystem', 'full',
-                 'help', 'integer', 'list', 'mods', 'modules', 'nocolor',
-                 'noheaders', 'noupdate', 'output=', 'pidfile=', 'version',
-                 'vmstat'] + self.modules)
+                 'gonuts', 'help', 'integer', 'list', 'mods', 'modules',
+                 'nocolor', 'noheaders', 'noupdate', 'output=', 'pidfile=',
+                 'version', 'vmstat'] + self.modules)
         except getopt.error, exc:
             print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
             sys.exit(1)
@@ -175,6 +175,9 @@ class Options:
                 self.blackonwhite = True
             elif opt in ['--debug']:
                 self.debug = self.debug + 1
+            elif opt in ['--gonuts']:
+                ### Make list unique in a fancy fast way
+                self.modlist = {}.fromkeys(self.modules).keys()
             elif opt in ['--integer']:
                 self.integer = True
             elif opt in ['--list']:
@@ -347,10 +350,13 @@ class dstat:
         self.file = []
         self.fd = []
         for filename in filenames:
-            fd = dopen(filename)
-            if fd:
-                self.file.append(filename)
-                self.fd.append(fd)
+            try:
+                fd = dopen(filename)
+                if fd:
+                    self.file.append(filename)
+                    self.fd.append(fd)
+            except:
+                pass
         if not self.fd:
             raise Exception, 'Cannot open file %s' % filename
 
@@ -375,7 +381,10 @@ class dstat:
 
     def statwidth(self):
         "Return complete stat width"
-        return len(self.vars) * self.colwidth() + len(self.vars) - 1
+        if self.cols:
+            return len(self.vars) * self.colwidth() + len(self.vars) - 1
+        else:
+            return len(self.nick) * self.colwidth() + len(self.nick) - 1
 
     def colwidth(self):
         "Return column width"
@@ -393,11 +402,11 @@ class dstat:
     def title(self):
         ret = theme['title']
         if isinstance(self.name, types.StringType):
-            maxlen = self.statwidth()
-            return ret + self.name[0:maxlen].center(maxlen).replace(' ', '-') + theme['default']
+            width = self.statwidth()
+            return ret + self.name[0:width].center(width).replace(' ', '-') + theme['default']
         for i, name in enumerate(self.name):
-            maxlen = self.colwidth()
-            ret = ret + name[0:maxlen].center(maxlen).replace(' ', '-')
+            width = self.colwidth()
+            ret = ret + name[0:width].center(width).replace(' ', '-')
             if i + 1 != len(self.name):
                 if op.color:
                     ret = ret + theme['frame'] + char['dash'] + theme['title']
@@ -648,6 +657,7 @@ class dstat_cpu24(dstat):
 
 class dstat_disk(dstat):
     def __init__(self):
+        self.type = 'd'
         self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)$')
         self.open('/proc/diskstats')
         self.nick = ('read', 'writ')
@@ -714,6 +724,7 @@ class dstat_disk(dstat):
 
 class dstat_disk24(dstat):
     def __init__(self):
+        self.type = 'd'
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/partitions')
         self.nick = ('read', 'writ')
@@ -778,6 +789,7 @@ class dstat_disk24(dstat):
 ### FIXME: Needs rework, does anyone care ?
 class dstat_disk24old(dstat):
     def __init__(self):
+        self.type = 'd'
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/stat')
         self.nick = ('read', 'writ')
@@ -857,7 +869,6 @@ class dstat_disk24old(dstat):
 class dstat_epoch(dstat):
     def __init__(self):
         self.name = 'epoch'
-        self.type = 's'
         self.width = 10
         self.scale = 0
         if op.debug:
@@ -1113,7 +1124,7 @@ class dstat_load(dstat):
         self.name = 'load avg'
         self.type = 'f'
         self.width = 4
-        self.scale = 10
+        self.scale = 0.5
         self.open('/proc/loadavg')
         self.nick = ('1m', '5m', '15m')
         self.vars = ('load1', 'load5', 'load15')
@@ -1327,7 +1338,6 @@ class dstat_swap(dstat):
         self.name = 'swap'
         self.open('/proc/swaps')
         self.nick = ('used', 'free')
-        self.cols = 2
 
     def discover(self, *objlist):
         ret = []
@@ -1568,6 +1578,7 @@ char = {
     'gt': '>',
     'space': ' ',
     'dash': '-',
+    'plus': '+',
 }
 
 def set_theme():
@@ -1681,6 +1692,8 @@ def greppipe(fileobj, str, tmout = 0.001):
             return ret
         else:
             ret = ''
+    if op.debug:
+        raise Exception, 'Nothing found during greppipe data collection'
     return None
 
 def matchpipe(fileobj, string, tmout = 0.001):
@@ -1697,14 +1710,16 @@ def matchpipe(fileobj, string, tmout = 0.001):
             return ret
         else:
             ret = ''
+    if op.debug:
+        raise Exception, 'Nothing found during matchpipe data collection'
     return None
 
-def dchg(var, maxlen, base):
+def dchg(var, width, base):
     "Convert decimal to string given base and length"
     c = 0
     while True:
         ret = str(long(round(var)))
-        if len(ret) <= maxlen:
+        if len(ret) <= width:
             break
         var = var / base
         c = c + 1
@@ -1712,8 +1727,8 @@ def dchg(var, maxlen, base):
         c = -1
     return ret, c
 
-def fchg(var, maxlen, base):
-    "Convert float to string given base and length"
+def fchg(var, width, base):
+    "Convert float to string given scale and length"
     c = 0
     while True:
         if var == 0:
@@ -1721,12 +1736,12 @@ def fchg(var, maxlen, base):
             break
 #       ret = repr(round(var))
 #       ret = repr(long(round(var, maxlen)))
-        ret = str(long(round(var, maxlen)))
-        if len(ret) <= maxlen:
-            i = maxlen - len(ret)
+        ret = str(long(round(var, width)))
+        if len(ret) <= width:
+            i = width - len(ret) - 1
             while i > 0:
-                ret = ('%.'+str(i)+'f') % var
-                if len(ret) < maxlen and ret != repr(round(var)):
+                ret = ('%%.%df' % i) % var
+                if len(ret) <= width and ret != str(long(round(var, width))):
                     break
                 i = i - 1
             else:
@@ -1771,6 +1786,7 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     else:
         units = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 
+    zero = theme['text_hi']
     if step == op.delay:
         colors = theme['colors_lo']
         text = theme['text_lo']
@@ -1794,10 +1810,14 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
 
     ### Set the counter color
     if ret == '0':
+        color = zero
+    elif scale <= 0:
         color = text
-    elif type in ('d', 'p'):
+    elif scale not in (1000, 1024):
+        color = colors[int(var/scale)%len(colors)]
+    elif type in ('p'):
         color = colors[int(round(var)/scale)%len(colors)]
-    elif type in ('f'):
+    elif type in ('d', 'f'):
         color = colors[c%len(colors)]
     else:
         color = text
@@ -1899,19 +1919,25 @@ def gettermcolor(color=True):
             return False
     return color
 
+### We only want to filter out paths, not ksoftirqd/1
+def basename(name):
+    if name[0] in ('/', '.'):
+        return os.path.basename(name)
+    return name
+
 def getnamebypid(pid, name):
     ret = None
     try:
         cmdline = open('/proc/%s/cmdline' % pid).read().split('\0')
-        ret = cmdline[0]
+        ret = basename(cmdline[0])
         if ret in ('bash', 'csh', 'ksh', 'perl', 'python', 'ruby', 'sh'):
-            ret = cmdline[-2]
+            ret = basename(cmdline[1])
+        if ret.startswith('-'):
+            ret = basename(cmdline[-2])
             if ret.startswith('-'): raise
         if not ret: raise
     except:
-        ret = name
-    if ret.startswith('/'):
-        return os.path.basename(ret)
+        ret = basename(name)
     return ret
 
 def getcpunr():

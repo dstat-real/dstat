@@ -10,7 +10,7 @@ class dstat_toplatency(dstat):
     def __init__(self):
         self.name = 'highest latency'
         self.type = 's'
-        self.width = 18
+        self.width = 17
         self.scale = 0
         self.vars = ('process',)
         self.pid = str(os.getpid())
@@ -67,7 +67,7 @@ class dstat_toplatency(dstat):
                 self.pidset1[pid].update(self.pidset2[pid])
 
         if self.val['topavgwait'] != 0.0:
-            self.val['process'] = '%-*s%s' % (self.width-5, self.val['name'][0:self.width-5], cprint(self.val['topavgwait'], 'f', 5, 0.01))
+            self.val['process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['topavgwait'], 'f', 4, 10))
 
         ### Debug (show PID)
 #       self.val['i/o process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])

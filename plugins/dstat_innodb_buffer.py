@@ -11,13 +11,12 @@ class dstat_innodb_buffer(dstat):
         self.nick = ('crt', 'rea', 'wri')
 
     def check(self): 
-        if os.access('/usr/bin/mysql', os.X_OK):
-            try:
-                self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
-            except IOError:
-                raise Exception, 'Cannot interface with MySQL binary'
-            return True
-        raise Exception, 'Needs MySQL binary'
+        if not os.access('/usr/bin/mysql', os.X_OK):
+            raise Exception, 'Needs MySQL binary'
+        try:
+            self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
+        except IOError, e:
+            raise Exception, 'Cannot interface with MySQL binary (%s)' % e
 
     def extract(self):
         try:
@@ -37,11 +36,13 @@ class dstat_innodb_buffer(dstat):
                 self.set1.update(self.set2)
 
         except IOError, e:
-            if op.debug: print 'dstat_innodb_buffer: lost pipe to mysql,', e
+            if op.debug:
+                print 'dstat_innodb_buffer: lost pipe to mysql, ' + repr(e)
             for name in self.vars: self.val[name] = -1
 
         except Exception, e:
-            if op.debug: print 'dstat_innodb_buffer: exception', e
+            if op.debug:
+                print 'dstat_innodb_buffer: exception: ' + repr(e)
             for name in self.vars: self.val[name] = -1
 
 # vim:ts=4:sw=4:et

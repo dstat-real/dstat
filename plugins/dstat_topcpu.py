@@ -53,7 +53,7 @@ class dstat_topcpu(dstat):
             self.val['name'] = getnamebypid(pid, name)
 
         if self.val['max'] != 0.0:
-            self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['name'][0:self.width-3], cprint(self.val['max'], 'p', 3, 34))
+            self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['name'][0:self.width-3], cprint(self.val['max'], 'f', 3, 34))
 
         ### Debug (show PID)
 #        self.val['cpu process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
