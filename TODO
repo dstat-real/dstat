@@ -18,6 +18,18 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Show parts of counters in other colors (eg. color the 6 in 6134B in yellow to indicate it's kilobyte)
 + Look into adding sched_setscheduler() calls for improved priority
 
+### General improvements
++ Base debug runtime stats on schedstat of own pid (when possible), make plugin out of it
++ Implement better (?) protection against counter rollovers (see mail from Sebastien Prud'homme)
+
+### Documentation (help welcome!)
++ Document every plugin as part of python comments (explain unit, what it means etc...)
++ Create document on general system performance tuning
+  (explaining the different values in /proc, especially the concerning ones)
++ Create document on general system performance tools
+  (explaining the different uses of tools like dstat, iostat, pmap, strace, tcpdump)
++ Comply to PEP8: http://www.python.org/dev/peps/pep-0008/
+
 ### Export/Graph
 + Interface with rrdtool (python-rrd ?)
 + Allow for different types of export modules (only CSV now)
@@ -46,16 +58,6 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Add 'most expensive io app' based on /proc/pid/io (topio_ops)
 + Allow to have multiple '1st expensive ... app' and '2nd expensive ... app'
 + Add 'most iowaiting app' plugin
-
-### Documentation (help welcome!)
-+ Create document on general system performance tuning
-  (explaining the different values in /proc, especially the concerning ones)
-+ Create document on general system performance tools
-  (explaining the different uses of tools like dstat, iostat, pmap, strace, tcpdump)
-+ Comply to PEP8: http://www.python.org/dev/peps/pep-0008/
-
-### General issues
-+ Implement better (?) protection against counter rollovers (see mail from Sebastien Prud'homme)
 
 ### Plugin issues
 + plugins that use /proc/pid are reasonably slow (implement in C and cache file-content between plugins)

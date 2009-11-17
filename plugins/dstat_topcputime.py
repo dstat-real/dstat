@@ -6,23 +6,23 @@
 ### For more information, see:
 ###     http://eaglet.rain.com/rick/linux/schedstat/
 
-class dstat_toptimeslice(dstat):
+class dstat_topcputime(dstat):
     def __init__(self):
-        self.name = 'highest timeslice'
+        self.name = 'highest total'
         self.type = 's'
         self.width = 17
         self.scale = 0
-        self.vars = ('process',)
+        self.vars = ('cputime process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
-        info(1, 'Module dstat_toptimeslice is still experimental.')
+        info(1, 'Module dstat_topcputime is still experimental.')
 
     def check(self):
         if not os.access('/proc/self/schedstat', os.R_OK):
             raise Exception, 'Kernel has no scheduler statistics, use at least 2.6.12'
 
     def extract(self):
-        self.val['topavgrun'] = 0
+        self.val['result'] = 0
         self.val['process'] = ''
         for pid in os.listdir('/proc/'):
             try:
@@ -34,7 +34,7 @@ class dstat_toptimeslice(dstat):
 
                 ### Reset values
                 if not self.pidset1.has_key(pid):
-                    self.pidset1[pid] = {'run_ticks': 0, 'ran': 0}
+                    self.pidset1[pid] = {'run_ticks': 0}
 
                 ### Extract name
                 name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
@@ -49,16 +49,13 @@ class dstat_toptimeslice(dstat):
 
             if len(l) != 3: continue
 
-            self.pidset2[pid] = {'run_ticks': long(l[0]), 'ran': long(l[2])}
+            self.pidset2[pid] = {'run_ticks': long(l[0])}
 
-            if self.pidset2[pid]['ran'] - self.pidset1[pid]['ran'] > 0:
-                avgrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / tick
-            else:
-                avgrun = 0
+            totrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / tick
 
             ### Get the process that spends the most jiffies
-            if avgrun > self.val['topavgrun']:
-                self.val['topavgrun'] = avgrun
+            if totrun > self.val['result']:
+                self.val['result'] = totrun
                 self.val['pid'] = pid
                 self.val['name'] = getnamebypid(pid, name)
 
@@ -66,13 +63,13 @@ class dstat_toptimeslice(dstat):
             for pid in self.pidset2.keys():
                 self.pidset1[pid].update(self.pidset2[pid])
 
-        if self.val['topavgrun'] != 0.0:
-            self.val['process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['topavgrun'], 'f', 4, 1))
+        if self.val['result'] != 0.0:
+            self.val['cputime process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['result'], 'f', 4, 10))
 
         ### Debug (show PID)
-#       self.val['i/o process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+#       self.val['cputime process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
-        return '%s / %.4f' % (self.val['name'], self.val['topavgrun'])
+        return '%s / %.4f' % (self.val['name'], self.val['result'])
 
 # vim:ts=4:sw=4:et

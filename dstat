@@ -2102,7 +2102,7 @@ def main():
     interval = 1
 
     user = getpass.getuser()
-    hostname = os.uname()[1].split('.')[0]
+    hostname = os.uname()[1]
 
     ### Disable line-wrapping (does not work ?)
     sys.stdout.write('\033[7l')

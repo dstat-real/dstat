@@ -6,16 +6,16 @@
 ### For more information, see:
 ###     http://eaglet.rain.com/rick/linux/schedstat/
 
-class dstat_toplatency(dstat):
+class dstat_topavgcputime(dstat):
     def __init__(self):
-        self.name = 'highest total'
+        self.name = 'highest average'
         self.type = 's'
         self.width = 17
         self.scale = 0
-        self.vars = ('latency process',)
+        self.vars = ('cputime process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
-        info(1, 'Module dstat_toplatency is still experimental.')
+        info(1, 'Module dstat_toptimeslice is still experimental.')
 
     def check(self):
         if not os.access('/proc/self/schedstat', os.R_OK):
@@ -34,7 +34,7 @@ class dstat_toplatency(dstat):
 
                 ### Reset values
                 if not self.pidset1.has_key(pid):
-                    self.pidset1[pid] = {'wait_ticks': 0}
+                    self.pidset1[pid] = {'run_ticks': 0, 'ran': 0}
 
                 ### Extract name
                 name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
@@ -49,13 +49,16 @@ class dstat_toplatency(dstat):
 
             if len(l) != 3: continue
 
-            self.pidset2[pid] = {'wait_ticks': long(l[1])}
+            self.pidset2[pid] = {'run_ticks': long(l[0]), 'ran': long(l[2])}
 
-            totwait = (self.pidset2[pid]['wait_ticks'] - self.pidset1[pid]['wait_ticks']) * 1.0 / tick
+            if self.pidset2[pid]['ran'] - self.pidset1[pid]['ran'] > 0:
+                avgrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / tick
+            else:
+                avgrun = 0
 
             ### Get the process that spends the most jiffies
-            if totwait > self.val['result']:
-                self.val['result'] = totwait
+            if avgrun > self.val['result']:
+                self.val['result'] = avgrun
                 self.val['pid'] = pid
                 self.val['name'] = getnamebypid(pid, name)
 
@@ -64,10 +67,10 @@ class dstat_toplatency(dstat):
                 self.pidset1[pid].update(self.pidset2[pid])
 
         if self.val['result'] != 0.0:
-            self.val['latency process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['result'], 'f', 4, 10))
+            self.val['cputime process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['result'], 'f', 4, 10))
 
         ### Debug (show PID)
-#       self.val['latency process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+#       self.val['cputime process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
         return '%s / %.4f' % (self.val['name'], self.val['result'])
