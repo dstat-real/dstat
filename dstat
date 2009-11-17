@@ -2309,29 +2309,32 @@ def perform(update):
         else:
             vislist = totlist
 
-        ### The first step is to show the definitive line if necessary
-        if op.update:
-            if step == 1 and update != 0:
-                sys.stdout.write('\n' + ansi['reset'] + ansi['clearline'] + ansi['save'])
-            elif loop != 0:
-                sys.stdout.write(ansi['restore'])
-
-        ### Display header
-        if showheader:
-            if loop == 0 and totlist != vislist:
-                print >>sys.stderr, 'Terminal width too small, trimming output.'
-            showheader = False
-            showtitle(1, totlist, vislist, theme['frame'] + char['space'], theme['title'] + char['gt'])
-            showtitle(2, totlist, vislist, theme['frame'] + char['pipe'], theme['title'] + char['gt'])
-
         ### Prepare the colors for intermediate updates, last step in a loop is definitive
         if step == op.delay:
             theme['default'] = ansi['reset']
         else:
             theme['default'] = theme['text_lo']
 
+        ### The first step is to show the definitive line if necessary
+        newline = ''
+        if op.update:
+            if step == 1 and update != 0:
+                newline = '\n' + ansi['reset'] + ansi['clearline'] + ansi['save']
+            elif loop != 0:
+                newline = ansi['restore']
+
+        ### Display header
+        if showheader:
+            if loop == 0 and totlist != vislist:
+                print >>sys.stderr, 'Terminal width too small, trimming output.'
+            showheader = False
+            sys.stdout.write(newline)
+            showtitle(1, totlist, vislist, theme['frame'] + char['space'], theme['title'] + char['gt'])
+            showtitle(2, totlist, vislist, theme['frame'] + char['pipe'], theme['title'] + char['gt'])
+            newline = ''
+
         ### Calculate all objects (visible, invisible)
-        line = ''
+        line = newline
         oline = ''
         for o in totlist:
             o.extract()

@@ -26,6 +26,7 @@
 - Added external dstat_topavglatency plugin to show process with top average wait time in milliseconds
 - Added external dstat_topcputime plugin to show process with top total cpu in milliseconds
 - Added external dstat_topavgcputime plugin to show process with top average timeslice in milliseconds
+- Delaying newline until output is ready feels nicer
 - This release was 'sponsored' by the Linux Foundation during the Japan Linux Symposium
 
 * 0.6.9 - Locarno - release 02/12/2008
