@@ -393,12 +393,6 @@ class dstat:
         else:
             return len(self.nick) * self.width + len(self.nick) - 1
 
-    def printtitle(self, nr):
-        if nr == 1:
-            return self.title()
-        else:
-            return self.subtitle()
-
     def title(self):
         ret = theme['title']
         if isinstance(self.name, types.StringType):
@@ -429,13 +423,7 @@ class dstat:
                 if i + 1 != len(self.name): ret = ret + theme['frame'] + char['colon']
             return ret
 
-    def titlecsv(self, nr):
-        if nr == 1:
-            return self.titlecsv1()
-        else:
-            return self.titlecsv2()
-
-    def titlecsv1(self):
+    def csvtitle(self):
         if isinstance(self.name, types.StringType):
             return '"' + self.name + '"' + ',' * (len(self.nick) - 1)
         else:
@@ -445,7 +433,7 @@ class dstat:
                 if i + 1 != len(self.name): ret = ret + ','
             return ret
 
-    def titlecsv2(self):
+    def csvsubtitle(self):
         ret = ''
         if isinstance(self.name, types.StringType):
             for i, nick in enumerate(self.nick):
@@ -1563,6 +1551,8 @@ ansi = {
 #   'restore': '\033[u',
     'save': '\0337',
     'restore': '\0338',
+    'linewrap': '\033[7h',
+    'nolinewrap': '\033[7l',
 
     'up': '\033[1A',
     'down': '\033[1B',
@@ -1837,23 +1827,39 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
 
     return ret
 
-def showtitle(nr, totlist, vislist, midchar, endchar):
+def header(totlist, vislist):
     line = ''
+    ### Process title
     for o in vislist:
-        line = line + o.printtitle(nr)
+        line += o.title()
         if o is not vislist[-1]:
-            line = line + midchar
+            line += theme['frame'] + char['space']
         elif totlist != vislist:
-            line = line + endchar
-    sys.stdout.write(line + '\n')
+            line += theme['title'] + char['gt']
+    line += '\n'
+    ### Process subtitle
+    for o in vislist:
+        line += o.subtitle()
+        if o is not vislist[-1]:
+            line += theme['frame'] + char['pipe']
+        elif totlist != vislist:
+            line += theme['title'] + char['gt']
+    return line + '\n'
 
-def showcsvtitle(nr, totlist):
+def csvheader(totlist):
     line = ''
+    ### Process title
     for o in totlist:
-        line = line + o.titlecsv(nr)
+        line = line + o.csvtitle()
         if o is not totlist[-1]:
             line = line + ','
-    outputfile.write(line + '\n')
+    line += '\n'
+    ### Process subtitle
+    for o in totlist:
+        line = line + o.csvsubtitle()
+        if o is not totlist[-1]:
+            line = line + ','
+    return line + '\n'
 
 def info(level, str):
     "Output info message"
@@ -2230,8 +2236,7 @@ def main():
             print
 
     if op.output:
-        showcsvtitle(1, totlist)
-        showcsvtitle(2, totlist)
+        outputfile.write(csvheader(totlist))
 
     scheduler = sched.scheduler(time.time, time.sleep)
     inittime = time.time()
@@ -2329,9 +2334,7 @@ def perform(update):
                 print >>sys.stderr, 'Terminal width too small, trimming output.'
             showheader = False
             sys.stdout.write(newline)
-            showtitle(1, totlist, vislist, theme['frame'] + char['space'], theme['title'] + char['gt'])
-            showtitle(2, totlist, vislist, theme['frame'] + char['pipe'], theme['title'] + char['gt'])
-            newline = ''
+            newline = header(totlist, vislist)
 
         ### Calculate all objects (visible, invisible)
         line = newline
@@ -2344,7 +2347,7 @@ def perform(update):
                 oline = oline + o.showcsv() + o.showcsvend(totlist, vislist)
 
         ### Print stats
-        sys.stdout.write(line)
+        sys.stdout.write(line + theme['input'])
         if op.output and step == op.delay:
             outputfile.write(oline + '\n')
 
@@ -2354,19 +2357,16 @@ def perform(update):
             if loop == 0:
                 totaltime = totaltime * step
             if op.debug == 1:
-                sys.stdout.write('%s%6.2fms%s' % (theme['roundtrip'], totaltime / step, theme['default']))
+                sys.stdout.write('%s%6.2fms%s' % (theme['roundtrip'], totaltime / step, theme['input']))
             elif op.debug == 2:
-                sys.stdout.write('%s%6.2f %s%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, theme['default']))
+                sys.stdout.write('%s%6.2f %s%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, theme['input']))
             elif op.debug > 2:
-                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, update, theme['default']))
+                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, update, theme['input']))
 
         if missed > 0:
 #            sys.stdout.write(' '+theme['error']+'= warn =')
-            sys.stdout.write(' '+theme['error']+'missed '+str(missed+1)+' ticks')
+            sys.stdout.write(' ' + theme['error'] + 'missed ' + str(missed+1) + ' ticks' + theme['input'])
             missed = 0
-
-        ### Additional input in gray
-        sys.stdout.write(theme['input'])
 
         ### Finish the line
         if not op.update:
@@ -2380,7 +2380,9 @@ if __name__ == '__main__':
         theme = set_theme()
         main()
     except KeyboardInterrupt, e:
-        print theme['default']
+        if op.update:
+            sys.stdout.write('\n')
+        sys.stdout.write(theme['default'])
 
     if op.pidfile and os.path.exists(op.pidfile):
         os.remove(op.pidfile)
