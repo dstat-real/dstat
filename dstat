@@ -704,8 +704,8 @@ class dstat_disk(dstat):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[5]), self.set2[diskset][1] + long(l[9]) )
         for name in self.set2.keys():
             self.val[name] = (
-                (self.set2[name][0] - self.set1[name][0]) * 512.0 / tick,
-                (self.set2[name][1] - self.set1[name][1]) * 512.0 / tick,
+                (self.set2[name][0] - self.set1[name][0]) * 512.0 / elapsed,
+                (self.set2[name][1] - self.set1[name][1]) * 512.0 / elapsed,
             )
         if step == op.delay:
             self.set1.update(self.set2)
@@ -768,8 +768,8 @@ class dstat_disk24(dstat):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[6]), self.set2[diskset][1] + long(l[10]) )
         for name in self.set2.keys():
             self.val[name] = (
-                (self.set2[name][0] - self.set1[name][0]) * 512.0 / tick,
-                (self.set2[name][1] - self.set1[name][1]) * 512.0 / tick,
+                (self.set2[name][0] - self.set1[name][0]) * 512.0 / elapsed,
+                (self.set2[name][1] - self.set1[name][1]) * 512.0 / elapsed,
             )
         if step == op.delay:
             self.set1.update(self.set2)
@@ -848,8 +848,8 @@ class dstat_disk24old(dstat):
             break
         for name in self.set2.keys():
             self.val[name] = (
-                (self.set2[name][0] - self.set1[name][0]) * 512.0 / tick,
-                (self.set2[name][1] - self.set1[name][1]) * 512.0 / tick,
+                (self.set2[name][0] - self.set1[name][0]) * 512.0 / elapsed,
+                (self.set2[name][1] - self.set1[name][1]) * 512.0 / elapsed,
             )
         if step == op.delay:
             self.set1.update(self.set2)
@@ -951,7 +951,7 @@ class dstat_int(dstat):
                     self.set2[name] = long(l[int(name) + 2])
             self.set2['total'] = long(l[1])
         for name in self.vars:
-            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1021,7 +1021,7 @@ class dstat_int24(dstat):
 #                   for mod in l[2+cpunr:]:
 #                       self.set2[mod] = long(l[1])
         for name in self.set2.keys():
-            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1088,8 +1088,8 @@ class dstat_io(dstat):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
         for name in self.set2.keys():
             self.val[name] = (
-                (self.set2[name][0] - self.set1[name][0]) * 1.0 / tick,
-                (self.set2[name][1] - self.set1[name][1]) * 1.0 / tick,
+                (self.set2[name][0] - self.set1[name][0]) * 1.0 / elapsed,
+                (self.set2[name][1] - self.set1[name][1]) * 1.0 / elapsed,
             )
         if step == op.delay:
             self.set1.update(self.set2)
@@ -1214,8 +1214,8 @@ class dstat_net(dstat):
         if update:
             for name in self.set2.keys():
                 self.val[name] = (
-                    (self.set2[name][0] - self.set1[name][0]) * 1.0 / tick,
-                    (self.set2[name][1] - self.set1[name][1]) * 1.0 / tick,
+                    (self.set2[name][0] - self.set1[name][0]) * 1.0 / elapsed,
+                    (self.set2[name][1] - self.set1[name][1]) * 1.0 / elapsed,
                  )
         if step == op.delay:
             self.set1.update(self.set2)
@@ -1234,7 +1234,7 @@ class dstat_page(dstat):
             if name in self.vars:
                 self.set2[name] = long(l[1])
         for name in self.vars:
-            self.val[name] = (self.set2[name] - self.set1[name]) * pagesize * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * pagesize * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1254,7 +1254,7 @@ class dstat_page24(dstat):
             self.set2['pswpout'] = long(l[2])
             break
         for name in self.vars:
-            self.val[name] = (self.set2[name] - self.set1[name]) * pagesize * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * pagesize * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1279,9 +1279,9 @@ class dstat_proc(dstat):
                 self.set2[name] = self.set2[name] + long(l[1]) - 1
             elif name == 'procs_blocked':
                 self.set2[name] = self.set2[name] + long(l[1])
-        self.val['processes'] = (self.set2['processes'] - self.set1['processes']) * 1.0 / tick
+        self.val['processes'] = (self.set2['processes'] - self.set1['processes']) * 1.0 / elapsed
         for name in ('procs_running', 'procs_blocked'):
-            self.val[name] = self.set2[name] * 1.0 / tick
+            self.val[name] = self.set2[name] * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
             for name in ('procs_running', 'procs_blocked'):
@@ -1403,7 +1403,7 @@ class dstat_sys(dstat):
             if name in self.vars:
                 self.set2[name] = long(l[1])
         for name in self.vars:
-            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1505,7 +1505,7 @@ class dstat_vm(dstat):
             if l[0] not in self.vars: continue
             self.set2[l[0]] = long(l[1])
         for name in self.vars:
-            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -2099,12 +2099,13 @@ def showmodules():
         print mod
 
 def main():
-    global pagesize, cpunr, ansi, theme, outputfile
+    global pagesize, cpunr, hz, ansi, theme, outputfile
     global totlist, inittime
     global update, missed
 
     pagesize = resource.getpagesize()
     cpunr = getcpunr()
+    hz = os.sysconf('SC_CLK_TCK')
     interval = 1
 
     user = getpass.getuser()
@@ -2257,7 +2258,7 @@ def main():
 
 def perform(update):
         global totlist, oldvislist, vislist, showheader, rows, cols
-        global tick, totaltime, starttime
+        global elapsed, totaltime, starttime
         global loop, step, missed
 
         starttime = time.time()
@@ -2281,13 +2282,13 @@ def perform(update):
 
         ### Initialise certain variables
         if loop == 0:
-            tick = ticks()
+            elapsed = ticks()
             rows, cols = 0, 0
             vislist = []
             oldvislist = []
             showheader = True
         else:
-            tick = step
+            elapsed = step
 
         ### FIXME: Make this part smarter
         if sys.stdout.isatty():

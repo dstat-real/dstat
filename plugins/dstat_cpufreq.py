@@ -42,7 +42,7 @@ class dstat_cpufreq(dstat):
             self.set1[cpu] = self.set1[cpu] + cur * 100.0 / max
 
             if op.update:
-                self.val[cpu] = self.set1[cpu] / tick
+                self.val[cpu] = self.set1[cpu] / elapsed
             else:
                 self.val[cpu] = self.set1[cpu]
 

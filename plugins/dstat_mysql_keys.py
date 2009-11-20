@@ -28,7 +28,7 @@ class dstat_mysql_keys(dstat):
                     self.set2[l[0]] = float(l[1])
 
             for name in self.vars:
-                self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
+                self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
 
             if step == op.delay:
                 self.set1.update(self.set2)

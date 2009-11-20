@@ -32,7 +32,7 @@ class dstat_innodb_ops(dstat):
                 self.set2['read'] = l[10]
 
             for name in self.vars:
-                self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
+                self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
 
             if step == op.delay:
                 self.set1.update(self.set2)

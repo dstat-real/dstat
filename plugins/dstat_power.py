@@ -50,7 +50,7 @@ class dstat_power(dstat):
             self.rate = -1
 
         if op.update:
-            self.val['rate'] = self.rate / tick
+            self.val['rate'] = self.rate / elapsed
         else:
             self.val['rate'] = self.rate
 

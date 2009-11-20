@@ -52,7 +52,7 @@ class dstat_topavgcputime(dstat):
             self.pidset2[pid] = {'run_ticks': long(l[0]), 'ran': long(l[2])}
 
             if self.pidset2[pid]['ran'] - self.pidset1[pid]['ran'] > 0:
-                avgrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / tick
+                avgrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / elapsed
             else:
                 avgrun = 0
 

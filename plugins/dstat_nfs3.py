@@ -19,7 +19,7 @@ class dstat_nfs3(dstat):
             self.set2['filesystem'] = long(l[19]) + long(l[20]) + long(l[21])
             self.set2['commit'] = long(l[22])
         for name in self.vars:
-            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
 

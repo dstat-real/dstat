@@ -55,7 +55,7 @@ class dstat_vzubc(dstat):
                     self.set2[name] = self.set2[name] + long(l[5])
                 self.set2['total'] = self.set2['total'] + long(l[5])
         for name in self.vars:
-            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
 

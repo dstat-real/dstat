@@ -41,7 +41,7 @@ class dstat_topcpu(dstat):
                 self.pidset1[pid] = 0
 
             self.pidset2[pid] = int(l[13]) + int(l[14])
-            usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / tick / cpunr
+            usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / elapsed / cpunr
 
             ### Is it a new topper ?
             if usage < self.val['max']: continue

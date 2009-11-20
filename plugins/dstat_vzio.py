@@ -59,7 +59,7 @@ class dstat_vzio(dstat):
 #            print veid, self.val[veid], self.set2[veid][0], self.set2[veid][1]
 #            print veid, self.val[veid], self.set1[veid][0], self.set1[veid][1]
             for i in range(len(self.nick)):
-                self.val[veid][i] = (self.set2[veid][i] - self.set1[veid][i]) / tick
+                self.val[veid][i] = (self.set2[veid][i] - self.set1[veid][i]) / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
 

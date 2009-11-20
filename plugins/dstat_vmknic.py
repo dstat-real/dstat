@@ -69,8 +69,8 @@ class dstat_vmknic(dstat):
         if update:
             for name in self.set2.keys():
                 self.val[name] = (
-                    (self.set2[name][0] - self.set1[name][0]) * 1.0 / tick,
-                    (self.set2[name][1] - self.set1[name][1]) * 1.0 / tick,
+                    (self.set2[name][0] - self.set1[name][0]) * 1.0 / elapsed,
+                    (self.set2[name][1] - self.set1[name][1]) * 1.0 / elapsed,
                 )
         if step == op.delay:
             self.set1.update(self.set2)

@@ -74,8 +74,8 @@ class dstat_vmkhba(dstat):
                     self.set2[name] = ( long(l[2]), long(l[4]) )
             for name in self.set2.keys():
                 self.val[name] = (
-                    (self.set2[name][0] - self.set1[name][0]) * 1024.0 / tick,
-                    (self.set2[name][1] - self.set1[name][1]) * 1024.0 / tick
+                    (self.set2[name][0] - self.set1[name][0]) * 1024.0 / elapsed,
+                    (self.set2[name][1] - self.set1[name][1]) * 1024.0 / elapsed,
                 )
         if step == op.delay:
             self.set1.update(self.set2)

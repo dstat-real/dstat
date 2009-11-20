@@ -48,8 +48,8 @@ class dstat_topio(dstat):
             except IOError:
                 continue
 
-            read_usage = (self.pidset2[pid]['rchar:'] - self.pidset1[pid]['rchar:']) * 1.0 / tick
-            write_usage = (self.pidset2[pid]['wchar:'] - self.pidset1[pid]['wchar:']) * 1.0 / tick
+            read_usage = (self.pidset2[pid]['rchar:'] - self.pidset1[pid]['rchar:']) * 1.0 / elapsed
+            write_usage = (self.pidset2[pid]['wchar:'] - self.pidset1[pid]['wchar:']) * 1.0 / elapsed
             usage = read_usage + write_usage
 #            if usage > 0.0:
 #                print '%s %s:%s' % (pid, read_usage, write_usage)

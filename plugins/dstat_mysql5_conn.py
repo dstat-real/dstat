@@ -35,7 +35,7 @@ class dstat_mysql5_conn(dstat):
                     self.set2['Threads'] = (float(thread[1]) / float(max[1]) * float(100)) 
 
             for name in self.vars:
-                self.val[name] = self.set2[name] * 1.0 / tick
+                self.val[name] = self.set2[name] * 1.0 / elapsed
 
             if step == op.delay:
                 self.set1.update(self.set2)

@@ -1,12 +1,14 @@
-### Dstat most expensive I/O process plugin
-### Displays the name of the most expensive I/O process
-###
 ### Authority: dag@wieers.com
 
 ### For more information, see:
 ###     http://eaglet.rain.com/rick/linux/schedstat/
 
 class dstat_topcputime(dstat):
+    """
+    Name and total amount of CPU time consumed in milliseconds of the process
+    that has the highest total amount of cputime for the measured timeframe.
+    """
+
     def __init__(self):
         self.name = 'highest total'
         self.type = 's'
@@ -51,7 +53,7 @@ class dstat_topcputime(dstat):
 
             self.pidset2[pid] = {'run_ticks': long(l[0])}
 
-            totrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / tick
+            totrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / elapsed
 
             ### Get the process that spends the most jiffies
             if totrun > self.val['result']:

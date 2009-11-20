@@ -25,7 +25,7 @@ class dstat_gpfs(dstat):
                 for name in self.vars:
                     self.set2[name] = long(l[l.index(name)+1])
             for name in self.vars:
-                self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / tick
+                self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         except IOError, e:
             for name in self.vars: self.val[name] = -1
 #           print 'dstat_gpfs: lost pipe to mmpmon,', e

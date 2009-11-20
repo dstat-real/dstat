@@ -52,7 +52,7 @@ class dstat_topavglatency(dstat):
             self.pidset2[pid] = {'wait_ticks': long(l[1]), 'ran': long(l[2])}
 
             if self.pidset2[pid]['ran'] - self.pidset1[pid]['ran'] > 0:
-                avgwait = (self.pidset2[pid]['wait_ticks'] - self.pidset1[pid]['wait_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / tick
+                avgwait = (self.pidset2[pid]['wait_ticks'] - self.pidset1[pid]['wait_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / elapsed
             else:
                 avgwait = 0
 
