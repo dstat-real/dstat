@@ -21,7 +21,7 @@
 - Added external dstat_proccount plugin to show total number of process (Dean Wilson)
 - Added external dstat_vzio plugin to show I/O account number per OpenVZ container
 - Added external dstat_battery_remain plugin to show how much battery time is remaining
-- Added getnamebypid() function to simplify finding bast process name by process id
+- Added getnamebypid() function to simplify finding best process name by process id
 - Added external dstat_toplatency plugin to show process with top wait time in milliseconds
 - Added external dstat_topavglatency plugin to show process with top average wait time in milliseconds
 - Added external dstat_topcputime plugin to show process with top total cpu in milliseconds
