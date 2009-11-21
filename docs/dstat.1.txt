@@ -150,8 +150,11 @@ Possible internal stats are::
 --bw, --blackonwhite::
     change colors for white background terminal
 
+--float::
+    force float values on screen
+
 --integer::
-    show integer values
+    force integer values on screen
 
 --nocolor::
     disable colors (implies --noupdate)

@@ -28,6 +28,7 @@
 - Added external dstat_topavgcputime plugin to show process with top average timeslice in milliseconds
 - Improvements to timing when writing to screen so that it feels nicer
 - Added external dstat_diskutil to show per disk utilization rates in percentage
+- Added new --float option to force float values on screen
 - This release was 'sponsored' by the Linux Foundation during the Japan Linux Symposium
 
 * 0.6.9 - Locarno - release 02/12/2008

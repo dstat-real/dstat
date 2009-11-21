@@ -82,6 +82,7 @@ class Options:
         self.delay = 1
         self.disklist = None
         self.full = False
+        self.float = False
         self.integer = False
         self.intlist = None
         self.netlist = None
@@ -114,8 +115,8 @@ class Options:
         try:
             import getopt
             opts, args = getopt.getopt(args, 'acdfghilmno:prstTvyC:D:I:M:N:S:V',
-                ['all', 'bw', 'blackonwhite', 'debug', 'filesystem', 'full',
-                 'gonuts', 'help', 'integer', 'list', 'mods', 'modules',
+                ['all', 'bw', 'blackonwhite', 'debug', 'filesystem', 'float',
+                 'full', 'gonuts', 'help', 'integer', 'list', 'mods', 'modules',
                  'nocolor', 'noheaders', 'noupdate', 'output=', 'pidfile=',
                  'version', 'vmstat'] + self.modules)
         except getopt.error, exc:
@@ -178,6 +179,8 @@ class Options:
             elif opt in ['--gonuts']:
                 ### Make list unique in a fancy fast way
                 self.modlist = {}.fromkeys(self.modules).keys()
+            elif opt in ['--float']:
+                self.float = True
             elif opt in ['--integer']:
                 self.integer = True
             elif opt in ['--list']:
@@ -206,6 +209,10 @@ class Options:
             else:
                 print 'dstat: option %s unknown to getopt, try dstat -h for a list of all the options' % opt
                 sys.exit(1)
+
+        if self.float and self.integer:
+            print 'dstat: option --float and --integer are mutual exlusive, you can only force one'
+            sys.exit(1)
 
         if not self.modlist:
             self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
@@ -294,7 +301,8 @@ Dstat options:
   -v, --vmstat           equals -pmgdsc -D total
 
   --bw, --blackonwhite   change colors for white background terminal
-  --integer              show integer values
+  --float                force float values on screen
+  --integer              force integer values on screen
   --nocolor              disable colors (implies --noupdate)
   --noheaders            disable repetitive headers
   --noupdate             disable intermediate updates
@@ -1165,6 +1173,7 @@ class dstat_mem(dstat):
 class dstat_net(dstat):
     def __init__(self):
         self.open('/proc/net/dev')
+        self.type = 'd'
         self.nick = ('recv', 'send')
         self.totalfilter = re.compile('^(lo|bond[0-9]+|face|.+\.[0-9]+)$')
         self.cols = 2
@@ -1223,6 +1232,7 @@ class dstat_net(dstat):
 class dstat_page(dstat):
     def __init__(self):
         self.name = 'paging'
+        self.type = 'd'
         self.open('/proc/vmstat')
         self.nick = ('in', 'out')
         self.vars = ('pswpin', 'pswpout')
@@ -1241,6 +1251,7 @@ class dstat_page(dstat):
 class dstat_page24(dstat):
     def __init__(self):
         self.name = 'paging'
+        self.type = 'd'
         self.open('/proc/stat')
         self.nick = ('in', 'out')
         self.vars = ('pswpin', 'pswpout')
@@ -1324,6 +1335,7 @@ class dstat_socket(dstat):
 class dstat_swap(dstat):
     def __init__(self):
         self.name = 'swap'
+        self.type = 'd'
         self.open('/proc/swaps')
         self.nick = ('used', 'free')
 
@@ -1374,6 +1386,7 @@ class dstat_swap(dstat):
 class dstat_swapold(dstat):
     def __init__(self):
         self.name = 'swap'
+        self.type = 'd'
         self.open('/proc/meminfo')
         self.nick = ('used', 'free')
         self.vars = ('SwapUsed', 'SwapFree')
@@ -1410,7 +1423,7 @@ class dstat_sys(dstat):
 class dstat_tcp(dstat):
     def __init__(self):
         self.name = 'tcp sockets'
-        self.type = 'f'
+        self.type = 'd'
         self.width = 3
         self.scale = 100
         self.open('/proc/net/tcp', '/proc/net/tcp6')
@@ -1787,6 +1800,8 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     ### Convert value to string given base and field-length
     if op.integer and type in ('d', 'p', 'f'):
         ret, c = dchg(var, width, base)
+    elif op.float and type in ('d', 'p', 'f'):
+        ret, c = fchg(var, width, base)
     elif type in ('d', 'p'):
         ret, c = dchg(var, width, base)
     elif type in ('f'):
