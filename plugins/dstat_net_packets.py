@@ -1,4 +1,4 @@
-class dstat_net_packets(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.type = 'f'
         self.width = 5

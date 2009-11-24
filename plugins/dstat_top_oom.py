@@ -3,7 +3,7 @@
 ###
 ### Authority: dag@wieers.com
 
-class dstat_topoom(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'out of memory'
         self.type = 's'

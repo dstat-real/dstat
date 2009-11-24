@@ -3,7 +3,7 @@
 ###
 ### Authority: dag@wieers.com
 
-class dstat_power(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'power'
         self.type = 'f'

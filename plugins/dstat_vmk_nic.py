@@ -6,17 +6,23 @@
 # NOTE TO USERS: command-line plugin configuration is not yet possible, so I've
 # "borrowed" the -N argument.
 # EXAMPLES:
-# # dstat -M vmknic -N vmk1
+# # dstat --vmknic -N vmk1
 # You can even combine the Linux and VMkernel network stats (just don't just "total").
-# # dstat -M vmknic -n -N vmk0,vswif0
+# # dstat --vmknic -n -N vmk0,vswif0
 # NB Data comes from /proc/vmware/net/tcpip/ifconfig
 
-class dstat_vmknic(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'vmknic'
         self.open('/proc/vmware/net/tcpip/ifconfig')
         self.nick = ('recv', 'send')
         self.cols = 2
+
+    def check(self):
+        try:
+            os.listdir('/proc/vmware')
+        except:
+            raise Exception, 'Needs VMware ESX'
         info(1, 'The vmknic module is an EXPERIMENTAL module.')
 
     def discover(self, *list):
@@ -46,12 +52,6 @@ class dstat_vmknic(dstat):
 
     def name(self):
         return ['net/'+name for name in self.vars]
-
-    def check(self): 
-        try:
-            os.listdir('/proc/vmware')
-        except:
-            raise Exception, 'Needs VMware ESX'
 
     def extract(self):
         self.set2['total'] = [0, 0]

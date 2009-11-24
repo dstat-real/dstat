@@ -122,13 +122,10 @@ information.
     enable unix stats (datagram, stream, listen, active)
 
 --vm::
-    enable vm stats (hard pagefaults, soft pagefaults, allocated, free))
+    enable vm stats (hard pagefaults, soft pagefaults, allocated, free)
 
 --stat1 --stat2::
-    enable internal and external plugin stats by plugin name
-
--M stat1,stat2::
-    enable internal and external plugin stats by plugin name
+    enable (external) plugins by plugin name, see *PLUGINS* for options
 
 Possible internal stats are::
     aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc,
@@ -151,13 +148,13 @@ Possible internal stats are::
     change colors for white background terminal
 
 --float::
-    force float values on screen
+    force float values on screen (mutual exclusive with *--integer*)
 
 --integer::
-    force integer values on screen
+    force integer values on screen (mutual exclusive with *--float*)
 
 --nocolor::
-    disable colors (implies --noupdate)
+    disable colors (implies *--noupdate*)
 
 --noheaders::
     disable repetitive headers
@@ -167,6 +164,171 @@ Possible internal stats are::
 
 --output file::
     write CSV output to file
+
+
+== PLUGINS
+While anyone can create their own dstat plugins (and contribute them) dstat
+ships with a number of plugins already that extend its capabilities greatly.
+Here is an overview of the plugins dstat ships with:
+
+--battery::
+    battery in percentage (needs ACPI)
+
+--battery-remain::
+    battery remaining in hours, minutes (needs ACPI)
+
+--cpufreq::
+    CPU frequency in percentage (needs ACPI)
+
+--dbus::
+    number of dbus connections (needs python-dbus)
+
+--disk-util::
+    per disk utilization in percentage
+
+--fan::
+    fan speed (needs ACPI)
+
+--freespace::
+    per filesystem disk usage
+
+--gpfs::
+    GPFS read/write I/O (needs mmpmon)
+
+--gpfs-ops::
+    GPFS filesystem operations (needs mmpmon)
+
+--helloworld::
+    Hello world example dstat plugin
+
+--innodb-buffer::
+    TBD
+
+--innodb-io::
+    TBD
+
+--innodb-ops::
+    TBD
+
+--lustre::
+    TBD
+
+--memcache-hits::
+    TBD
+
+--mysql5-com::
+    TBD
+
+--mysql5-conn::
+    TBD
+
+--mysql5-io::
+    TBD
+
+--mysql5-keys::
+    TBD
+
+--mysql-io::
+    TBD
+
+--mysql-keys::
+    TBD
+
+--net-packets::
+    TBD
+
+--nfs3::
+    NFS v3 client operations
+
+--nfs3-ops::
+    Extended NFS v3 client operations
+
+--nfsd3::
+    NFS v3 server operations
+
+--nfsd3-ops::
+    Extended NFS v3 server operations
+
+--ntp::
+    TBD
+
+--postfix::
+    postfix queue size (needs postfix)
+
+--power::
+    TBD
+
+--proc-count::
+    TBD
+
+--rpc::
+    RPC client calls
+
+--rpcd::
+    RPC server calls
+
+--sendmail::
+    sendmail queue size (needs sendmail)
+
+--snooze::
+    number of ticks per second
+
+--test::
+    TBD
+
+--thermal::
+    system temperature sensors
+
+--top-bio::
+    TBD
+
+--top-cpu::
+    TBD
+
+--top-cputime::
+    TBD
+
+--top-cputime-avg::
+    TBD
+
+--top-io::
+    TBD
+
+--top-latency::
+    TBD
+
+--top-latency-avg::
+    TBD
+
+--top-mem::
+    TBD
+
+--top-oom::
+    TBD
+
+--utmp::
+    Number of utmp connections (needs python-utmp)
+
+--vmk-hba::
+    TBD
+
+--vmk-int::
+    TBD
+
+--vmk-nic::
+    TBD
+
+--vm-memctl::
+    TBD
+
+--vz-io::
+    TBD
+
+--vz-ubc::
+    TBD
+
+--wifi::
+    wireless link quality and signal to noise ratio
 
 
 == ARGUMENTS
@@ -189,7 +351,7 @@ the last final update. The end result is that you get a 10 second
 average on a new line, just like with vmstat.
 
 
-== USAGE
+== EXAMPLES
 Using dstat to relate disk-throughput with network-usage (eth0), total CPU-usage and system counters:
 ----
 dstat -dnyc -N eth0 -C total -f 5
@@ -207,10 +369,6 @@ dstat -tcndylp --topcpu
 this is identical to
 ----
 dstat --time --cpu --net --disk --sys --load --proc --topcpu
-----
-and identical to
-----
-dstat -M time,cpu,net,disk,sys,load,proc,topcpu
 ----
 
 Using dstat to relate cpu stats with interrupts per device:

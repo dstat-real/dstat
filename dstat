@@ -37,7 +37,7 @@ except KeyboardInterrupt, e:
     pass
 
 if sys.version_info < (2, 2):
-    sys.exit('error: Python 2.2 or later required, try dstat15 instead')
+    sys.exit('error: Python 2.2 or later required')
 
 ### Workaround for python <= 2.2.1
 try:
@@ -93,11 +93,11 @@ class Options:
         self.output = False
         self.pidfile = False
 
-        ### List of available modules
-        self.modules = listmodules()
+        ### List of available plugins
+        allplugins = listplugins()
 
-        ### List of modules to show
-        self.modlist = []
+        ### List of plugins to show
+        self.plugins = []
 
         ### Implicit if no terminal is used
         if not sys.stdout.isatty():
@@ -115,60 +115,61 @@ class Options:
         try:
             import getopt
             opts, args = getopt.getopt(args, 'acdfghilmno:prstTvyC:D:I:M:N:S:V',
-                ['all', 'bw', 'blackonwhite', 'debug', 'filesystem', 'float',
-                 'full', 'gonuts', 'help', 'integer', 'list', 'mods', 'modules',
-                 'nocolor', 'noheaders', 'noupdate', 'output=', 'pidfile=',
-                 'version', 'vmstat'] + self.modules)
+                ['all', 'all-plugins', 'bw', 'blackonwhite', 'debug',
+                 'filesystem', 'float', 'full', 'gonuts', 'help', 'integer',
+                 'list', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate',
+                 'output=', 'pidfile=', 'version', 'vmstat'] + allplugins)
         except getopt.error, exc:
             print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
             sys.exit(1)
 
         for opt, arg in opts:
             if opt in ['-c']:
-                self.modlist.append('cpu')
+                self.plugins.append('cpu')
             elif opt in ['-C']:
                 self.cpulist = arg.split(',')
             elif opt in ['-d']:
-                self.modlist.append('disk')
+                self.plugins.append('disk')
             elif opt in ['-D']:
                 self.disklist = arg.split(',')
             elif opt in ['--filesystem']:
-                self.modlist.append('fs')
+                self.plugins.append('fs')
             elif opt in ['-g']:
-                self.modlist.append('page')
+                self.plugins.append('page')
             elif opt in ['-i']:
-                self.modlist.append('int')
+                self.plugins.append('int')
             elif opt in ['-I']:
                 self.intlist = arg.split(',')
             elif opt in ['-l']:
-                self.modlist.append('load')
+                self.plugins.append('load')
             elif opt in ['-m']:
-                self.modlist.append('mem')
+                self.plugins.append('mem')
             elif opt in ['-M', '--mods', '--modules']:
-                self.modlist = self.modlist + arg.split(',')
+                print >>sys.stderr, 'WARNING: Option %s is deprecated, please use --%s instead' % (opt, ' --'.join(arg.split(',')))
+                self.plugins += arg.split(',')
             elif opt in ['-n']:
-                self.modlist.append('net')
+                self.plugins.append('net')
             elif opt in ['-N']:
                 self.netlist = arg.split(',')
             elif opt in ['-p']:
-                self.modlist.append('proc')
+                self.plugins.append('proc')
             elif opt in ['-r']:
-                self.modlist.append('io')
+                self.plugins.append('io')
             elif opt in ['-s']:
-                self.modlist.append('swap')
+                self.plugins.append('swap')
             elif opt in ['-S']:
                 self.swaplist = arg.split(',')
             elif opt in ['-t']:
-                self.modlist.append('time')
+                self.plugins.append('time')
             elif opt in ['-T']:
-                self.modlist.append('epoch')
+                self.plugins.append('epoch')
             elif opt in ['-y']:
-                self.modlist.append('sys')
+                self.plugins.append('sys')
 
             elif opt in ['-a', '--all']:
-                self.modlist = self.modlist + [ 'cpu', 'disk', 'net', 'page', 'sys' ]
+                self.plugins += [ 'cpu', 'disk', 'net', 'page', 'sys' ]
             elif opt in ['-v', '--vmstat']:
-                self.modlist = self.modlist + [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
+                self.plugins += [ 'proc', 'mem', 'page', 'disk', 'sys', 'cpu' ]
             elif opt in ['-f', '--full']:
                 self.full = True
 
@@ -176,15 +177,17 @@ class Options:
                 self.blackonwhite = True
             elif opt in ['--debug']:
                 self.debug = self.debug + 1
-            elif opt in ['--gonuts']:
+            elif opt in ['--all-plugins']:
                 ### Make list unique in a fancy fast way
-                self.modlist = {}.fromkeys(self.modules).keys()
+                plugins = {}.fromkeys(allplugins).keys()
+                plugins.sort()
+                self.plugins += plugins
             elif opt in ['--float']:
                 self.float = True
             elif opt in ['--integer']:
                 self.integer = True
             elif opt in ['--list']:
-                showmodules()
+                showplugins()
                 sys.exit(0)
             elif opt in ['--nocolor']:
                 self.color = False
@@ -205,7 +208,7 @@ class Options:
                 self.version()
                 sys.exit(0)
             elif opt.startswith('--'):
-                self.modlist.append(opt[2:])
+                self.plugins.append(opt[2:])
             else:
                 print 'dstat: option %s unknown to getopt, try dstat -h for a list of all the options' % opt
                 sys.exit(1)
@@ -214,8 +217,8 @@ class Options:
             print 'dstat: option --float and --integer are mutual exlusive, you can only force one'
             sys.exit(1)
 
-        if not self.modlist:
-            self.modlist = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
+        if not self.plugins:
+            self.plugins = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
 
         try:
             if len(args) > 0: self.delay = int(args[0])
@@ -252,7 +255,7 @@ class Options:
 
         global op
         op = self
-        showmodules()
+        showplugins()
 
     def usage(self):
         print 'Usage: dstat [-afv] [options..] [delay [count]]'
@@ -281,7 +284,7 @@ Dstat options:
   -y, --sys              enable system stats
 
   --aio                  enable aio stats
-  --fs                   enable fs stats
+  --fs, --filesystem     enable fs stats
   --ipc                  enable ipc stats
   --lock                 enable lock stats
   --raw                  enable raw stats
@@ -291,13 +294,11 @@ Dstat options:
   --unix                 enable unix stats
   --vm                   enable vm stats
 
-  -M stat1,stat2         enable external plugins
-     --mods stat1,stat2
-
-  --list                 list all internal and external plugins
+  --plugin-name          enable plugins by plugin name (see manual)
+  --list                 list all available plugins
 
   -a, --all              equals -cdngy (default)
-  -f, --full             expand -C, -D, -I, -N and -S discovery lists
+  -f, --full             automatically expand -C, -D, -I, -N and -S lists
   -v, --vmstat           equals -pmgdsc -D total
 
   --bw, --blackonwhite   change colors for white background terminal
@@ -308,9 +309,8 @@ Dstat options:
   --noupdate             disable intermediate updates
   --output file          write CSV output to file
 
-  delay is the delay in seconds between each update
-  count is the number of updates to display before exiting
-  The default delay is 1 and count is unspecified (unlimited)
+delay is the delay in seconds between each update (default: 1)
+count is the number of updates to display before exiting (default: unlimited)
 '''
 
 ### START STATS DEFINITIONS ###
@@ -870,8 +870,7 @@ class dstat_epoch(dstat):
         if op.debug:
             self.width = 13
         self.scale = 0
-        self.nick = ('epoch',)
-        self.vars = self.nick
+        self.vars = ('epoch',)
 
     ### We are now using the starttime instead of the execution time of this plugin
     def extract(self):
@@ -884,8 +883,7 @@ class dstat_fs(dstat):
         self.type = 'd'
         self.width = 6
         self.scale = 1000
-        self.nick = ('files', 'inodes')
-        self.vars = self.nick
+        self.vars = ('files', 'inodes')
 
     def extract(self):
         for line in dopen('/proc/sys/fs/file-nr'):
@@ -1109,7 +1107,6 @@ class dstat_ipc(dstat):
         self.width = 3
         self.scale = 10
         self.vars = ('msg', 'sem', 'shm')
-        self.nick = self.vars
 
     def extract(self):
         for name in self.vars:
@@ -2064,52 +2061,52 @@ def exit(ret):
     sys.stdout.write(ansi['reset'])
     sys.exit(ret)
 
-def listmodules():
-    modules = []
+def listplugins():
+    plugins = []
     remod = re.compile('dstat_(.+)$')
     for filename in globals():
         if filename.startswith('dstat_'):
-            modules.append(remod.match(filename).groups()[0])
+            plugins.append(remod.match(filename).groups()[0])
     remod = re.compile('.+/dstat_(.+).py$')
     for path in sys.path:
         for filename in glob.glob(path + '/dstat_*.py'):
-            modules.append(remod.match(filename).groups()[0])
-    modules.sort()
-    return modules
+            plugins.append(remod.match(filename).groups()[0].replace('_', '-'))
+    plugins.sort()
+    return plugins
 
-def showmodules():
+def showplugins():
     rows, cols = gettermsize()
     print 'internal:\n\t',
     remod = re.compile('dstat_(.+)$')
-    modlist = []
+    plugins = []
     for filename in globals():
         if filename.startswith('dstat_'):
-            modlist.append(remod.match(filename).groups()[0])
-    modlist.sort()
+            plugins.append(remod.match(filename).groups()[0].replace('_', '-'))
+    plugins.sort()
     cols2 = cols - 8
-    for mod in modlist:
+    for mod in plugins:
         cols2 = cols2 - len(mod) - 2
         if cols2 <= 0:
             print '\n\t',
             cols2 = cols - len(mod) - 10
-        if mod != modlist[-1]:
+        if mod != plugins[-1]:
             print mod+',',
     print mod
     remod = re.compile('.+/dstat_(.+).py$')
     for path in sys.path:
-        modlist = []
+        plugins = []
         for filename in glob.glob(path + '/dstat_*.py'):
-            modlist.append(remod.match(filename).groups()[0])
-        if not modlist: continue
-        modlist.sort()
+            plugins.append(remod.match(filename).groups()[0].replace('_', '-'))
+        if not plugins: continue
+        plugins.sort()
         cols2 = cols - 8
         print '%s:\n\t' % os.path.abspath(path),
-        for mod in modlist:
+        for mod in plugins:
             cols2 = cols2 - len(mod) - 2
             if cols2 <= 0:
                 print '\n\t',
                 cols2 = cols - len(mod) - 10
-            if mod != modlist[-1]:
+            if mod != plugins[-1]:
                 print mod+',',
         print mod
 
@@ -2188,51 +2185,52 @@ def main():
     if not op.update:
         interval = op.delay
 
-    ### Build list of requested modules
+    ### Build list of requested plugins
     linewidth = 0
     totlist = []
-    for module in op.modlist:
-        if module in ('list', 'help'):
-            showmodules()
+    for plugin in op.plugins:
+        if plugin in ('list', 'help'):
+            showplugins()
             exit(0)
-        elif module == 'cpu':  mods = ( 'cpu', 'cpu24' )
-        elif module == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
-        elif module == 'int':  mods = ( 'int', 'int24' )
-        elif module == 'page': mods = ( 'page', 'page24' )
-        elif module == 'swap': mods = ( 'swap', 'swapold' )
-        else: mods = ( module, )
+        elif plugin == 'cpu':  mods = ( 'cpu', 'cpu24' )
+        elif plugin == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
+        elif plugin == 'int':  mods = ( 'int', 'int24' )
+        elif plugin == 'page': mods = ( 'page', 'page24' )
+        elif plugin == 'swap': mods = ( 'swap', 'swapold' )
+        else: mods = ( plugin, )
 
         for mod in mods:
+            pluginfile = 'dstat_' + mod.replace('-', '_')
             try:
-                if 'dstat_'+mod not in globals().keys():
+                if pluginfile not in globals().keys():
                     import imp
-                    filename, pathname, description = imp.find_module('dstat_'+mod)
+                    filename, pathname, description = imp.find_module(pluginfile)
 
                     ### TODO: Would using .pyc help with anything ?
                     ### Try loading python plugin
                     if description[0] in ('.py'):
-                            execfile(pathname)
-                            exec 'o = dstat_%s(); o.check(); o.prepare();' % mod
+                        execfile(pathname)
+                        exec 'o = dstat_plugin(); o.filename = "%s"; o.check(); o.prepare(); del(dstat_plugin);' % pluginfile
 
                     ### Try loading C plugin
                     elif description[0] == '.so':
-                        exec 'import dstat_%s' % mod
-                        exec 'o = dstat_%s.new(); o.check(); o.prepare();' % mod
-#                        exec 'o = dstat_%s.init(dstat)' % mod
+                        exec 'import %s' % pluginfile
+                        exec 'o = %s.new(); o.check(); o.prepare();' % pluginfile
+#                        exec 'o = %s.init(dstat)' % pluginfile
 #                        print dir(o)
 #                        print o.__module__
 #                        print o.name
                     else:
-                        print >>sys.stderr, 'Module %s is of unknown type.' % mod
+                        print >>sys.stderr, 'Module %s is of unknown type.' % pluginfile
 
                 else:
-                    exec 'o = dstat_%s(); o.check(); o.prepare();' % mod
+                    exec 'o = %s(); o.check(); o.prepare();' % pluginfile
 #                print o.__module__
             except Exception, e:
                 if mod == mods[-1]:
-                    print >>sys.stderr, 'Module %s failed to load. (%s)' % (mod, e)
+                    print >>sys.stderr, 'Module %s failed to load. (%s)' % (pluginfile, e)
                 elif op.debug:
-                    print >>sys.stderr, 'Module %s failed to load, trying another. (%s)' % (mod, e)
+                    print >>sys.stderr, 'Module %s failed to load, trying another. (%s)' % (pluginfile, e)
                 if op.debug >= 3:
                     raise
 #                tb = sys.exc_info()[2]
@@ -2247,8 +2245,13 @@ def main():
 
     if op.debug:
         for o in totlist:
-            print 'Module', str(o.__class__).split('.')[1],
-            if hasattr(o, 'file'): print 'requires', o.file,
+            print 'Module',
+            if hasattr(o, 'filename'):
+                print o.filename,
+            else:
+                print str(o.__class__).split('.')[1],
+            if hasattr(o, 'file'):
+                print 'requires', o.file,
             print
 
     if op.output:

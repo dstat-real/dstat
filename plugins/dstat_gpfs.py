@@ -1,4 +1,4 @@
-class dstat_gpfs(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'gpfs i/o'
         self.vars = ('_br_', '_bw_')
@@ -27,11 +27,11 @@ class dstat_gpfs(dstat):
             for name in self.vars:
                 self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         except IOError, e:
+            if op.debug > 1: print '%s: lost pipe to mmpmon, %s' % (self.filename, e)
             for name in self.vars: self.val[name] = -1
-#           print 'dstat_gpfs: lost pipe to mmpmon,', e
         except Exception, e:
+            if op.debug > 1: print '%s: exception %s' % (self.filename, e)
             for name in self.vars: self.val[name] = -1
-#           print 'dstat_gpfs: exception', e
 
         if step == op.delay:
             self.set1.update(self.set2)

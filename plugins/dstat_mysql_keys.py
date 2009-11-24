@@ -1,7 +1,7 @@
 global mysql_options
 mysql_options = os.getenv('DSTAT_MYSQL')
 
-class dstat_mysql_keys(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'mysql key status'
         self.type = 'f'
@@ -34,11 +34,11 @@ class dstat_mysql_keys(dstat):
                 self.set1.update(self.set2)
 
         except IOError, e:
-            if op.debug: print 'dstat_innodb_buffer: lost pipe to mysql,', e
+            if op.debug > 1: print '%s: lost pipe to mysql, %s' % (self.filename, e)
             for name in self.vars: self.val[name] = -1
 
         except Exception, e:
-            if op.debug: print 'dstat_innodb_buffer: exception', e
+            if op.debug > 1: print '%s: exception' (self.filename, e)
             for name in self.vars: self.val[name] = -1
 
 # vim:ts=4:sw=4:et

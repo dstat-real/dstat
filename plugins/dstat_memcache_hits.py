@@ -3,7 +3,7 @@
 ###
 ### Authority: dean.wilson@gmail.com
 
-class dstat_memcache_hits(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'Memcache Hits'
         self.type = 'd'
@@ -11,14 +11,14 @@ class dstat_memcache_hits(dstat):
         self.scale = 50
         self.nick = ('Hit', 'Miss')
         self.vars = ('get_hits', 'get_misses')
-        self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
 
     def check(self):
         try:
             global memcache
             import memcache
+            self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
         except:
-            raise Exception, 'Plugin needs the memcache module.'
+            raise Exception, 'Plugin needs the memcache module'
 
     def extract(self):
         stats = self.mc.get_stats()

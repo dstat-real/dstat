@@ -6,7 +6,7 @@
 global glob
 import glob
 
-class dstat_cpufreq(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'frequency'
         self.type = 'p'

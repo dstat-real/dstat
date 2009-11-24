@@ -33,6 +33,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 ### Export/Graph
 + Interface with rrdtool (python-rrd ?)
 + Allow for different types of export modules (only CSV now)
+  - ODS could include graphs for plugins !
 + Allow to write out to syslog (or remote syslog)
 + Allow to write unbuffered to disk
 + Write out user input to CSV
@@ -48,8 +49,10 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Add icmp plugin ?
 + Add application plugin (-a or -A pid,cmd)
 + Add user plugin (number of users logged on, utmp is not that useful, /proc/key-users)
-+ Look into interfacing with apps (bind, sendmail, postfix, squid, amavisd, laus, samba)
++ Look into interfacing with apps
+  - amavisd, apache, bind, cifs, dhcpd, dnsmasq, gfs, samba, squid
 + Look into interfacing with specific HW counters in /proc
+  - qla2300
 + Look at /proc/meminfo, /proc/mdstat, /proc/net/netstat, /proc/net/snmp, /proc/vmstat
 + Look at /proc/fs/cifs/stats
 + Add i2c plugin (see /sys/class/i2c-adapter/i2c-*/*/*/*/*/*)
@@ -60,9 +63,9 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Add 'most iowaiting app' plugin
 
 ### Plugin issues
-+ plugins that use /proc/pid are reasonably slow (implement in C and cache file-content between plugins)
++ plugins that use /proc/pid are reasonably slow (implement in C and cache file-content between plugins might help)
 + disk plugin: /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible?
-+ proc plugin: (run and blk) does not work on 2.4.24+, to be confirmed
++ proc plugin: (run and blk) does not work on 2.4.24+ (to be confirmed ?)
 + swap plugin: (new one) is slower than swapold
 + tcp plugin: is very slow and generates lots of softirqs (on busy systems), to be confirmed
 

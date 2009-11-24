@@ -1,4 +1,4 @@
-class dstat_snooze(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'snooze'
         self.type = 's'

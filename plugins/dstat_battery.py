@@ -3,8 +3,9 @@
 ###
 ### Authority: dag@wieers.com
 
-class dstat_battery(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
+        self.file = file
         self.name = 'battery'
         self.type = 'p'
         self.width = 4

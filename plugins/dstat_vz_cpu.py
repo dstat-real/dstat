@@ -4,7 +4,7 @@
 #302    142926  0       10252    152896388  852779112954062  0      427034187248480 1048603937010  0       0       0
 #301    27188   0       7896     152899846  853267000490282  0      427043845492614 701812592320   0       0       0
 
-class dstat_vzcpu(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.type = 'p'
         self.width = 3
@@ -12,7 +12,9 @@ class dstat_vzcpu(dstat):
         self.open('/proc/vz/vestat')
         self.nick = ('usr', 'sys', 'idl', 'nic')
         self.cols = 4
-        info(1, 'Module dstat_vzcpu is still experimental.')
+
+    def check(self):
+        info(1, 'Module %s is still experimental.' % self.filename)
 
     def discover(self, *list):
         ret = []

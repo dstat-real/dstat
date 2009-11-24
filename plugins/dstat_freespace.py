@@ -3,7 +3,7 @@
 
 ### FIXME: Apparently needs python 2.0, possibly python 2.2
 
-class dstat_freespace(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.open('/etc/mtab')
         self.nick = ('used', 'free')

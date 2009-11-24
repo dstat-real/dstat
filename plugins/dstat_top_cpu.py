@@ -3,17 +3,21 @@
 ###
 ### Authority: dag@wieers.com
 
-class dstat_topmem(dstat):
+global cpunr
+
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'most expensive'
         self.type = 's'
-        self.width = 17
+        self.width = 16
         self.scale = 0
-        self.vars = ('memory process',)
+        self.vars = ('cpu process',)
         self.pid = str(os.getpid())
+        self.pidset1 = {}; self.pidset2 = {}
 
     def extract(self):
         self.val['max'] = 0.0
+        self.val['cpu process'] = ''
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -30,20 +34,32 @@ class dstat_topmem(dstat):
             except IOError:
                 continue
 
-            if len(l) < 23: continue
-            usage = int(l[23]) * pagesize
+            if len(l) < 15: continue
+
+            ### Reset previous value if it doesn't exist
+            if not self.pidset1.has_key(pid):
+                self.pidset1[pid] = 0
+
+            self.pidset2[pid] = int(l[13]) + int(l[14])
+            usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / elapsed / cpunr
 
             ### Is it a new topper ?
-            if usage <= self.val['max']: continue
+            if usage < self.val['max']: continue
+
+            name = l[1][1:-1]
 
             self.val['max'] = usage
-            self.val['name'] = getnamebypid(pid, l[1][1:-1])
             self.val['pid'] = pid
+            self.val['name'] = getnamebypid(pid, name)
 
-        self.val['memory process'] = '%-*s%s' % (self.width-5, self.val['name'][0:self.width-5], cprint(self.val['max'], 'f', 5, 1024))
+        if self.val['max'] != 0.0:
+            self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['name'][0:self.width-3], cprint(self.val['max'], 'f', 3, 34))
 
         ### Debug (show PID)
-#       self.val['memory process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+#        self.val['cpu process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+
+        if step == op.delay:
+            self.pidset1.update(self.pidset2)
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])

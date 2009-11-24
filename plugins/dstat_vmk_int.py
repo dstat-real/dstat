@@ -6,12 +6,12 @@
 # NOTE TO USERS: command-line plugin configuration is not yet possible, so I've
 # "borrowed" the -I argument. 
 # EXAMPLES:
-# # dstat -M vmkint -I 0x46,0x5a
+# # dstat --vmkint -I 0x46,0x5a
 # You can even combine the Linux and VMkernel interrupt stats
-# # dstat -M vmkint -i -I 14,0x5a
+# # dstat --vmkint -i -I 14,0x5a
 # Look at /proc/vmware/interrupts to see which interrupt is linked to which function
 
-class dstat_vmkint(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'vmkint'
         self.open('/proc/vmware/interrupts')
@@ -20,7 +20,6 @@ class dstat_vmkint(dstat):
         self.width = 4
         self.scale = 1000
 #       self.intmap = self.intmap()
-        info(1, 'The vmkint module is an EXPERIMENTAL module.')
 
 #   def intmap(self):
 #       ret = {}
@@ -78,6 +77,7 @@ class dstat_vmkint(dstat):
             os.listdir('/proc/vmware')
         except:
             raise Exception, 'Needs VMware ESX'
+        info(1, 'The vmkint module is an EXPERIMENTAL module.')
 
     def extract(self):
         self.fd[0].seek(0)

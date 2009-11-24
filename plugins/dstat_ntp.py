@@ -17,7 +17,7 @@ import struct
 ### FIXME: Implement millisecond granularity as well
 ### FIXME: Interrupts socket if data is overdue (more than 250ms ?)
 
-class dstat_ntp(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'ntp'
         self.timefmt = os.getenv('DSTAT_TIMEFMT') or '%d-%m %H:%M:%S'

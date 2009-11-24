@@ -1,4 +1,4 @@
-class dstat_rpc(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'rpc client'
         self.type = 'd'

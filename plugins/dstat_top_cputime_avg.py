@@ -1,23 +1,20 @@
+### Dstat most expensive I/O process plugin
+### Displays the name of the most expensive I/O process
+###
 ### Authority: dag@wieers.com
 
 ### For more information, see:
 ###     http://eaglet.rain.com/rick/linux/schedstat/
 
-class dstat_topcputime(dstat):
-    """
-    Name and total amount of CPU time consumed in milliseconds of the process
-    that has the highest total amount of cputime for the measured timeframe.
-    """
-
+class dstat_plugin(dstat):
     def __init__(self):
-        self.name = 'highest total'
+        self.name = 'highest average'
         self.type = 's'
         self.width = 17
         self.scale = 0
         self.vars = ('cputime process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
-        info(1, 'Module dstat_topcputime is still experimental.')
 
     def check(self):
         if not os.access('/proc/self/schedstat', os.R_OK):
@@ -36,7 +33,7 @@ class dstat_topcputime(dstat):
 
                 ### Reset values
                 if not self.pidset1.has_key(pid):
-                    self.pidset1[pid] = {'run_ticks': 0}
+                    self.pidset1[pid] = {'run_ticks': 0, 'ran': 0}
 
                 ### Extract name
                 name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
@@ -51,13 +48,16 @@ class dstat_topcputime(dstat):
 
             if len(l) != 3: continue
 
-            self.pidset2[pid] = {'run_ticks': long(l[0])}
+            self.pidset2[pid] = {'run_ticks': long(l[0]), 'ran': long(l[2])}
 
-            totrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / elapsed
+            if self.pidset2[pid]['ran'] - self.pidset1[pid]['ran'] > 0:
+                avgrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / elapsed
+            else:
+                avgrun = 0
 
             ### Get the process that spends the most jiffies
-            if totrun > self.val['result']:
-                self.val['result'] = totrun
+            if avgrun > self.val['result']:
+                self.val['result'] = avgrun
                 self.val['pid'] = pid
                 self.val['name'] = getnamebypid(pid, name)
 

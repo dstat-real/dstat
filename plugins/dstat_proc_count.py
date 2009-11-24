@@ -1,7 +1,7 @@
 ### Dstat Display Process Count plugin
 ### Displays the number of processes on a machine
 
-class dstat_proccount(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name   = 'procs'
         self.type = 'd'

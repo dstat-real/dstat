@@ -6,19 +6,18 @@
 # NOTE TO USERS: command-line plugin configuration is not yet possible, so I've
 # "borrowed" the -D argument. 
 # EXAMPLES:
-# # dstat -M vmkhba -D vmhba1,vmhba2,total
-# # dstat -M vmkhba -D vmhba0
+# # dstat --vmkhba -D vmhba1,vmhba2,total
+# # dstat --vmkhba -D vmhba0
 # You can even combine the Linux and VMkernel diskstats (but the "total" argument
 # will be used by both).
-# # dstat -M vmkhba -d -D sda,vmhba1
+# # dstat --vmkhba -d -D sda,vmhba1
 
-class dstat_vmkhba(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'vmkhba'
         self.discover = self.discover()
         self.nick = ('read', 'writ')
         self.cols = 2
-        info(1, 'The vmkhba module is an EXPERIMENTAL module.')
 
     def discover(self, *list):
     # discover will list all vmhba's found.
@@ -57,6 +56,7 @@ class dstat_vmkhba(dstat):
             os.listdir('/proc/vmware')
         except:
             raise Exception, 'Needs VMware ESX'
+        info(1, 'The vmkhba module is an EXPERIMENTAL module.')
 
     def extract(self):
         self.set2['total'] = (0, 0)

@@ -2,7 +2,7 @@
 global glob
 import glob
 
-class dstat_sendmail(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'sendmail'
         self.type = 'd'

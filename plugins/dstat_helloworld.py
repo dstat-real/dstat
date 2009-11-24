@@ -3,7 +3,7 @@
 ###
 ### Authority: dag@wieers.com
 
-class dstat_helloworld(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.type = 's'
         self.width = 12

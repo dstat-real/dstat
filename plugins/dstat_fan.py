@@ -1,4 +1,4 @@
-class dstat_fan(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'fan'
         self.type = 'd'

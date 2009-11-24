@@ -1,7 +1,7 @@
 global glob
 import glob
 
-class dstat_postfix(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'postfix'
         self.type = 'd'

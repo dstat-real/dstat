@@ -286,8 +286,8 @@ selection and order of options influence the Dstat output directly.
 The internal plugins have short and/or long options within Dstat, eg. +-c+ or
 +--cpu+ will enable the cpu counters.
 
-The external plugins are enable by a single +-M+ option followed by one or
-more plugin-names. (This also works for internal plugins)
+The external plugins are enable by a long option including their name,
+eg. --topcpu
 
 The following examples will enable the time, cpu and disk plugins, and are
 equal.
@@ -295,8 +295,6 @@ equal.
 ----
 dstat -tcd
 dstat --time --cpu --disk
-dstat -M time,cpu,disk
-dstat -M time -M cpu -M disk
 ----
 
 === Total or individual counters
@@ -336,15 +334,14 @@ Dstat looks in the following places for plugins. This allows a user without
 root privileges to use some extra plugins.
 
     - ~/.dstat/
-    - ./plugins/
-    - .
+    - <binarypath>/plugins/
     - /usr/share/dstat/
     - /usr/local/share/dstat/
 
-The option +-M list+ shows the available plugins and their location in the
+The option +--list+ shows the available plugins and their location in the
 order that the plugin search path is used.
 
-NOTE: Plugins are name +dstat_<name>.py+.
+NOTE: Plugins are named +dstat_<name>.py+.
 
 
 == Use-cases
@@ -389,7 +386,7 @@ of memory is of the top application gives away a lot about a system.
 
 .Sample output
 ----
-[dag@horsea dag]$ dstat -c -M topcpu -dng -M topmem
+[dag@horsea dag]$ dstat -c --topcpu -dng --topmem
 ----total-cpu-usage---- -most-expensive- -dsk/total- -net/total- ---paging-- -most-expensive-
 usr sys idl wai hiq siq|  cpu process   | read  writ| recv  send|  in   out | memory process 
   9   2  80   9   0   0|kswapd         0| 123k  164k|   0     0 |9196B   18k|rsync        74M
@@ -409,9 +406,9 @@ Something indicates the system is doing something unexpected but what is
 causing it and why ? As of now you can do:
 
 ----
-screen dstat -tcy -M topcpu 120
-screen dstat -tmgs -M topmem 120
-screen dstat -tdi -M topio 120
+screen dstat -tcy --topcpu 120
+screen dstat -tmgs --topmem 120
+screen dstat -tdi --topio 120
 ----
 
 to see what process is using the most CPU, the most memory and the most I/O
@@ -420,8 +417,8 @@ resources.
 And hopefully one day we can do:
 
 ----
-dstat -tn -M topnet 120
-dstat -tn -M topx 120
+dstat -tn --topnet 120
+dstat -tn --topx 120
 ----
 
 Leave it running during the night and in the morning you can see the light.
@@ -445,7 +442,7 @@ Also on VMware virtual machines, the number of ticks can cause clock issues,
 so in that case if you want to see what is happening, you can simply do:
 
 ----
-dstat -ti -I0 -M snooze --debug
+dstat -ti -I0 --snooze --debug
 ----
 
 Dstat nowadays can also detect lost ticks (when the number of ticks do not
@@ -527,7 +524,7 @@ WIFI access point. However I must say that another tool I wrote 'Dwscan' is
 currently more sophisticated.
 
 ----
-dstat -t -M wifi
+dstat -t --wifi
 ----
 
 === Is my SWRAID performing as it claims ?
@@ -738,7 +735,7 @@ the +dstat_topcpu+ plugin:
 
 .The cost of running the +dstat_topcpu+ plugin
 ----
-[dag@rhun dstat]$ dstat -M topcpu --debug
+[dag@rhun dstat]$ dstat --topcpu --debug
 Module dstat_topcpu
 -most-expensive-
   cpu process

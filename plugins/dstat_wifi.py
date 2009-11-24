@@ -1,7 +1,7 @@
 global iwlibs
 from pythonwifi import iwlibs
 
-class dstat_wifi(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'wifi'
         self.type = 'd'

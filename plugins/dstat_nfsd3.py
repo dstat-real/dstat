@@ -1,4 +1,4 @@
-class dstat_nfsd3(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'nfs3 server'
         self.type = 'd'
@@ -7,7 +7,9 @@ class dstat_nfsd3(dstat):
         self.open('/proc/net/rpc/nfsd')
         self.vars = ('read', 'write', 'readdir', 'inode', 'filesystem', 'commit')
         self.nick = ('read', 'writ', 'rdir', 'inod', 'fs', 'cmmt')
-        info(1, 'Module dstat_nfsd3 is still experimental.')
+
+    def check(self):
+        info(1, 'Module %s is still experimental.' % self.filename)
 
     def extract(self):
         for l in self.splitlines():

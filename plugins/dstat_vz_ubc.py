@@ -1,4 +1,4 @@
-class dstat_vzubc(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.type = 'd'
         self.width = 5
@@ -6,7 +6,9 @@ class dstat_vzubc(dstat):
         self.open('/proc/user_beancounters')
         self.nick = ('fcnt', )
         self.cols = 1 ### Is this correct ?
-        info(1, 'Module dstat_vzubc is still experimental.')
+
+    def check(self):
+        info(1, 'Module %s is still experimental.' % self.filename)
 
     def discover(self, *list):
         ret = []

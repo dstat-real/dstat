@@ -1,16 +1,15 @@
-### Dstat most expensive block I/O process plugin
-### Displays the name of the most expensive block I/O process
+### Dstat most expensive I/O process plugin
+### Displays the name of the most expensive I/O process
 ###
 ### Authority: dag@wieers.com
 
-class dstat_topbio(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'most expensive'
         self.type = 's'
         self.width = 22
         self.scale = 0
-        self.nick = ('block i/o process',)
-        self.vars = self.nick
+        self.vars = ('i/o process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
 
@@ -20,7 +19,7 @@ class dstat_topbio(dstat):
 
     def extract(self):
         self.val['usage'] = 0.0
-        self.val['block i/o process'] = ''
+        self.val['i/o process'] = ''
         for pid in os.listdir('/proc/'):
             try:
                 ### Is it a pid ?
@@ -31,9 +30,9 @@ class dstat_topbio(dstat):
 
                 ### Reset values
                 if not self.pidset2.has_key(pid):
-                    self.pidset2[pid] = {'read_bytes:': 0, 'write_bytes:': 0}
+                    self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0}
                 if not self.pidset1.has_key(pid):
-                    self.pidset1[pid] = {'read_bytes:': 0, 'write_bytes:': 0}
+                    self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0}
 
                 ### Extract name
                 name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
@@ -49,9 +48,11 @@ class dstat_topbio(dstat):
             except IOError:
                 continue
 
-            read_usage = (self.pidset2[pid]['read_bytes:'] - self.pidset1[pid]['read_bytes:']) * 1.0 / elapsed
-            write_usage = (self.pidset2[pid]['write_bytes:'] - self.pidset1[pid]['write_bytes:']) * 1.0 / elapsed
+            read_usage = (self.pidset2[pid]['rchar:'] - self.pidset1[pid]['rchar:']) * 1.0 / elapsed
+            write_usage = (self.pidset2[pid]['wchar:'] - self.pidset1[pid]['wchar:']) * 1.0 / elapsed
             usage = read_usage + write_usage
+#            if usage > 0.0:
+#                print '%s %s:%s' % (pid, read_usage, write_usage)
 
             ### Get the process that spends the most jiffies
             if usage > self.val['usage']:
@@ -60,17 +61,16 @@ class dstat_topbio(dstat):
                 self.val['write_usage'] = write_usage
                 self.val['pid'] = pid
                 self.val['name'] = getnamebypid(pid, name)
-#                st = os.stat("/proc/%s" % pid)
 
         if step == op.delay:
             for pid in self.pidset2.keys():
                 self.pidset1[pid].update(self.pidset2[pid])
 
         if self.val['usage'] != 0.0:
-            self.val['block i/o process'] = '%-*s%s:%s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
+            self.val['i/o process'] = '%-*s%s:%s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
 
         ### Debug (show PID)
-#        self.val['block i/o process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+#       self.val['i/o process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
         return '%s / %d:%d' % (self.val['name'], self.val['read_usage'], self.val['write_usage'])

@@ -1,9 +1,9 @@
 ### Dstat battery plugin
 ### Displays battery information from ACPI
-###
+##
 ### Authority: dag@wieers.com
 
-class dstat_battery_remain(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'remain'
         self.type = 't'

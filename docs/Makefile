@@ -20,11 +20,12 @@ clean:
 %.1.html: %.1.txt
 	asciidoc -d manpage $<
 
-%.1: %.1.xml
-	xmlto man $<
-
 %.html: %.txt
 	asciidoc $<
 
 %.1.xml: %.1.txt
 	asciidoc -b docbook -d manpage $<
+
+%.1: %.1.xml
+	@xmlto man $<
+

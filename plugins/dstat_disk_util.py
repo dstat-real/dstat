@@ -1,4 +1,4 @@
-class dstat_diskutil(dstat):
+class dstat_plugin(dstat):
     """
     Percentage of CPU time during which I/O requests were issued to the device
     (bandwidth utilization for the device). Device saturation occurs when

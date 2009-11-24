@@ -1,21 +1,22 @@
-### Dstat most expensive I/O process plugin
-### Displays the name of the most expensive I/O process
-###
 ### Authority: dag@wieers.com
 
 ### For more information, see:
 ###     http://eaglet.rain.com/rick/linux/schedstat/
 
-class dstat_topavgcputime(dstat):
+class dstat_plugin(dstat):
+    """
+    Name and total amount of CPU time waited in milliseconds of the process
+    that has the highest total amount waited for the measured timeframe.
+    """
+
     def __init__(self):
-        self.name = 'highest average'
+        self.name = 'highest total'
         self.type = 's'
         self.width = 17
         self.scale = 0
-        self.vars = ('cputime process',)
+        self.vars = ('latency process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
-        info(1, 'Module dstat_toptimeslice is still experimental.')
 
     def check(self):
         if not os.access('/proc/self/schedstat', os.R_OK):
@@ -34,7 +35,7 @@ class dstat_topavgcputime(dstat):
 
                 ### Reset values
                 if not self.pidset1.has_key(pid):
-                    self.pidset1[pid] = {'run_ticks': 0, 'ran': 0}
+                    self.pidset1[pid] = {'wait_ticks': 0}
 
                 ### Extract name
                 name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
@@ -49,16 +50,13 @@ class dstat_topavgcputime(dstat):
 
             if len(l) != 3: continue
 
-            self.pidset2[pid] = {'run_ticks': long(l[0]), 'ran': long(l[2])}
+            self.pidset2[pid] = {'wait_ticks': long(l[1])}
 
-            if self.pidset2[pid]['ran'] - self.pidset1[pid]['ran'] > 0:
-                avgrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / elapsed
-            else:
-                avgrun = 0
+            totwait = (self.pidset2[pid]['wait_ticks'] - self.pidset1[pid]['wait_ticks']) * 1.0 / elapsed
 
             ### Get the process that spends the most jiffies
-            if avgrun > self.val['result']:
-                self.val['result'] = avgrun
+            if totwait > self.val['result']:
+                self.val['result'] = totwait
                 self.val['pid'] = pid
                 self.val['name'] = getnamebypid(pid, name)
 
@@ -67,10 +65,10 @@ class dstat_topavgcputime(dstat):
                 self.pidset1[pid].update(self.pidset2[pid])
 
         if self.val['result'] != 0.0:
-            self.val['cputime process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['result'], 'f', 4, 100))
+            self.val['latency process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['result'], 'f', 4, 100))
 
         ### Debug (show PID)
-#       self.val['cputime process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+#       self.val['latency process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
         return '%s / %.4f' % (self.val['name'], self.val['result'])

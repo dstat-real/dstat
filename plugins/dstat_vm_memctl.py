@@ -7,7 +7,7 @@
 
 # NB Data comes from /proc/vmmemctl
 
-class dstat_vmmemctl(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'memctl'
         self.type = 'f'

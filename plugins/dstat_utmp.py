@@ -1,4 +1,4 @@
-class dstat_utmp(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'utmp'
         self.type = 'd'

@@ -3,7 +3,7 @@
 ###
 ### Authority: dag@wieers.com
 
-class dstat_dbus(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'dbus'
         self.type = 'd'
@@ -12,7 +12,7 @@ class dstat_dbus(dstat):
         self.nick = ('sys', 'ses')
         self.vars = ('system', 'session')
 
-    def check(self): 
+    def check(self):
 #       dstat.info(1, 'The dbus module is an EXPERIMENTAL module.')
         try:
             global dbus

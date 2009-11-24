@@ -2,7 +2,7 @@
 .\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
 .\" Instead of manually editing it, you probably should edit the DocBook XML
 .\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
-.TH "DSTAT" "1" "11/01/2009" "0.6.9" ""
+.TH "DSTAT" "1" "11/24/2009" "\  0.7.0" "\ "
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -115,19 +115,18 @@ enable udp stats (listen, active)
 enable unix stats (datagram, stream, listen, active)
 .TP
 \-\-vm
-enable vm stats (hard pagefaults, soft pagefaults, allocated, free))
+enable vm stats (hard pagefaults, soft pagefaults, allocated, free)
 .TP
 \-\-stat1 \-\-stat2
-enable internal and external plugin stats by plugin name
-.TP
-\-M stat1,stat2
-enable internal and external plugin stats by plugin name
+enable (external) plugins by plugin name, see
+\fBPLUGINS\fR
+for options
 .TP
 Possible internal stats are
 aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc, load, lock, mem, net, page, page24, proc, raw, socket, swap, swapold, sys, tcp, time, udp, unix, vm
 .TP
-Possible plugin stats can be listed using
-dstat \-\-list
+\-\-list
+list the internal and external plugin names
 .TP
 \-a, \-\-all
 equals \-cdngy (default)
@@ -138,14 +137,20 @@ expand \-C, \-D, \-I, \-N and \-S discovery lists
 \-v, \-\-vmstat
 equals \-pmgdsc \-D total
 .TP
-\-\-list
-list the internal and external plugin names
+\-\-bw, \-\-blackonwhite
+change colors for white background terminal
+.TP
+\-\-float
+force float values on screen (mutual exclusive with
+\fB\-\-integer\fR)
 .TP
 \-\-integer
-show integer values
+force integer values on screen (mutual exclusive with
+\fB\-\-float\fR)
 .TP
 \-\-nocolor
-disable colors (implies \-\-noupdate)
+disable colors (implies
+\fB\-\-noupdate\fR)
 .TP
 \-\-noheaders
 disable repetitive headers
@@ -155,6 +160,168 @@ disable intermediate updates when delay > 1
 .TP
 \-\-output file
 write CSV output to file
+.SH "PLUGINS"
+While anyone can create their own dstat plugins (and contribute them) dstat ships with a number of plugins already that extend its capabilities greatly. Here is an overview of the plugins dstat ships with:
+.sp
+.TP
+\-\-battery
+battery in percentage (needs ACPI)
+.TP
+\-\-battery\-remain
+battery remaining in hours, minutes (needs ACPI)
+.TP
+\-\-cpufreq
+CPU frequency in percentage (needs ACPI)
+.TP
+\-\-dbus
+number of dbus connections (needs python\-dbus)
+.TP
+\-\-disk\-util
+per disk utilization in percentage
+.TP
+\-\-fan
+fan speed (needs ACPI)
+.TP
+\-\-freespace
+per filesystem disk usage
+.TP
+\-\-gpfs
+GPFS read/write I/O (needs mmpmon)
+.TP
+\-\-gpfs\-ops
+GPFS filesystem operations (needs mmpmon)
+.TP
+\-\-helloworld
+Hello world example dstat plugin
+.TP
+\-\-innodb\-buffer
+TBD
+.TP
+\-\-innodb\-io
+TBD
+.TP
+\-\-innodb\-ops
+TBD
+.TP
+\-\-lustre
+TBD
+.TP
+\-\-memcache\-hits
+TBD
+.TP
+\-\-mysql5\-com
+TBD
+.TP
+\-\-mysql5\-conn
+TBD
+.TP
+\-\-mysql5\-io
+TBD
+.TP
+\-\-mysql5\-keys
+TBD
+.TP
+\-\-mysql\-io
+TBD
+.TP
+\-\-mysql\-keys
+TBD
+.TP
+\-\-net\-packets
+TBD
+.TP
+\-\-nfs3
+NFS v3 client operations
+.TP
+\-\-nfs3\-ops
+Extended NFS v3 client operations
+.TP
+\-\-nfsd3
+NFS v3 server operations
+.TP
+\-\-nfsd3\-ops
+Extended NFS v3 server operations
+.TP
+\-\-ntp
+TBD
+.TP
+\-\-postfix
+postfix queue size (needs postfix)
+.TP
+\-\-power
+TBD
+.TP
+\-\-proc\-count
+TBD
+.TP
+\-\-rpc
+RPC client calls
+.TP
+\-\-rpcd
+RPC server calls
+.TP
+\-\-sendmail
+sendmail queue size (needs sendmail)
+.TP
+\-\-snooze
+number of ticks per second
+.TP
+\-\-test
+TBD
+.TP
+\-\-thermal
+system temperature sensors
+.TP
+\-\-top\-bio
+TBD
+.TP
+\-\-top\-cpu
+TBD
+.TP
+\-\-top\-cputime
+TBD
+.TP
+\-\-top\-cputime\-avg
+TBD
+.TP
+\-\-top\-io
+TBD
+.TP
+\-\-top\-latency
+TBD
+.TP
+\-\-top\-latency\-avg
+TBD
+.TP
+\-\-top\-mem
+TBD
+.TP
+\-\-top\-oom
+TBD
+.TP
+\-\-utmp
+Number of utmp connections (needs python\-utmp)
+.TP
+\-\-vmk\-hba
+TBD
+.TP
+\-\-vmk\-int
+TBD
+.TP
+\-\-vmk\-nic
+TBD
+.TP
+\-\-vm\-memctl
+TBD
+.TP
+\-\-vz\-io
+TBD
+.TP
+\-\-vz\-ubc
+TBD
+.TP
+\-\-wifi
+wireless link quality and signal to noise ratio
 .SH "ARGUMENTS"
 \fBdelay\fR is the delay in seconds between each update
 .sp
@@ -167,14 +334,14 @@ When invoking dstat with a \fBdelay\fR greater than 1 and without the \fB\-\-nou
 .sp
 So in case you specified a delay of 10, \fBthe 9 intermediate updates are NOT snapshots\fR, they are averages over the time that passed since the last final update. The end result is that you get a 10 second average on a new line, just like with vmstat.
 .sp
-.SH "USAGE"
+.SH "EXAMPLES"
 Using dstat to relate disk\-throughput with network\-usage (eth0), total CPU\-usage and system counters:
 .sp
 .sp
 .nf
 dstat \-dnyc \-N eth0 \-C total \-f 5
 .fi
-Checking dstat\(cqs behaviour and the system\(cqs impact on dstat:
+Checking dstat\(cqs behaviour and the system impact of dstat:
 .sp
 .sp
 .nf
@@ -184,13 +351,13 @@ Using the time plugin together with cpu, net, disk, system, load, proc and topcp
 .sp
 .sp
 .nf
-dstat \-tcndylp \-M topcpu
+dstat \-tcndylp \-\-topcpu
 .fi
 this is identical to
 .sp
 .sp
 .nf
-dstat \-M time,cpu,net,disk,sys,load,proc,topcpu
+dstat \-\-time \-\-cpu \-\-net \-\-disk \-\-sys \-\-load \-\-proc \-\-topcpu
 .fi
 Using dstat to relate cpu stats with interrupts per device:
 .sp

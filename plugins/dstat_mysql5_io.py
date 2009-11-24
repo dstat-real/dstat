@@ -8,7 +8,7 @@ global mysql_pwd
 mysql_user = os.getenv('DSTAT_MYSQL_USER') or os.getenv('USER')
 mysql_pwd = os.getenv('DSTAT_MYSQL_PWD')
 
-class dstat_mysql5_io(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'mysql5 io'
         self.vars = ('Bytes_received', 'Bytes_sent')

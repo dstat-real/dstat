@@ -18,11 +18,19 @@
 #       vfs_write_chars          23864660931174682
 #       io_pbs                                  16
 
-class dstat_vzio(dstat):
+class dstat_plugin(dstat):
     def __init__(self):
         self.nick = ['read', 'write', 'dirty', 'cancel', 'missed']
         self.cols = len(self.nick)
-        info(1, 'Module dstat_vzio is still experimental.')
+
+    def check(self):
+        if not os.path.exists('/proc/vz'):
+            raise Exception, 'System does not have OpenVZ support'
+        elif not os.path.exists('/proc/bc'):
+            raise Exception, 'System does not have (new) OpenVZ beancounter support'
+        elif not glob.glob('/proc/bc/*/ioacct'):
+            raise Exception, 'System does not have any OpenVZ containers'
+        info(1, 'Module %s is still experimental.' % self.filename)
 
     def name(self):
         return ['ve/'+name for name in self.vars]
@@ -35,14 +43,6 @@ class dstat_vzio(dstat):
             varlist = [os.path.basename(veid) for veid in glob.glob('/proc/vz/*')]
         ret = varlist
         return ret
-
-    def check(self):
-        if not os.path.exists('/proc/vz'):
-            raise Exception, 'System does not have OpenVZ support'
-        elif not os.path.exists('/proc/bc'):
-            raise Exception, 'System does not have (new) OpenVZ beancounter support'
-        elif not glob.glob('/proc/bc/*/ioacct'):
-            raise Exception, 'System does not have any OpenVZ containers'
 
     def extract(self):
         global update
