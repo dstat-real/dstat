@@ -1,9 +1,13 @@
-### Dstat battery plugin
-### Displays battery information from ACPI
-##
-### Authority: dag@wieers.com
+### Author: Dag Wieers <dag$wieers,com>
 
 class dstat_plugin(dstat):
+    """
+    Remaining battery time.
+
+    Calculated from power drain and remaining battery power. Information is
+    retrieved from ACPI.
+    """
+
     def __init__(self):
         self.name = 'remain'
         self.type = 't'

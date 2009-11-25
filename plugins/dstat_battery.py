@@ -1,9 +1,10 @@
-### Dstat battery plugin
-### Displays battery information from ACPI
-###
-### Authority: dag@wieers.com
+### Author: Dag Wieers <dag$wieers,com>
 
 class dstat_plugin(dstat):
+    """
+    Percentage of remaining battery power as reported by ACPI.
+    """
+
     def __init__(self):
         self.file = file
         self.name = 'battery'

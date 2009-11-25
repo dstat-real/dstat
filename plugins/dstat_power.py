@@ -1,9 +1,14 @@
-### Dstat power usage plugin
-### Displays power usage information from ACPI
-###
-### Authority: dag@wieers.com
+### Author: Dag Wieers <dag@wieers.com>
 
 class dstat_plugin(dstat):
+    """
+    Power usage information from ACPI.
+
+    Displays the power usage in mwh of your system's battery using ACPI
+    information. This information is only available when the battery is
+    being used (or being charged).
+    """
+
     def __init__(self):
         self.name = 'power'
         self.type = 'f'

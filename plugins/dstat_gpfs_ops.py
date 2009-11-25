@@ -1,4 +1,10 @@
+### Author: Dag Wieers <dag$wieers,com>
+
 class dstat_plugin(dstat):
+    """
+    Number of operations performed on a GPFS filesystem.
+    """
+
     def __init__(self):
         self.name = 'gpfs file operations'
         self.type = 'd'
@@ -30,11 +36,11 @@ class dstat_plugin(dstat):
             for name in self.vars:
                 self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         except IOError, e:
+            if op.debug > 1: print '%s: lost pipe to mmpmon, %s' % (self.filename, e)
             for name in self.vars: self.val[name] = -1
-#           print self.filename + ': lost pipe to mmpmon,', e
         except Exception, e:
+            if op.debug > 1: print '%s: exception %s' % (self.filename, e)
             for name in self.vars: self.val[name] = -1
-#           print 'dstat_gpfs: exception', e
 
         if step == op.delay:
             self.set1.update(self.set2)

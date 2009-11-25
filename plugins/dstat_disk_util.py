@@ -1,8 +1,12 @@
+### Author: Dag Wieers <dag$wieers,com>
+
 class dstat_plugin(dstat):
     """
-    Percentage of CPU time during which I/O requests were issued to the device
-    (bandwidth utilization for the device). Device saturation occurs when
-    this value is close to 100%.
+    Percentage of bandwidth utilization for block devices.
+
+    Displays percentage of CPU time during which I/O requests were issued
+    to the device (bandwidth utilization for the device). Device saturation
+    occurs when this value is close to 100%.
     """
 
     def __init__(self):
@@ -22,7 +26,7 @@ class dstat_plugin(dstat):
             name = l[2]
             ret.append(name)
         for item in objlist: ret.append(item)
-        if not ret: 
+        if not ret:
             raise Exception, "No suitable block devices found to monitor"
         return ret
 

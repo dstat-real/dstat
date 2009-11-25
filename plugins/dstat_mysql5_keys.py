@@ -1,23 +1,27 @@
-# dstat plugin for MySQL 5 Keys 
-# 2007-09-04 - lefred@inuits.be
-global MySQLdb
-import MySQLdb
+### Author: <lefred$inuits,be>
 
 global mysql_user
-global mysql_pwd
 mysql_user = os.getenv('DSTAT_MYSQL_USER') or os.getenv('USER')
+
+global mysql_pwd
 mysql_pwd = os.getenv('DSTAT_MYSQL_PWD') 
 
 class dstat_plugin(dstat):
+    """
+    Plugin for MySQL 5 Keys.
+    """
+
     def __init__(self):
         self.name = 'mysql5 key status'
         self.type = 'f'
         self.width = 4
         self.scale = 1000
-        self.vars = ('Key_blocks_used', 'Key_reads', 'Key_writes', 'Key_read_requests', 'Key_write_requests')
         self.nick = ('used', 'read', 'writ', 'rreq', 'wreq')
+        self.vars = ('Key_blocks_used', 'Key_reads', 'Key_writes', 'Key_read_requests', 'Key_write_requests')
 
     def check(self): 
+        global MySQLdb
+        import MySQLdb
         try:
             self.db = MySQLdb.connect(user=mysql_user, passwd=mysql_pwd)
         except:

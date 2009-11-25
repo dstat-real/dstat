@@ -3,6 +3,9 @@
 ###
 ### Authority: dag@wieers.com
 
+### More information:
+###    http://lwn.net/Articles/317814/
+
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'out of memory'

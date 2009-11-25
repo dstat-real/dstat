@@ -29,6 +29,7 @@
 - Improvements to timing when writing to screen so that it feels nicer
 - Added external dstat_disk_util to show per disk utilization rates in percentage
 - Added new --float option to force float values on screen
+- Reduce the number of paths used for importing modules (CVE-2009-3894)
 - Mass rename plugins to follow better convention (impacts existing options)
 - This release was 'sponsored' by the Linux Foundation during the Japan Linux Symposium
 

@@ -1,12 +1,4 @@
-### Dstat NTP plugin
-### Displays time from an NTP server
-###
-### Authority: dag@wieers.com
-
-### Beware that this dstat plugin typically takes a lot longer to run than
-### system plugins and for that reason it is important to use an NTP server
-### located nearby as well as make sure that it does not impact your other
-### counters too much.
+### Author: Dag Wieers <dag@wieers.com>
 
 global socket
 import socket
@@ -18,6 +10,15 @@ import struct
 ### FIXME: Interrupts socket if data is overdue (more than 250ms ?)
 
 class dstat_plugin(dstat):
+    """
+    Time from an NTP server.
+
+    BEWARE: this dstat plugin typically takes a lot longer to run than
+    system plugins and for that reason it is important to use an NTP server
+    located nearby as well as make sure that it does not impact your other
+    counters too much.
+    """
+
     def __init__(self):
         self.name = 'ntp'
         self.timefmt = os.getenv('DSTAT_TIMEFMT') or '%d-%m %H:%M:%S'

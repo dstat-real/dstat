@@ -20,19 +20,17 @@ VERSION = '0.7.0'
 
 theme = { 'default': '' }
 
-def inspath(path):
+def addpath(path):
     if os.path.isdir(path) and path not in sys.path:
-        sys.path.insert(0, path)
+        sys.path.append(path)
 
 try:
     import sys, os, time, sched, re
     import types, resource, getpass, glob
-    inspath('/usr/local/share/dstat/')
-    inspath('/usr/share/dstat/')
-    inspath(os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/')    # binary path + /plugins/
-    inspath(os.getcwd() + '/plugins/')                                      # current path + /plugins/
-    inspath(os.getcwd())                                                    # current path
-    inspath(os.path.expanduser('~/.dstat/'))                                # home + /.dstat/
+    addpath(os.path.expanduser('~/.dstat/'))                                # home + /.dstat/
+    addpath(os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/')    # binary path + /plugins/
+    addpath('/usr/share/dstat/')
+    addpath('/usr/local/share/dstat/')
 except KeyboardInterrupt, e:
     pass
 
@@ -1586,7 +1584,7 @@ def set_theme():
         theme = {
             'title': ansi['darkblue'],
             'subtitle': ansi['darkcyan'] + ansi['underline'],
-            'frame': ansi['darkgray'],
+            'frame': ansi['darkblue'],
             'default': ansi['default'],
             'error': ansi['white'] + ansi['redbg'],
             'roundtrip': ansi['darkblue'],
@@ -1594,6 +1592,8 @@ def set_theme():
             'input': ansi['darkgray'],
             'text_lo': ansi['black'],
             'text_hi': ansi['darkgray'],
+            'unit_lo': ansi['black'],
+            'unit_hi': ansi['darkgray'],
             'colors_lo': (ansi['darkred'], ansi['darkmagenta'], ansi['darkgreen'], ansi['darkblue'],
                           ansi['darkcyan'], ansi['gray'], ansi['red'], ansi['green']),
             'colors_hi': (ansi['red'], ansi['magenta'], ansi['green'], ansi['blue'],
@@ -1603,7 +1603,7 @@ def set_theme():
         theme = {
             'title': ansi['darkblue'],
             'subtitle': ansi['blue'] + ansi['underline'],
-            'frame': ansi['darkgray'],
+            'frame': ansi['darkblue'],
             'default': ansi['default'],
             'error': ansi['white'] + ansi['redbg'],
             'roundtrip': ansi['darkblue'],
@@ -1611,6 +1611,8 @@ def set_theme():
             'input': ansi['darkgray'],
             'text_lo': ansi['gray'],
             'text_hi': ansi['darkgray'],
+            'unit_lo': ansi['darkgray'],
+            'unit_hi': ansi['darkgray'],
             'colors_lo': (ansi['red'], ansi['yellow'], ansi['green'], ansi['blue'],
                           ansi['cyan'], ansi['white'], ansi['darkred'], ansi['darkgreen']),
             'colors_hi': (ansi['darkred'], ansi['darkyellow'], ansi['darkgreen'], ansi['darkblue'],
@@ -1786,13 +1788,14 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     else:
         units = (' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
 
-    zero = theme['text_hi']
     if step == op.delay:
         colors = theme['colors_lo']
-        text = theme['text_lo']
+        ctext = theme['text_lo']
+        cunit = theme['unit_lo']
     else:
         colors = theme['colors_hi']
-        text = theme['text_hi']
+        ctext = theme['text_hi']
+        cunit = theme['unit_hi']
 
     ### Convert value to string given base and field-length
     if op.integer and type in ('d', 'p', 'f'):
@@ -1804,17 +1807,17 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     elif type in ('f'):
         ret, c = fchg(var, width, base)
     elif type in ('s'):
-        ret, c = str(var), text
+        ret, c = str(var), ctext
     elif type in ('t'):
-        ret, c = '%2dh%02d' % (var / 60, var % 60), text
+        ret, c = '%2dh%02d' % (var / 60, var % 60), ctext
     else:
         raise Exception, 'Type %s not known to dstat.' % type
 
     ### Set the counter color
     if ret == '0':
-        color = zero
+        color = cunit
     elif scale <= 0:
-        color = text
+        color = ctext
     elif scale not in (1000, 1024):
         color = colors[int(var/scale)%len(colors)]
     elif type in ('p'):
@@ -1822,7 +1825,7 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     elif type in ('d', 'f'):
         color = colors[c%len(colors)]
     else:
-        color = text
+        color = ctext
 
     ### Justify value to left if string
     if type in ('s',):
@@ -1833,9 +1836,9 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     ### Add unit to output
     if unit:
         if c != -1 and round(var) != 0:
-            ret = ret + text + units[c]
+            ret += cunit + units[c]
         else:
-            ret = ret + ' '
+            ret += ' '
 
     return ret
 

@@ -1,9 +1,10 @@
-### Dstat Hello World plugin
-### Displays hello world
-###
-### Authority: dag@wieers.com
+### Author: Dag Wieers <dag$wieers,com>
 
 class dstat_plugin(dstat):
+    """
+    Example "Hello world!" output plugin for aspiring Dstat developers.
+    """
+
     def __init__(self):
         self.type = 's'
         self.width = 12

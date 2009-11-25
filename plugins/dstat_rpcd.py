@@ -1,3 +1,5 @@
+### Author: Dag Wieers <dag@wieers.com>
+
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'rpc server'
@@ -13,8 +15,10 @@ class dstat_plugin(dstat):
             if not l or l[0] != 'rpc': continue
             for i, name in enumerate(self.vars):
                 self.set2[name] = long(l[i+1])
+
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 

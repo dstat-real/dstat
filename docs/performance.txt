@@ -44,7 +44,7 @@ Performance tuning
 ------------------
 The following documents may be useful to tune a system for performance
 
-+ http://people.redhat.com/alikins/system_tuning.html[]
+ * http://people.redhat.com/alikins/system_tuning.html[]
 
 
 NOTE: Please send me improvements to this document.

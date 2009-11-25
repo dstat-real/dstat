@@ -1,6 +1,6 @@
+### Author: Dag Wieers <dag@wieers.com>
+
 ### FIXME: Should read /var/log/mail/statistics or /etc/mail/statistics (format ?)
-global glob
-import glob
 
 class dstat_plugin(dstat):
     def __init__(self):

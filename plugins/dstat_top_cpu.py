@@ -1,11 +1,13 @@
-### Dstat most expensive process plugin
-### Displays the name of the most expensive process
-###
-### Authority: dag@wieers.com
-
-global cpunr
+### Authority: Dag Wieers <dag@wieers.com>
 
 class dstat_plugin(dstat):
+    """
+    Most expensive CPU process.
+
+    Displays the process that uses the CPU the most during the monitored
+    interval. The value displayed is the percentage of CPU time for the total
+    amount of CPU processing power. Based on per process CPU information.
+    """
     def __init__(self):
         self.name = 'most expensive'
         self.type = 's'

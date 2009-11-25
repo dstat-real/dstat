@@ -1,27 +1,31 @@
-# dstat plugin for MySQL 5 connections 
-# 2007-09-04 - lefred@inuits.be
-global MySQLdb
-import MySQLdb
+### Author: <lefred$inuits,be>
 
 global mysql_user
-global mysql_pwd
 mysql_user = os.getenv('DSTAT_MYSQL_USER') or os.getenv('USER')
+
+global mysql_pwd
 mysql_pwd = os.getenv('DSTAT_MYSQL_PWD')
 
 class dstat_plugin(dstat):
+    """
+    Plugin for MySQL 5 connections.
+    """
+
     def __init__(self):
         self.name = 'mysql5 conn'
         self.type = 'f'
         self.width = 4
         self.scale = 1
-        self.vars = ('Threads_connected', 'Threads')
         self.nick = ('ThCon', '%Con')
+        self.vars = ('Threads_connected', 'Threads')
 
     def check(self): 
+        global MySQLdb
+        import MySQLdb
         try:
             self.db = MySQLdb.connect(user=mysql_user, passwd=mysql_pwd)
-        except:
-            raise Exception, 'Cannot interface with MySQL server'
+        except Exception, e:
+            raise Exception, 'Cannot interface with MySQL server, %s' % e
 
     def extract(self):
         try:
@@ -31,8 +35,8 @@ class dstat_plugin(dstat):
             c.execute("""show global status like 'Threads_connected';""")
             thread = c.fetchone()
             if thread[0] in self.vars:
-                    self.set2[thread[0]] = float(thread[1])
-                    self.set2['Threads'] = (float(thread[1]) / float(max[1]) * float(100)) 
+                self.set2[thread[0]] = float(thread[1])
+                self.set2['Threads'] = float(thread[1] / float(max[1]) 1.0 * 100)
 
             for name in self.vars:
                 self.val[name] = self.set2[name] * 1.0 / elapsed

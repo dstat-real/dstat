@@ -1,9 +1,13 @@
+### Author: Dag Wieers <dag$wieers,com>
+
 ### FIXME: This module needs infrastructure to provide a list of mountpoints
 ### FIXME: Would be nice to have a total by default (half implemented)
 
-### FIXME: Apparently needs python 2.0, possibly python 2.2
-
 class dstat_plugin(dstat):
+    """
+    Amount of used and free space per mountpoint.
+    """
+
     def __init__(self):
         self.open('/etc/mtab')
         self.nick = ('used', 'free')

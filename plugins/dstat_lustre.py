@@ -1,7 +1,4 @@
-# Authority: Brock Palen <brockp@mlds-networks.com>, Kilian Vavalotti <kilian@stanford.edu>
-
-global os
-import os
+# Author: Brock Palen <brockp@mlds-networks.com>, Kilian Vavalotti <kilian@stanford.edu>
 
 class dstat_plugin(dstat):
     def __init__(self):

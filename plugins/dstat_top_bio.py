@@ -1,9 +1,11 @@
-### Dstat most expensive block I/O process plugin
-### Displays the name of the most expensive block I/O process
-###
-### Authority: dag@wieers.com
+### Author: Dag Wieers <dag@wieers.com>
 
 class dstat_plugin(dstat):
+    """
+    Top most expesnive block I/O process.
+
+    Displays the name of the most expensive block I/O process.
+    """
     def __init__(self):
         self.name = 'most expensive'
         self.type = 's'
@@ -66,7 +68,7 @@ class dstat_plugin(dstat):
                 self.pidset1[pid].update(self.pidset2[pid])
 
         if self.val['usage'] != 0.0:
-            self.val['block i/o process'] = '%-*s%s:%s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
+            self.val['block i/o process'] = '%-*s%s %s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
 
         ### Debug (show PID)
 #        self.val['block i/o process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])

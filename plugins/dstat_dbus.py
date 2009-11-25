@@ -1,9 +1,10 @@
-### Dstat DBUS plugin
-### Displays dbus sessions
-###
-### Authority: dag@wieers.com
+### Author: Dag Wieers <dag$wieers,com>
 
 class dstat_plugin(dstat):
+    """
+    Number of active dbus sessions.
+    """
+
     def __init__(self):
         self.name = 'dbus'
         self.type = 'd'

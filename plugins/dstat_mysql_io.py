@@ -4,8 +4,8 @@ mysql_options = os.getenv('DSTAT_MYSQL')
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'mysql io'
-        self.vars = ('Bytes_received', 'Bytes_sent')
         self.nick = ('recv', 'sent')
+        self.vars = ('Bytes_received', 'Bytes_sent')
 
     def check(self): 
         if not os.access('/usr/bin/mysql', os.X_OK):

@@ -1,3 +1,5 @@
+### Author: Dag Wieers <dag$wieers,com>
+
 global mysql_options
 mysql_options = os.getenv('DSTAT_MYSQL')
 

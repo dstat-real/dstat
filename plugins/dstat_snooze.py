@@ -19,8 +19,11 @@ class dstat_plugin(dstat):
     def show(self):
         if self.val['snooze'] > step + 1:
             return ansi['default'] + '     -'
+
         color = 'white'
         if step != op.delay:
             color = 'gray'
+
         snoze, c = fchg(self.val['snooze'], 7, 1000)
+
         return ansi[color] + snoze

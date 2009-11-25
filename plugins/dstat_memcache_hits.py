@@ -1,9 +1,11 @@
-### Dstat Display Memcache Hit Count plugin
-### Displays the number of Memcache "get_hits" and "get_misses"
-###
-### Authority: dean.wilson@gmail.com
+### Author: Dean Wilson <dean.wilson@gmail.com>
 
 class dstat_plugin(dstat):
+    """
+    Memcache hit count plugin.
+
+    Displays the number of memcache get_hits and get_misses.
+    """
     def __init__(self):
         self.name = 'Memcache Hits'
         self.type = 'd'
@@ -22,6 +24,5 @@ class dstat_plugin(dstat):
 
     def extract(self):
         stats = self.mc.get_stats()
-
-        self.val['get_hits'] = int( stats[0][1]['get_hits'] )
-        self.val['get_misses'] = int( stats[0][1]['get_misses'] )
+        for key in self.vars:
+            self.val[key] = long(stats[0][1][key])

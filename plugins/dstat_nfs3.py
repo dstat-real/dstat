@@ -1,3 +1,5 @@
+### Author: Dag Wieers <dag@wieers.com>
+
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'nfs3 client'

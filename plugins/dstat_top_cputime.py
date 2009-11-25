@@ -65,7 +65,7 @@ class dstat_plugin(dstat):
                 self.pidset1[pid].update(self.pidset2[pid])
 
         if self.val['result'] != 0.0:
-            self.val['cputime process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['result'], 'f', 4, 100))
+            self.val['cputime process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['result'], 'd', 4, 100))
 
         ### Debug (show PID)
 #       self.val['cputime process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])

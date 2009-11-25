@@ -1,4 +1,10 @@
+### Author: Dag Wieers <dag$wieers,com>
+
 class dstat_plugin(dstat):
+    """
+    Fan speed in RPM (rotations per minute) as reported by ACPI.
+    """
+
     def __init__(self):
         self.name = 'fan'
         self.type = 'd'

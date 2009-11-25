@@ -1,4 +1,10 @@
+### Author: Dag Wieers <dag@wieers.com>
+
 class dstat_plugin(dstat):
+    """
+    Number of packets received and send per interface.
+    """
+
     def __init__(self):
         self.type = 'f'
         self.width = 5

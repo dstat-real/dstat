@@ -1,4 +1,10 @@
+### Author: Dag Wieers <dag$wieers,com>
+
 class dstat_plugin(dstat):
+    """
+    Total amount of read and write throughput (in bytes) on a GPFS filesystem.
+    """
+
     def __init__(self):
         self.name = 'gpfs i/o'
         self.vars = ('_br_', '_bw_')

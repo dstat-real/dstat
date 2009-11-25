@@ -54,6 +54,7 @@ confusion, less mistakes.
 %changelog
 * Wed Nov 25 2009 Dag Wieers <dag@wieers.com> - 0.7.0-1
 - Updated to release 0.7.0.
+- Reduce the number of paths used for importing modules (CVE-2009-3894)
 
 * Tue Dec 02 2008 Dag Wieers <dag@wieers.com> - 0.6.9-1
 - Updated to release 0.6.9.

@@ -1,12 +1,10 @@
-### Dstat cpu frequency plugin
-### Displays CPU frequency information (from ACPI)
-###
-### Authority: dag@wieers.com
-
-global glob
-import glob
+### Author: dag@wieers.com
 
 class dstat_plugin(dstat):
+    """
+    CPU frequency in percentage as reported by ACPI.
+    """
+
     def __init__(self):
         self.name = 'frequency'
         self.type = 'p'
