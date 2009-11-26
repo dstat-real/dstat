@@ -2,7 +2,7 @@
 .\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
 .\" Instead of manually editing it, you probably should edit the DocBook XML
 .\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
-.TH "DSTAT" "1" "11/25/2009" "\  0.7.0" "\ "
+.TH "DSTAT" "1" "11/26/2009" "\  0.7.0" "\ "
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -117,7 +117,7 @@ enable unix stats (datagram, stream, listen, active)
 \-\-vm
 enable vm stats (hard pagefaults, soft pagefaults, allocated, free)
 .TP
-\-\-stat1 \-\-stat2
+\-\-plugin\-name
 enable (external) plugins by plugin name, see
 \fBPLUGINS\fR
 for options
@@ -137,9 +137,6 @@ expand \-C, \-D, \-I, \-N and \-S discovery lists
 \-v, \-\-vmstat
 equals \-pmgdsc \-D total
 .TP
-\-\-bw, \-\-blackonwhite
-change colors for white background terminal
-.TP
 \-\-float
 force float values on screen (mutual exclusive with
 \fB\-\-integer\fR)
@@ -147,6 +144,9 @@ force float values on screen (mutual exclusive with
 \-\-integer
 force integer values on screen (mutual exclusive with
 \fB\-\-float\fR)
+.TP
+\-\-bw, \-\-blackonwhite
+change colors for white background terminal
 .TP
 \-\-nocolor
 disable colors (implies
