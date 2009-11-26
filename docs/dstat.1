@@ -195,130 +195,130 @@ GPFS filesystem operations (needs mmpmon)
 Hello world example dstat plugin
 .TP
 \-\-innodb\-buffer
-TBD
+show innodb buffer stats
 .TP
 \-\-innodb\-io
-TBD
+show innodb I/O stats
 .TP
 \-\-innodb\-ops
-TBD
+show innodb operations counters
 .TP
 \-\-lustre
-TBD
+show lustre I/O throughput
 .TP
 \-\-memcache\-hits
-TBD
+show the number of hits and misses from memcache
 .TP
-\-\-mysql5\-com
-TBD
+\-\-mysql5\-cmds
+show the MySQL5 command stats
 .TP
 \-\-mysql5\-conn
-TBD
+show the MySQL5 connection stats
 .TP
 \-\-mysql5\-io
-TBD
+show the MySQL5 I/O stats
 .TP
 \-\-mysql5\-keys
-TBD
+show the MySQL5 keys stats
 .TP
 \-\-mysql\-io
-TBD
+show the MySQL I/O stats
 .TP
 \-\-mysql\-keys
-TBD
+show the MySQL keys stats
 .TP
 \-\-net\-packets
-TBD
+show the number of packets received and transmitted
 .TP
 \-\-nfs3
-NFS v3 client operations
+show NFS v3 client operations
 .TP
 \-\-nfs3\-ops
-Extended NFS v3 client operations
+show extended NFS v3 client operations
 .TP
 \-\-nfsd3
-NFS v3 server operations
+show NFS v3 server operations
 .TP
 \-\-nfsd3\-ops
-Extended NFS v3 server operations
+show extended NFS v3 server operations
 .TP
 \-\-ntp
-TBD
+show NTP time from an NTP server
 .TP
 \-\-postfix
-postfix queue size (needs postfix)
+show postfix queue sizes (needs postfix)
 .TP
 \-\-power
-TBD
+show power usage
 .TP
 \-\-proc\-count
-TBD
+show total number of processes
 .TP
 \-\-rpc
-RPC client calls
+show RPC client calls stats
 .TP
 \-\-rpcd
-RPC server calls
+show RPC server calls stats
 .TP
 \-\-sendmail
-sendmail queue size (needs sendmail)
+show sendmail queue size (needs sendmail)
 .TP
 \-\-snooze
-number of ticks per second
+show number of ticks per second
 .TP
 \-\-test
-TBD
+show test plugin output
 .TP
 \-\-thermal
 system temperature sensors
 .TP
 \-\-top\-bio
-TBD
+show most expensive block I/O process
 .TP
 \-\-top\-cpu
-TBD
+show most expensive CPU process
 .TP
 \-\-top\-cputime
-TBD
+show process using the most CPU time (in ms)
 .TP
 \-\-top\-cputime\-avg
-TBD
+show process with the highest average timeslice (in ms)
 .TP
 \-\-top\-io
-TBD
+show most expensive I/O process
 .TP
 \-\-top\-latency
-TBD
+show process with highest total latency (in ms)
 .TP
 \-\-top\-latency\-avg
-TBD
+show process with the highest average latency (in ms)
 .TP
 \-\-top\-mem
-TBD
+show process using the most memory
 .TP
 \-\-top\-oom
-TBD
+show process that will be killed by OOM the first
 .TP
 \-\-utmp
-Number of utmp connections (needs python\-utmp)
+show number of utmp connections (needs python\-utmp)
 .TP
 \-\-vmk\-hba
-TBD
+show VMware ESX kernel vmhba stats
 .TP
 \-\-vmk\-int
-TBD
+show VMware ESX kernel interrupt stats
 .TP
 \-\-vmk\-nic
-TBD
+show VMware ESX kernel port stats
 .TP
 \-\-vm\-memctl
-TBD
+show ballooning status inside VMware guests
 .TP
 \-\-vz\-io
-TBD
+show CPU usage per OpenVZ guest
 .TP
 \-\-vz\-ubc
-TBD
+show OpenVZ user beancounters
 .TP
 \-\-wifi
 wireless link quality and signal to noise ratio
@@ -347,17 +347,17 @@ Checking dstat\(cqs behaviour and the system impact of dstat:
 .nf
 dstat \-taf \-\-debug
 .fi
-Using the time plugin together with cpu, net, disk, system, load, proc and topcpu plugins:
+Using the time plugin together with cpu, net, disk, system, load, proc and top_cpu plugins:
 .sp
 .sp
 .nf
-dstat \-tcndylp \-\-topcpu
+dstat \-tcndylp \-\-top\-cpu
 .fi
 this is identical to
 .sp
 .sp
 .nf
-dstat \-\-time \-\-cpu \-\-net \-\-disk \-\-sys \-\-load \-\-proc \-\-topcpu
+dstat \-\-time \-\-cpu \-\-net \-\-disk \-\-sys \-\-load \-\-proc \-\-top\-cpu
 .fi
 Using dstat to relate cpu stats with interrupts per device:
 .sp
@@ -382,8 +382,6 @@ Paths that may contain external dstat_*.py plugins:
 .sp
 .nf
 ~/.dstat/
-./
-./plugins/
 (path of binary)/plugins/
 /usr/share/dstat/
 /usr/local/share/dstat/

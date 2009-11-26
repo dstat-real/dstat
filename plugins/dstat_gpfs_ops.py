@@ -7,11 +7,11 @@ class dstat_plugin(dstat):
 
     def __init__(self):
         self.name = 'gpfs file operations'
+        self.nick = ('open', 'clos', 'read', 'writ', 'rdir', 'inod')
+        self.vars = ('_oc_', '_cc_', '_rdc_', '_wc_', '_dir_', '_iu_')
         self.type = 'd'
         self.width = 5
         self.scale = 1000
-        self.vars = ('_oc_', '_cc_', '_rdc_', '_wc_', '_dir_', '_iu_')
-        self.nick = ('open', 'clos', 'read', 'writ', 'rdir', 'inod')
 
     def check(self): 
         if os.access('/usr/lpp/mmfs/bin/mmpmon', os.X_OK):

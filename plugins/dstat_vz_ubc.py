@@ -1,10 +1,12 @@
+### Author: Dag Wieers <dag@wieers.com>
+
 class dstat_plugin(dstat):
     def __init__(self):
+        self.nick = ('fcnt', )
         self.type = 'd'
         self.width = 5
         self.scale = 1000
         self.open('/proc/user_beancounters')
-        self.nick = ('fcnt', )
         self.cols = 1 ### Is this correct ?
 
     def check(self):

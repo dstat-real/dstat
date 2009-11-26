@@ -3,12 +3,12 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'nfs3 client'
+        self.nick = ('read', 'writ', 'rdir', 'inod', 'fs', 'cmmt')
+        self.vars = ('read', 'write', 'readdir', 'inode', 'filesystem', 'commit')
         self.type = 'd'
         self.width = 5
         self.scale = 1000
         self.open('/proc/net/rpc/nfs')
-        self.vars = ('read', 'write', 'readdir', 'inode', 'filesystem', 'commit')
-        self.nick = ('read', 'writ', 'rdir', 'inod', 'fs', 'cmmt')
 
     def check(self):
         info(1, 'Module %s is still experimental.' % self.filename)

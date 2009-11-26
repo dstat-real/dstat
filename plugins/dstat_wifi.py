@@ -1,15 +1,13 @@
-global iwlibs
-from pythonwifi import iwlibs
+### Author: Dag Wieers <dag@wieers.com>
 
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'wifi'
+        self.nick = ('lnk', 's/n')
+        self.vars = iwlibs.getNICnames()
         self.type = 'd'
         self.width = 3
         self.scale = 33
-        self.check()
-        self.vars = iwlibs.getNICnames()
-        self.nick = ('lnk', 's/n')
         self.cols = 2
 
     def check(self): 

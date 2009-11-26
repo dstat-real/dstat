@@ -8,11 +8,11 @@ class dstat_plugin(dstat):
     """
     def __init__(self):
         self.name = 'Memcache Hits'
+        self.nick = ('Hit', 'Miss')
+        self.vars = ('get_hits', 'get_misses')
         self.type = 'd'
         self.width = 6
         self.scale = 50
-        self.nick = ('Hit', 'Miss')
-        self.vars = ('get_hits', 'get_misses')
 
     def check(self):
         try:

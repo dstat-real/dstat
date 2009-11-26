@@ -214,28 +214,30 @@ This basic functionality is easily extended by writing your own plugins
 into Dstat. A set of 'external' modules exist for:
 
     - battery: battery usage
+    - battery-remain: remaining battery time
     - cpufreq: CPU frequency
     - dbus: DBUS connections
+    - disk-util: disk utilization percentage
     - fan: Fan speed
     - freespace: free space on filesystems
-    - gpfsop: GPFS operations counters
     - gpfs: GPFS IO counters
+    - gpfs-ops: GPFS operations counters
     - helloworld: Hello world dispenser
-    - innodb_buffer: innodb buffer counters
-    - innodb_io: innodb I/O counters
-    - innodb_keys: innodb key operation counters
-    - innodb_ops: innodb operations counters
+    - innodb-buffer: innodb buffer counters
+    - innodb-io: innodb I/O counters
+    - innodb-keys: innodb key operation counters
+    - innodb-ops: innodb operations counters
     - lustre: lustre throughput counters
-    - memcache_hits: Memcache hit counters
-    - mysql5_com: MySQL communication counters
-    - mysql5_conn: MySQL connection counters
-    - mysql5_io: MySQL I/O counters
-    - mysql5_keys: MySQL keys counters
-    - mysql_io: MySQL I/O counters
-    - mysql_ops: MySQL operations counters
-    - nfs3op: NFS3 client operations counters
+    - memcache-hits: Memcache hit counters
+    - mysql5-cmds: MySQL communication counters
+    - mysql5-conn: MySQL connection counters
+    - mysql5-io: MySQL I/O counters
+    - mysql5-keys: MySQL keys counters
+    - mysql-io: MySQL I/O counters
+    - mysql-ops: MySQL operations counters
+    - nfs3-ops: NFS3 client operations counters
     - nfs3: NFS3 client counters
-    - nfsd3op: NFS3 server operations counters
+    - nfsd3-ops: NFS3 server operations counters
     - nfsd3: NFS3 server counters
     - ntp: NTP time counters
     - postfix: postfix queue counters
@@ -245,18 +247,22 @@ into Dstat. A set of 'external' modules exist for:
     - sendmail: sendmail queue counters
     - snooze: Dstat time delay counters
     - thermal: Thermal counters
-    - topbio: most expensive block I/O process
-    - topcpu: most expensive cpu process
-    - topio: most expensive I/O process
-    - topmem: most expensive memory process
-    - topoom: process first shot by OOM killer
+    - top-bio: most expensive block I/O process
+    - top-cpu: most expensive cpu process
+    - top-cputime: process using the most CPU time
+    - top-cputime-avg: process having the highest average CPU time
+    - top-io: most expensive I/O process
+    - top-latency: process with the highest total latency
+    - top-latency-avg: process with the highest average latency
+    - top-mem: most expensive memory process
+    - top-oom: process first shot by OOM killer
     - utmp: utmp counters
-    - vmkhba: VMware kernel HBA counters
-    - vmkint: VMware kernel interrupt counters
-    - vmknic: VMware kernel NIC counters
-    - vmmemctl: VMware guest memory counters
-    - vzcpu: OpenVZ CPU counters
-    - vzubc: OpenVZ user beancounters
+    - vmk-hba: VMware kernel HBA counters
+    - vmk-int: VMware kernel interrupt counters
+    - vmk-nic: VMware kernel NIC counters
+    - vm-memctl: VMware guest memory counters
+    - vz-cpu: OpenVZ CPU counters
+    - vz-ubc: OpenVZ user beancounters
     - wifi: WIFI quality information
 
 
@@ -287,7 +293,7 @@ The internal plugins have short and/or long options within Dstat, eg. +-c+ or
 +--cpu+ will enable the cpu counters.
 
 The external plugins are enable by a long option including their name,
-eg. --topcpu
+eg. +--top-cpu+
 
 The following examples will enable the time, cpu and disk plugins, and are
 equal.
@@ -379,14 +385,14 @@ nevertheless interesting.
 
 
 === What is this system doing now ?
-I often run both the +dstat_topcpu+ and +dstat_topmem+ programs on a system,
+I often run both the +dstat_top_cpu+ and +dstat_top_mem+ programs on a system,
 just to see what a system is doing. Having a quick look at what application
 is using the most CPU over a few minutes and to see what the general usage
 of memory is of the top application gives away a lot about a system.
 
 .Sample output
 ----
-[dag@horsea dag]$ dstat -c --topcpu -dng --topmem
+[dag@horsea dag]$ dstat -c --top-cpu -dng --top-mem
 ----total-cpu-usage---- -most-expensive- -dsk/total- -net/total- ---paging-- -most-expensive-
 usr sys idl wai hiq siq|  cpu process   | read  writ| recv  send|  in   out | memory process 
   9   2  80   9   0   0|kswapd         0| 123k  164k|   0     0 |9196B   18k|rsync        74M
@@ -406,9 +412,9 @@ Something indicates the system is doing something unexpected but what is
 causing it and why ? As of now you can do:
 
 ----
-screen dstat -tcy --topcpu 120
-screen dstat -tmgs --topmem 120
-screen dstat -tdi --topio 120
+screen dstat -tcy --top-cpu 120
+screen dstat -tmgs --top-mem 120
+screen dstat -tdi --top-io 120
 ----
 
 to see what process is using the most CPU, the most memory and the most I/O
@@ -417,8 +423,8 @@ resources.
 And hopefully one day we can do:
 
 ----
-dstat -tn --topnet 120
-dstat -tn --topx 120
+dstat -tn --top-net 120
+dstat -tn --top-x 120
 ----
 
 Leave it running during the night and in the morning you can see the light.
@@ -731,12 +737,12 @@ usr sys idl wai hiq siq
 
 As you can see, getting the CPU counters and calculating the CPU usage takes
 up 0.5 milliseconds on this particular system. But if we look at the usage of
-the +dstat_topcpu+ plugin:
+the +dstat_top_cpu+ plugin:
 
-.The cost of running the +dstat_topcpu+ plugin
+.The cost of running the +dstat_top_cpu+ plugin
 ----
-[dag@rhun dstat]$ dstat --topcpu --debug
-Module dstat_topcpu
+[dag@rhun dstat]$ dstat --top-cpu --debug
+Module dstat_top_cpu
 -most-expensive-
   cpu process
 Xorg           2 43.82ms
@@ -745,7 +751,7 @@ firefox-bin    2 33.54ms
 Xorg           1 33.24ms
 ----
 
-we see that processing the _/proc/pid_ files causes the topcpu plugin to use
+we see that processing the _/proc/pid_ files causes the top-cpu plugin to use
 an additional 33ms.
 
 WARNING: These values show the time it takes to process the plugins and does

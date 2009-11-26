@@ -9,10 +9,10 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'highest average'
+        self.vars = ('cputime process',)
         self.type = 's'
         self.width = 17
         self.scale = 0
-        self.vars = ('cputime process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
 

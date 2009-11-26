@@ -15,10 +15,10 @@ class dstat_plugin(dstat):
 
     def __init__(self):
         self.name = 'highest total'
+        self.vars = ('latency process',)
         self.type = 's'
         self.width = 17
         self.scale = 0
-        self.vars = ('latency process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
 

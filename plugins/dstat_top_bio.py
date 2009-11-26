@@ -8,10 +8,10 @@ class dstat_plugin(dstat):
     """
     def __init__(self):
         self.name = 'most expensive'
+        self.vars = ('block i/o process',)
         self.type = 's'
         self.width = 22
         self.scale = 0
-        self.vars = ('block i/o process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
 

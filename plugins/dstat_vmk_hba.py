@@ -1,7 +1,7 @@
+### Author: Bert de Bruijn <bert+dstat$debruijn,be>
+
 ### VMware ESX kernel vmhba stats
 ### Displays kernel vmhba statistics on VMware ESX servers
-###
-### Authority: bert+dstat@debruijn.be
 
 # NOTE TO USERS: command-line plugin configuration is not yet possible, so I've
 # "borrowed" the -D argument. 
@@ -15,7 +15,6 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'vmkhba'
-        self.discover = self.discover()
         self.nick = ('read', 'writ')
         self.cols = 2
 

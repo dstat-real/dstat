@@ -10,10 +10,10 @@ class dstat_plugin(dstat):
     """
     def __init__(self):
         self.name = 'most expensive'
+        self.vars = ('memory process',)
         self.type = 's'
         self.width = 17
         self.scale = 0
-        self.vars = ('memory process',)
         self.pid = str(os.getpid())
 
     def extract(self):

@@ -7,8 +7,8 @@ class dstat_plugin(dstat):
 
     def __init__(self):
         self.name = 'gpfs i/o'
-        self.vars = ('_br_', '_bw_')
         self.nick = ('read', 'write')
+        self.vars = ('_br_', '_bw_')
 
     def check(self): 
         if os.access('/usr/lpp/mmfs/bin/mmpmon', os.X_OK):

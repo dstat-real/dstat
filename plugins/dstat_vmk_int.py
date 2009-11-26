@@ -1,7 +1,7 @@
+### Author: Bert de Bruijn <bert+dstat$debruijn,be>
+
 ### VMware ESX kernel interrupt stats
 ### Displays kernel interrupt statistics on VMware ESX servers
-###
-### Authority: bert+dstat@debruijn.be
 
 # NOTE TO USERS: command-line plugin configuration is not yet possible, so I've
 # "borrowed" the -I argument. 
@@ -14,11 +14,10 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'vmkint'
-        self.open('/proc/vmware/interrupts')
-        self.discover = self.discover()
         self.type = 'd'
         self.width = 4
         self.scale = 1000
+        self.open('/proc/vmware/interrupts')
 #       self.intmap = self.intmap()
 
 #   def intmap(self):

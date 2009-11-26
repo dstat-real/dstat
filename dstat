@@ -16,7 +16,7 @@
 
 from __future__ import generators
 
-VERSION = '0.7.0'
+VERSION = '0.7.0svn'
 
 theme = { 'default': '' }
 
@@ -299,9 +299,10 @@ Dstat options:
   -f, --full             automatically expand -C, -D, -I, -N and -S lists
   -v, --vmstat           equals -pmgdsc -D total
 
-  --bw, --blackonwhite   change colors for white background terminal
   --float                force float values on screen
   --integer              force integer values on screen
+
+  --bw, --blackonwhite   change colors for white background terminal
   --nocolor              disable colors (implies --noupdate)
   --noheaders            disable repetitive headers
   --noupdate             disable intermediate updates
@@ -2211,7 +2212,7 @@ def main():
 
                     ### TODO: Would using .pyc help with anything ?
                     ### Try loading python plugin
-                    if description[0] in ('.py'):
+                    if description[0] in ('.py', ):
                         execfile(pathname)
                         exec 'o = dstat_plugin(); o.filename = "%s"; o.check(); o.prepare(); del(dstat_plugin);' % pluginfile
 

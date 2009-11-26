@@ -6,11 +6,11 @@ mysql_options = os.getenv('DSTAT_MYSQL')
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'innodb ops'
+        self.nick = ('ins', 'upd', 'del', 'rea')
+        self.vars = ('inserted', 'updated', 'deleted', 'read')
         self.type = 'f'
         self.width = 3
         self.scale = 1000
-        self.vars = ('inserted', 'updated', 'deleted', 'read')
-        self.nick = ('ins', 'upd', 'del', 'rea')
 
     def check(self): 
         if os.access('/usr/bin/mysql', os.X_OK):

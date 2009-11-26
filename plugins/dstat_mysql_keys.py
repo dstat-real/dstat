@@ -4,11 +4,11 @@ mysql_options = os.getenv('DSTAT_MYSQL')
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'mysql key status'
+        self.nick = ('used', 'read', 'writ', 'rreq', 'wreq')
+        self.vars = ('Key_blocks_used', 'Key_reads', 'Key_writes', 'Key_read_requests', 'Key_write_requests')
         self.type = 'f'
         self.width = 4
         self.scale = 1000
-        self.vars = ('Key_blocks_used', 'Key_reads', 'Key_writes', 'Key_read_requests', 'Key_write_requests')
-        self.nick = ('used', 'read', 'writ', 'rreq', 'wreq')
 
     def check(self): 
         if not os.access('/usr/bin/mysql', os.X_OK):

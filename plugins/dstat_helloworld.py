@@ -6,12 +6,12 @@ class dstat_plugin(dstat):
     """
 
     def __init__(self):
-        self.type = 's'
-        self.width = 12
-        self.scale = 0
         self.name = 'plugin title'
         self.nick = ('counter',)
         self.vars = ('text',)
+        self.type = 's'
+        self.width = 12
+        self.scale = 0
 
     def extract(self):
         self.val['text'] = 'Hello world!'

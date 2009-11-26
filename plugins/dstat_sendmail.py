@@ -5,11 +5,10 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'sendmail'
+        self.vars = ('queue',)
         self.type = 'd'
         self.width = 4
         self.scale = 100
-        self.vars = ('queue',)
-        self.nick = ('queu',)
 
     def check(self):
         if not os.access('/var/spool/mqueue', os.R_OK):

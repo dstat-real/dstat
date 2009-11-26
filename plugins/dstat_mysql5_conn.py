@@ -13,11 +13,11 @@ class dstat_plugin(dstat):
 
     def __init__(self):
         self.name = 'mysql5 conn'
+        self.nick = ('ThCon', '%Con')
+        self.vars = ('Threads_connected', 'Threads')
         self.type = 'f'
         self.width = 4
         self.scale = 1
-        self.nick = ('ThCon', '%Con')
-        self.vars = ('Threads_connected', 'Threads')
 
     def check(self): 
         global MySQLdb

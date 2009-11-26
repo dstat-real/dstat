@@ -3,11 +3,11 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'postfix'
+        self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
+        self.vars = ('incoming', 'active', 'deferred', 'bounce', 'defer')
         self.type = 'd'
         self.width = 4
         self.scale = 100
-        self.vars = ('incoming', 'active', 'deferred', 'bounce', 'defer')
-        self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
 
     def check(self):
         if not os.access('/var/spool/postfix/active', os.R_OK):

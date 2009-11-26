@@ -2,6 +2,7 @@
 
 global mysql_user
 mysql_user = os.getenv('DSTAT_MYSQL_USER') or os.getenv('USER')
+
 global mysql_pwd
 mysql_pwd = os.getenv('DSTAT_MYSQL_PWD')
 
@@ -11,11 +12,11 @@ class dstat_plugin(dstat):
     """
     def __init__(self):
         self.name = 'mysql5 cmds'
-        self.type = 'i'
-        self.width = 5
-        self.scale = 1
         self.nick = ('sel', 'ins','upd','del')
         self.vars = ('Com_select', 'Com_insert','Com_update','Com_delete')
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1
 
     def check(self): 
         global MySQLdb

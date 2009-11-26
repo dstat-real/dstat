@@ -11,11 +11,11 @@ class dstat_plugin(dstat):
 
     def __init__(self):
         self.name = 'power'
+        self.nick = ( 'usage', )
+        self.vars = ( 'rate', )
         self.type = 'f'
         self.width = 5
         self.scale = 1
-        self.vars = ( 'rate', )
-        self.nick = ( 'usage', )
         self.rate = 0
         self.batteries = []
         for battery in os.listdir('/proc/acpi/battery/'):

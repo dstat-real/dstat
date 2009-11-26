@@ -10,10 +10,10 @@ class dstat_plugin(dstat):
     """
     def __init__(self):
         self.name = 'most expensive'
+        self.vars = ('cpu process',)
         self.type = 's'
         self.width = 16
         self.scale = 0
-        self.vars = ('cpu process',)
         self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
 

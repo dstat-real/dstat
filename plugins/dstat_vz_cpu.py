@@ -1,3 +1,4 @@
+### Author: Dag Wieers <dag@wieers.com>
 
 #Version: 2.2
 #VEID   user    nice    system   uptime     idle             strv   uptime          used           maxlat  totlat  numsched
@@ -6,11 +7,11 @@
 
 class dstat_plugin(dstat):
     def __init__(self):
+        self.nick = ('usr', 'sys', 'idl', 'nic')
         self.type = 'p'
         self.width = 3
         self.scale = 34
         self.open('/proc/vz/vestat')
-        self.nick = ('usr', 'sys', 'idl', 'nic')
         self.cols = 4
 
     def check(self):

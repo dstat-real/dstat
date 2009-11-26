@@ -855,12 +855,22 @@ battery: battery usage
 </li>
 <li>
 <p>
+battery-remain: remaining battery time
+</p>
+</li>
+<li>
+<p>
 cpufreq: CPU frequency
 </p>
 </li>
 <li>
 <p>
 dbus: DBUS connections
+</p>
+</li>
+<li>
+<p>
+disk-util: disk utilization percentage
 </p>
 </li>
 <li>
@@ -875,12 +885,12 @@ freespace: free space on filesystems
 </li>
 <li>
 <p>
-gpfsop: GPFS operations counters
+gpfs: GPFS IO counters
 </p>
 </li>
 <li>
 <p>
-gpfs: GPFS IO counters
+gpfs-ops: GPFS operations counters
 </p>
 </li>
 <li>
@@ -890,22 +900,22 @@ helloworld: Hello world dispenser
 </li>
 <li>
 <p>
-innodb_buffer: innodb buffer counters
+innodb-buffer: innodb buffer counters
 </p>
 </li>
 <li>
 <p>
-innodb_io: innodb I/O counters
+innodb-io: innodb I/O counters
 </p>
 </li>
 <li>
 <p>
-innodb_keys: innodb key operation counters
+innodb-keys: innodb key operation counters
 </p>
 </li>
 <li>
 <p>
-innodb_ops: innodb operations counters
+innodb-ops: innodb operations counters
 </p>
 </li>
 <li>
@@ -915,42 +925,42 @@ lustre: lustre throughput counters
 </li>
 <li>
 <p>
-memcache_hits: Memcache hit counters
+memcache-hits: Memcache hit counters
 </p>
 </li>
 <li>
 <p>
-mysql5_com: MySQL communication counters
+mysql5-cmds: MySQL communication counters
 </p>
 </li>
 <li>
 <p>
-mysql5_conn: MySQL connection counters
+mysql5-conn: MySQL connection counters
 </p>
 </li>
 <li>
 <p>
-mysql5_io: MySQL I/O counters
+mysql5-io: MySQL I/O counters
 </p>
 </li>
 <li>
 <p>
-mysql5_keys: MySQL keys counters
+mysql5-keys: MySQL keys counters
 </p>
 </li>
 <li>
 <p>
-mysql_io: MySQL I/O counters
+mysql-io: MySQL I/O counters
 </p>
 </li>
 <li>
 <p>
-mysql_ops: MySQL operations counters
+mysql-ops: MySQL operations counters
 </p>
 </li>
 <li>
 <p>
-nfs3op: NFS3 client operations counters
+nfs3-ops: NFS3 client operations counters
 </p>
 </li>
 <li>
@@ -960,7 +970,7 @@ nfs3: NFS3 client counters
 </li>
 <li>
 <p>
-nfsd3op: NFS3 server operations counters
+nfsd3-ops: NFS3 server operations counters
 </p>
 </li>
 <li>
@@ -1010,27 +1020,47 @@ thermal: Thermal counters
 </li>
 <li>
 <p>
-topbio: most expensive block I/O process
+top-bio: most expensive block I/O process
 </p>
 </li>
 <li>
 <p>
-topcpu: most expensive cpu process
+top-cpu: most expensive cpu process
 </p>
 </li>
 <li>
 <p>
-topio: most expensive I/O process
+top-cputime: process using the most CPU time
 </p>
 </li>
 <li>
 <p>
-topmem: most expensive memory process
+top-cputime-avg: process having the highest average CPU time
 </p>
 </li>
 <li>
 <p>
-topoom: process first shot by OOM killer
+top-io: most expensive I/O process
+</p>
+</li>
+<li>
+<p>
+top-latency: process with the highest total latency
+</p>
+</li>
+<li>
+<p>
+top-latency-avg: process with the highest average latency
+</p>
+</li>
+<li>
+<p>
+top-mem: most expensive memory process
+</p>
+</li>
+<li>
+<p>
+top-oom: process first shot by OOM killer
 </p>
 </li>
 <li>
@@ -1040,32 +1070,32 @@ utmp: utmp counters
 </li>
 <li>
 <p>
-vmkhba: VMware kernel HBA counters
+vmk-hba: VMware kernel HBA counters
 </p>
 </li>
 <li>
 <p>
-vmkint: VMware kernel interrupt counters
+vmk-int: VMware kernel interrupt counters
 </p>
 </li>
 <li>
 <p>
-vmknic: VMware kernel NIC counters
+vmk-nic: VMware kernel NIC counters
 </p>
 </li>
 <li>
 <p>
-vmmemctl: VMware guest memory counters
+vm-memctl: VMware guest memory counters
 </p>
 </li>
 <li>
 <p>
-vzcpu: OpenVZ CPU counters
+vz-cpu: OpenVZ CPU counters
 </p>
 </li>
 <li>
 <p>
-vzubc: OpenVZ user beancounters
+vz-ubc: OpenVZ user beancounters
 </p>
 </li>
 <li>
@@ -1122,7 +1152,7 @@ selection and order of options influence the Dstat output directly.</p></div>
 <div class="paragraph"><p>The internal plugins have short and/or long options within Dstat, eg. <tt>-c</tt> or
 <tt>--cpu</tt> will enable the cpu counters.</p></div>
 <div class="paragraph"><p>The external plugins are enable by a long option including their name,
-eg. --topcpu</p></div>
+eg. <tt>--top-cpu</tt></p></div>
 <div class="paragraph"><p>The following examples will enable the time, cpu and disk plugins, and are
 equal.</p></div>
 <div class="listingblock">
@@ -1236,14 +1266,14 @@ nevertheless interesting.</td>
 </tr></table>
 </div>
 <h3 id="_what_is_this_system_doing_now">What is this system doing now ?</h3><div style="clear:left"></div>
-<div class="paragraph"><p>I often run both the <tt>dstat_topcpu</tt> and <tt>dstat_topmem</tt> programs on a system,
+<div class="paragraph"><p>I often run both the <tt>dstat_top_cpu</tt> and <tt>dstat_top_mem</tt> programs on a system,
 just to see what a system is doing. Having a quick look at what application
 is using the most CPU over a few minutes and to see what the general usage
 of memory is of the top application gives away a lot about a system.</p></div>
 <div class="listingblock">
 <div class="title">Sample output</div>
 <div class="content">
-<pre><tt>[dag@horsea dag]$ dstat -c --topcpu -dng --topmem
+<pre><tt>[dag@horsea dag]$ dstat -c --top-cpu -dng --top-mem
 ----total-cpu-usage---- -most-expensive- -dsk/total- -net/total- ---paging-- -most-expensive-
 usr sys idl wai hiq siq|  cpu process   | read  writ| recv  send|  in   out | memory process
   9   2  80   9   0   0|kswapd         0| 123k  164k|   0     0 |9196B   18k|rsync        74M
@@ -1261,17 +1291,17 @@ worthless message, the system was swapping extensively, a process got killed.</p
 causing it and why ? As of now you can do:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>screen dstat -tcy --topcpu 120
-screen dstat -tmgs --topmem 120
-screen dstat -tdi --topio 120</tt></pre>
+<pre><tt>screen dstat -tcy --top-cpu 120
+screen dstat -tmgs --top-mem 120
+screen dstat -tdi --top-io 120</tt></pre>
 </div></div>
 <div class="paragraph"><p>to see what process is using the most CPU, the most memory and the most I/O
 resources.</p></div>
 <div class="paragraph"><p>And hopefully one day we can do:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -tn --topnet 120
-dstat -tn --topx 120</tt></pre>
+<pre><tt>dstat -tn --top-net 120
+dstat -tn --top-x 120</tt></pre>
 </div></div>
 <div class="paragraph"><p>Leave it running during the night and in the morning you can see the light.</p></div>
 <h3 id="_what_device_is_slowing_down_my_system">What device is slowing down my system ?</h3><div style="clear:left"></div>
@@ -1591,12 +1621,12 @@ usr sys idl wai hiq siq
 </div></div>
 <div class="paragraph"><p>As you can see, getting the CPU counters and calculating the CPU usage takes
 up 0.5 milliseconds on this particular system. But if we look at the usage of
-the <tt>dstat_topcpu</tt> plugin:</p></div>
+the <tt>dstat_top_cpu</tt> plugin:</p></div>
 <div class="listingblock">
-<div class="title">The cost of running the <tt>dstat_topcpu</tt> plugin</div>
+<div class="title">The cost of running the <tt>dstat_top_cpu</tt> plugin</div>
 <div class="content">
-<pre><tt>[dag@rhun dstat]$ dstat --topcpu --debug
-Module dstat_topcpu
+<pre><tt>[dag@rhun dstat]$ dstat --top-cpu --debug
+Module dstat_top_cpu
 -most-expensive-
   cpu process
 Xorg           2 43.82ms
@@ -1604,7 +1634,7 @@ Xorg           1 33.23ms
 firefox-bin    2 33.54ms
 Xorg           1 33.24ms</tt></pre>
 </div></div>
-<div class="paragraph"><p>we see that processing the <em>/proc/pid</em> files causes the topcpu plugin to use
+<div class="paragraph"><p>we see that processing the <em>/proc/pid</em> files causes the top-cpu plugin to use
 an additional 33ms.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -1740,7 +1770,7 @@ Create an object-model and namespace for plugins and counters so that
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-11-23 01:38:45 CEST
+Last updated 2009-11-25 13:04:13 CEST
 </div>
 </div>
 </body>

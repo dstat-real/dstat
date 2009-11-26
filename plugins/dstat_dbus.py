@@ -7,11 +7,11 @@ class dstat_plugin(dstat):
 
     def __init__(self):
         self.name = 'dbus'
+        self.nick = ('sys', 'ses')
+        self.vars = ('system', 'session')
         self.type = 'd'
         self.width = 3
         self.scale = 100
-        self.nick = ('sys', 'ses')
-        self.vars = ('system', 'session')
 
     def check(self):
 #       dstat.info(1, 'The dbus module is an EXPERIMENTAL module.')

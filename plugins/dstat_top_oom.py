@@ -1,7 +1,7 @@
+### Author: Dag Wieers <dag@wieers.com>
+
 ### Dstat most expensive process plugin
 ### Displays the name of the most expensive process
-###
-### Authority: dag@wieers.com
 
 ### More information:
 ###    http://lwn.net/Articles/317814/
@@ -9,10 +9,10 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'out of memory'
+        self.vars = ('kill score',)
         self.type = 's'
         self.width = 18
         self.scale = 0
-        self.vars = ('kill score',)
         self.pid = str(os.getpid())
 
     def check(self):

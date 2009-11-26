@@ -9,8 +9,8 @@ class dstat_plugin(dstat):
     """
 
     def __init__(self):
-        self.open('/etc/mtab')
         self.nick = ('used', 'free')
+        self.open('/etc/mtab')
         self.cols = 2
 
     def vars(self):

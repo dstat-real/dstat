@@ -1,11 +1,13 @@
+### Author: Dag Wieers <dag@wieers.com>
+
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'utmp'
+        self.nick = ('ses', 'usr', 'adm' )
+        self.vars = ('sessions', 'users', 'root')
         self.type = 'd'
         self.width = 3
         self.scale = 10
-        self.nick = ('ses', 'usr', 'adm' )
-        self.vars = ('sessions', 'users', 'root')
 
     def check(self): 
         try:

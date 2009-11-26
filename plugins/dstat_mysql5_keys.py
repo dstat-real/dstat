@@ -13,11 +13,11 @@ class dstat_plugin(dstat):
 
     def __init__(self):
         self.name = 'mysql5 key status'
+        self.nick = ('used', 'read', 'writ', 'rreq', 'wreq')
+        self.vars = ('Key_blocks_used', 'Key_reads', 'Key_writes', 'Key_read_requests', 'Key_write_requests')
         self.type = 'f'
         self.width = 4
         self.scale = 1000
-        self.nick = ('used', 'read', 'writ', 'rreq', 'wreq')
-        self.vars = ('Key_blocks_used', 'Key_reads', 'Key_writes', 'Key_read_requests', 'Key_write_requests')
 
     def check(self): 
         global MySQLdb

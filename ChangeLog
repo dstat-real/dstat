@@ -1,3 +1,7 @@
+* 0.7.0svn - ... - release 26/11/2009
+- Fix top-plugins on python 2.2 and older
+- Documentation improvements
+
 * 0.7.0 - Tokyo - release 25/11/2009
 - Fixed dstat_disk plugin for total calculation on 2.6.25+ kernels (Noel J. Bergman)
 - Precompile regular expressions used as a disk filter (self.diskfilter)

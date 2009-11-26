@@ -6,12 +6,12 @@ class dstat_plugin(dstat):
     """
 
     def __init__(self):
+        self.nick = ('#recv', '#send')
         self.type = 'f'
         self.width = 5
         self.scale = 1000
-        self.open('/proc/net/dev')
-        self.nick = ('#recv', '#send')
         self.totalfilter = re.compile('^(lo|bond[0-9]+|face|.+\.[0-9]+)$')
+        self.open('/proc/net/dev')
         self.cols = 2
 
     def discover(self, *objlist):

@@ -1,7 +1,7 @@
+### Author: Bert de Bruijn <bert+dstat$debruijn,be>
+
 ### VMware ESX kernel vmknic stats
 ### Displays VMkernel port statistics on VMware ESX servers
-###
-### Authority: bert+dstat@debruijn.be
 
 # NOTE TO USERS: command-line plugin configuration is not yet possible, so I've
 # "borrowed" the -N argument.
@@ -14,8 +14,8 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'vmknic'
-        self.open('/proc/vmware/net/tcpip/ifconfig')
         self.nick = ('recv', 'send')
+        self.open('/proc/vmware/net/tcpip/ifconfig')
         self.cols = 2
 
     def check(self):

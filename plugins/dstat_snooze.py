@@ -1,10 +1,10 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'snooze'
+        self.vars = ('snooze',)
         self.type = 's'
         self.width = 6
         self.scale = 0
-        self.vars = ('snooze',)
         self.before = time.time()
 
     def extract(self):

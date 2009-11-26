@@ -124,7 +124,7 @@ information.
 --vm::
     enable vm stats (hard pagefaults, soft pagefaults, allocated, free)
 
---stat1 --stat2::
+--plugin-name::
     enable (external) plugins by plugin name, see *PLUGINS* for options
 
 Possible internal stats are::
@@ -144,14 +144,14 @@ Possible internal stats are::
 -v, --vmstat::
     equals -pmgdsc -D total
 
---bw, --blackonwhite::
-    change colors for white background terminal
-
 --float::
     force float values on screen (mutual exclusive with *--integer*)
 
 --integer::
     force integer values on screen (mutual exclusive with *--float*)
+
+--bw, --blackonwhite::
+    change colors for white background terminal
 
 --nocolor::
     disable colors (implies *--noupdate*)
@@ -202,130 +202,130 @@ Here is an overview of the plugins dstat ships with:
     Hello world example dstat plugin
 
 --innodb-buffer::
-    TBD
+    show innodb buffer stats
 
 --innodb-io::
-    TBD
+    show innodb I/O stats
 
 --innodb-ops::
-    TBD
+    show innodb operations counters
 
 --lustre::
-    TBD
+    show lustre I/O throughput
 
 --memcache-hits::
-    TBD
+    show the number of hits and misses from memcache
 
---mysql5-com::
-    TBD
+--mysql5-cmds::
+    show the MySQL5 command stats
 
 --mysql5-conn::
-    TBD
+    show the MySQL5 connection stats
 
 --mysql5-io::
-    TBD
+    show the MySQL5 I/O stats
 
 --mysql5-keys::
-    TBD
+    show the MySQL5 keys stats
 
 --mysql-io::
-    TBD
+    show the MySQL I/O stats
 
 --mysql-keys::
-    TBD
+    show the MySQL keys stats
 
 --net-packets::
-    TBD
+    show the number of packets received and transmitted
 
 --nfs3::
-    NFS v3 client operations
+    show NFS v3 client operations
 
 --nfs3-ops::
-    Extended NFS v3 client operations
+    show extended NFS v3 client operations
 
 --nfsd3::
-    NFS v3 server operations
+    show NFS v3 server operations
 
 --nfsd3-ops::
-    Extended NFS v3 server operations
+    show extended NFS v3 server operations
 
 --ntp::
-    TBD
+    show NTP time from an NTP server
 
 --postfix::
-    postfix queue size (needs postfix)
+    show postfix queue sizes (needs postfix)
 
 --power::
-    TBD
+    show power usage
 
 --proc-count::
-    TBD
+    show total number of processes
 
 --rpc::
-    RPC client calls
+    show RPC client calls stats
 
 --rpcd::
-    RPC server calls
+    show RPC server calls stats
 
 --sendmail::
-    sendmail queue size (needs sendmail)
+    show sendmail queue size (needs sendmail)
 
 --snooze::
-    number of ticks per second
+    show number of ticks per second
 
 --test::
-    TBD
+    show test plugin output
 
 --thermal::
     system temperature sensors
 
 --top-bio::
-    TBD
+    show most expensive block I/O process
 
 --top-cpu::
-    TBD
+    show most expensive CPU process
 
 --top-cputime::
-    TBD
+    show process using the most CPU time (in ms)
 
 --top-cputime-avg::
-    TBD
+    show process with the highest average timeslice (in ms)
 
 --top-io::
-    TBD
+    show most expensive I/O process
 
 --top-latency::
-    TBD
+    show process with highest total latency (in ms)
 
 --top-latency-avg::
-    TBD
+    show process with the highest average latency (in ms)
 
 --top-mem::
-    TBD
+    show process using the most memory
 
 --top-oom::
-    TBD
+    show process that will be killed by OOM the first
 
 --utmp::
-    Number of utmp connections (needs python-utmp)
+    show number of utmp connections (needs python-utmp)
 
 --vmk-hba::
-    TBD
+    show VMware ESX kernel vmhba stats
 
 --vmk-int::
-    TBD
+    show VMware ESX kernel interrupt stats
 
 --vmk-nic::
-    TBD
+    show VMware ESX kernel port stats
 
 --vm-memctl::
-    TBD
+    show ballooning status inside VMware guests
 
 --vz-io::
-    TBD
+    show CPU usage per OpenVZ guest
 
 --vz-ubc::
-    TBD
+    show OpenVZ user beancounters
 
 --wifi::
     wireless link quality and signal to noise ratio
@@ -362,13 +362,14 @@ Checking dstat's behaviour and the system impact of dstat:
 dstat -taf --debug
 ----
 
-Using the time plugin together with cpu, net, disk, system, load, proc and topcpu plugins:
+Using the time plugin together with cpu, net, disk, system, load, proc and
+top_cpu plugins:
 ----
-dstat -tcndylp --topcpu
+dstat -tcndylp --top-cpu
 ----
 this is identical to
 ----
-dstat --time --cpu --net --disk --sys --load --proc --topcpu
+dstat --time --cpu --net --disk --sys --load --proc --top-cpu
 ----
 
 Using dstat to relate cpu stats with interrupts per device:
@@ -392,8 +393,6 @@ Please see the TODO file for known bugs and future plans.
 Paths that may contain external dstat_*.py plugins:
 
     ~/.dstat/
-    ./
-    ./plugins/
     (path of binary)/plugins/
     /usr/share/dstat/
     /usr/local/share/dstat/

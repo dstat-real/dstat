@@ -1,21 +1,21 @@
+### Author: Bert de Bruijn <bert+dstat$debruijn,be>
+
 ### VMware vmmemctl stats
-### Displays ballooning status inside VMware VMs. 
+### Displays ballooning status inside VMware VMs.
 ### The vmmemctl from the VMware Tools needs to be loaded.
 ### This plugin has been tested on a VM running CentOS5 with the open-vm-tools, on ESX3.5
-###
-### Authority: bert+dstat@debruijn.be
 
 # NB Data comes from /proc/vmmemctl
 
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'memctl'
+        self.nick = ('size',)
+        self.vars = ('balloon',)
         self.type = 'f'
         self.width = 6
         self.scale = 1024
         self.open('/proc/vmmemctl')
-        self.nick = ('size',)
-        self.vars = ('balloon',)
 
     def check(self): 
         try:

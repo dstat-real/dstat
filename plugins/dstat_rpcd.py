@@ -3,12 +3,12 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'rpc server'
+        self.nick = ('call', 'erca', 'erau', 'ercl', 'xdrc')
+        self.vars = ('calls', 'badcalls', 'badauth', 'badclnt', 'xdrcall')
         self.type = 'd'
         self.width = 5
         self.scale = 1000
         self.open('/proc/net/rpc/nfsd')
-        self.vars = ('calls', 'badcalls', 'badauth', 'badclnt', 'xdrcall')
-        self.nick = ('call', 'erca', 'erau', 'ercl', 'xdrc')
 
     def extract(self):
         for l in self.splitlines():

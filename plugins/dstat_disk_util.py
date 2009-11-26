@@ -10,12 +10,12 @@ class dstat_plugin(dstat):
     """
 
     def __init__(self):
+        self.nick = ('util', )
         self.type = 'f'
         self.width = 4
         self.scale = 34
         self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)$')
         self.open('/proc/diskstats')
-        self.nick = ('util', )
         self.cols = 1
 
     def discover(self, *objlist):
