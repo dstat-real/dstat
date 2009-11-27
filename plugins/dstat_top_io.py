@@ -35,11 +35,13 @@ class dstat_plugin(dstat):
                     self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0}
 
                 ### Extract name
-                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
+#                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
+                name = linecache.getline('/proc/%s/stat' % pid, 1).split()[1][1:-1]
 
                 ### Extract counters
-                for line in open('/proc/%s/io' % pid).readlines():
-                    l = line.split()
+#                for line in open('/proc/%s/io' % pid).readlines():
+#                    l = line.split()
+                for l in linecache_splitlines('/proc/%s/io' % pid):
                     if len(l) != 2: continue
                     self.pidset2[pid][l[0]] = int(l[1])
 

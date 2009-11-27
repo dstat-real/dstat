@@ -4,12 +4,15 @@ class dstat_plugin(dstat):
     """
     Percentage of remaining battery power as reported by ACPI.
     """
-
     def __init__(self):
         self.name = 'battery'
         self.type = 'p'
         self.width = 4
         self.scale = 34
+
+    def check(self):
+        if not os.path.exists('/proc/acpi/battery/'):
+            raise Exception, "No ACPI battery information found."
 
     def vars(self):
         ret = []

@@ -27,7 +27,8 @@ class dstat_plugin(dstat):
                 if pid == self.pid: continue
 
                 ### Using dopen() will cause too many open files
-                l = open('/proc/%s/stat' % pid).read().split()
+#                l = open('/proc/%s/stat' % pid).read().split()
+                l = linecache.getline('/proc/%s/stat' % pid, 1).split()
 
             except ValueError:
                 continue

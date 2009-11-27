@@ -31,10 +31,12 @@ class dstat_plugin(dstat):
                 if pid == self.pid: continue
 
                 ### Extract name
-                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
+#                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
+                name = linecache.getline('/proc/%s/stat' % pid, 1).split()[1][1:-1]
 
                 ### Using dopen() will cause too many open files
-                l = open('/proc/%s/oom_score' % pid).read().split()
+#                l = open('/proc/%s/oom_score' % pid).read().split()
+                l = linecache.getline('/proc/%s/oom_score' % pid, 1).split()
 
             except ValueError:
                 continue

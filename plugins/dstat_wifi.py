@@ -4,18 +4,17 @@ class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'wifi'
         self.nick = ('lnk', 's/n')
-        self.vars = iwlibs.getNICnames()
         self.type = 'd'
         self.width = 3
-        self.scale = 33
+        self.scale = 34
         self.cols = 2
 
-    def check(self): 
+    def check(self):
         global iwlibs
-        try:
-            from pythonwifi import iwlibs
-        except:
-            raise Exception, 'Needs python-wifi module'
+        from pythonwifi import iwlibs
+
+    def vars(self):
+        return iwlibs.getNICnames()
 
     def extract(self):
         for name in self.vars:

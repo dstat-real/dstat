@@ -16,23 +16,15 @@
 
 from __future__ import generators
 
+try:
+    import sys, os, time, sched, re
+    import types, resource, getpass, glob, linecache
+except KeyboardInterrupt:
+    pass
+
 VERSION = '0.7.0svn'
 
 theme = { 'default': '' }
-
-def addpath(path):
-    if os.path.isdir(path) and path not in sys.path:
-        sys.path.append(path)
-
-try:
-    import sys, os, time, sched, re
-    import types, resource, getpass, glob
-    addpath(os.path.expanduser('~/.dstat/'))                                # home + /.dstat/
-    addpath(os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/')    # binary path + /plugins/
-    addpath('/usr/share/dstat/')
-    addpath('/usr/local/share/dstat/')
-except KeyboardInterrupt, e:
-    pass
 
 if sys.version_info < (2, 2):
     sys.exit('error: Python 2.2 or later required')
@@ -46,7 +38,7 @@ except NameError:
 
 ### Workaround for python < 2.3
 #if 'enumerate' not in __builtins__.__dict__.keys():
-if sys.version_info < (2, 3) and sys.version_info >= (2, 2):
+if sys.version_info >= (2, 2) and sys.version_info < (2, 3):
     def enumerate(sequence):
         index = 0
         for item in sequence:
@@ -69,6 +61,13 @@ if sys.version_info < (2, 3):
         for i in sequence:
             ret = ret + i
         return ret
+
+pluginpath = [
+    os.path.expanduser('~/.dstat/'),                                # home + /.dstat/
+    os.path.abspath(os.path.dirname(sys.argv[0])) + '/plugins/',    # binary path + /plugins/
+    '/usr/share/dstat/',
+    '/usr/local/share/dstat/',
+]
 
 class Options:
     def __init__(self, args):
@@ -372,7 +371,15 @@ class dstat:
         for fd in self.fd:
             fd.seek(0)
             for line in fd.readlines():
-                yield line
+               yield line
+        ### Implemented linecache (for top-plugins) but slows down normal plugins
+#        for fd in self.fd:
+#            i = 1
+#            while True:
+#                line = linecache.getline(fd.name, i);
+#                if not line: break
+#                yield line
+#                i += 1
 
     def splitlines(self, delim=None, replace=None):
         "Return split lines from any file descriptor"
@@ -385,6 +392,15 @@ class dstat:
                     yield line.replace(replace, ' ').split()
                 else:
                     yield line.split(delim)
+#        ### Implemented linecache (for top-plugins) but slows down normal plugins
+#        for fd in self.fd:
+#                if replace and delim:
+#                    yield line.replace(replace, delim).split(delim)
+#                elif replace:
+#                    yield line.replace(replace, ' ').split()
+#                else:
+#                    yield line.split(delim)
+#                i += 1
 
     def statwidth(self):
         "Return complete stat width"
@@ -522,11 +538,11 @@ class dstat:
 class dstat_aio(dstat):
     def __init__(self):
         self.name = 'async'
+        self.nick = ('#aio',)
+        self.vars = ('aio',)
         self.type = 'd'
         self.width = 5;
         self.open('/proc/sys/fs/aio-nr')
-        self.nick = ('#aio',)
-        self.vars = ('aio',)
 
     def extract(self):
         for l in self.splitlines():
@@ -535,11 +551,11 @@ class dstat_aio(dstat):
 
 class dstat_cpu(dstat):
     def __init__(self):
+        self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
         self.type = 'p'
         self.width = 3
         self.scale = 34
         self.open('/proc/stat')
-        self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
         self.cols = 6
 
     def discover(self, *objlist):
@@ -596,11 +612,11 @@ class dstat_cpu(dstat):
 
 class dstat_cpu24(dstat):
     def __init__(self):
+        self.nick = ( 'usr', 'sys', 'idl')
         self.type = 'p'
         self.width = 3
         self.scale = 34
         self.open('/proc/stat')
-        self.nick = ( 'usr', 'sys', 'idl')
         self.cols = 3
 
     def discover(self, *objlist):
@@ -652,10 +668,10 @@ class dstat_cpu24(dstat):
 
 class dstat_disk(dstat):
     def __init__(self):
+        self.nick = ('read', 'writ')
         self.type = 'd'
         self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)$')
         self.open('/proc/diskstats')
-        self.nick = ('read', 'writ')
         self.cols = 2
 
     def discover(self, *objlist):
@@ -719,10 +735,10 @@ class dstat_disk(dstat):
 
 class dstat_disk24(dstat):
     def __init__(self):
+        self.nick = ('read', 'writ')
         self.type = 'd'
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/partitions')
-        self.nick = ('read', 'writ')
         if self.fd and not self.discover:
             raise Exception, 'Kernel is not compiled with CONFIG_BLK_STATS'
         self.cols = 2
@@ -784,11 +800,11 @@ class dstat_disk24(dstat):
 ### FIXME: Needs rework, does anyone care ?
 class dstat_disk24old(dstat):
     def __init__(self):
+        self.nick = ('read', 'writ')
         self.type = 'd'
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
-        self.open('/proc/stat')
-        self.nick = ('read', 'writ')
         self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
+        self.open('/proc/stat')
         self.cols = 2
 
     def discover(self, *objlist):
@@ -864,12 +880,11 @@ class dstat_disk24old(dstat):
 class dstat_epoch(dstat):
     def __init__(self):
         self.name = 'epoch'
+        self.vars = ('epoch',)
         self.width = 10
-        self.scale = 0
         if op.debug:
             self.width = 13
         self.scale = 0
-        self.vars = ('epoch',)
 
     ### We are now using the starttime instead of the execution time of this plugin
     def extract(self):
@@ -879,10 +894,10 @@ class dstat_epoch(dstat):
 class dstat_fs(dstat):
     def __init__(self):
         self.name = 'filesystem'
+        self.vars = ('files', 'inodes')
         self.type = 'd'
         self.width = 6
         self.scale = 1000
-        self.vars = ('files', 'inodes')
 
     def extract(self):
         for line in dopen('/proc/sys/fs/file-nr'):
@@ -1032,12 +1047,12 @@ class dstat_int24(dstat):
 
 class dstat_io(dstat):
     def __init__(self):
+        self.nick = ('read', 'writ')
         self.type = 'f'
         self.width = 5
         self.scale = 1000
         self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
         self.open('/proc/diskstats')
-        self.nick = ('read', 'writ')
         self.cols = 3
 
     def discover(self, *objlist):
@@ -1102,10 +1117,10 @@ class dstat_io(dstat):
 class dstat_ipc(dstat):
     def __init__(self):
         self.name = 'sysv ipc'
+        self.vars = ('msg', 'sem', 'shm')
         self.type = 'd'
         self.width = 3
         self.scale = 10
-        self.vars = ('msg', 'sem', 'shm')
 
     def extract(self):
         for name in self.vars:
@@ -1114,12 +1129,12 @@ class dstat_ipc(dstat):
 class dstat_load(dstat):
     def __init__(self):
         self.name = 'load avg'
+        self.nick = ('1m', '5m', '15m')
+        self.vars = ('load1', 'load5', 'load15')
         self.type = 'f'
         self.width = 4
         self.scale = 0.5
         self.open('/proc/loadavg')
-        self.nick = ('1m', '5m', '15m')
-        self.vars = ('load1', 'load5', 'load15')
 
     def extract(self):
         for l in self.splitlines():
@@ -1131,12 +1146,12 @@ class dstat_load(dstat):
 class dstat_lock(dstat):
     def __init__(self):
         self.name = 'file locks'
+        self.nick = ('pos', 'lck', 'rea', 'wri')
+        self.vars = ('posix', 'flock', 'read', 'write')
         self.type = 'f'
         self.width = 3
         self.scale = 10
         self.open('/proc/locks')
-        self.nick = ('pos', 'lck', 'rea', 'wri')
-        self.vars = ('posix', 'flock', 'read', 'write')
 
     def extract(self):
         for name in self.vars: self.val[name] = 0
@@ -1154,9 +1169,9 @@ class dstat_lock(dstat):
 class dstat_mem(dstat):
     def __init__(self):
         self.name = 'memory usage'
-        self.open('/proc/meminfo')
         self.nick = ('used', 'buff', 'cach', 'free')
         self.vars = ('MemUsed', 'Buffers', 'Cached', 'MemFree')
+        self.open('/proc/meminfo')
 
     def extract(self):
         for l in self.splitlines():
@@ -1168,10 +1183,10 @@ class dstat_mem(dstat):
 
 class dstat_net(dstat):
     def __init__(self):
-        self.open('/proc/net/dev')
-        self.type = 'd'
         self.nick = ('recv', 'send')
+        self.type = 'd'
         self.totalfilter = re.compile('^(lo|bond[0-9]+|face|.+\.[0-9]+)$')
+        self.open('/proc/net/dev')
         self.cols = 2
 
     def discover(self, *objlist):
@@ -1228,10 +1243,10 @@ class dstat_net(dstat):
 class dstat_page(dstat):
     def __init__(self):
         self.name = 'paging'
-        self.type = 'd'
-        self.open('/proc/vmstat')
         self.nick = ('in', 'out')
         self.vars = ('pswpin', 'pswpout')
+        self.type = 'd'
+        self.open('/proc/vmstat')
 
     def extract(self):
         for l in self.splitlines():
@@ -1247,10 +1262,10 @@ class dstat_page(dstat):
 class dstat_page24(dstat):
     def __init__(self):
         self.name = 'paging'
-        self.type = 'd'
-        self.open('/proc/stat')
         self.nick = ('in', 'out')
         self.vars = ('pswpin', 'pswpout')
+        self.type = 'd'
+        self.open('/proc/stat')
 
     def extract(self):
         for l in self.splitlines():
@@ -1268,12 +1283,12 @@ class dstat_page24(dstat):
 class dstat_proc(dstat):
     def __init__(self):
         self.name = 'procs'
+        self.nick = ('run', 'blk', 'new')
+        self.vars = ('procs_running', 'procs_blocked', 'processes')
         self.type = 'f'
         self.width = 3
         self.scale = 10
         self.open('/proc/stat')
-        self.nick = ('run', 'blk', 'new')
-        self.vars = ('procs_running', 'procs_blocked', 'processes')
 
     def extract(self):
         for l in self.splitlines():
@@ -1297,17 +1312,17 @@ class dstat_proc(dstat):
 class dstat_raw(dstat):
     def __init__(self):
         self.name = 'raw'
+        self.nick = ('raw',)
+        self.vars = ('sockets',)
         self.type = 'd'
         self.width = 3
         self.scale = 100
         self.open('/proc/net/raw')
-        self.nick = ('raw',)
-        self.vars = ('sockets',)
 
     def extract(self):
         lines = -1
         for line in self.readlines():
-            lines = lines + 1
+            lines += 1
         self.val['sockets'] = lines
         ### Cannot use len() on generator
 #        self.val['sockets'] = len(self.readlines()) - 1
@@ -1331,9 +1346,9 @@ class dstat_socket(dstat):
 class dstat_swap(dstat):
     def __init__(self):
         self.name = 'swap'
+        self.nick = ('used', 'free')
         self.type = 'd'
         self.open('/proc/swaps')
-        self.nick = ('used', 'free')
 
     def discover(self, *objlist):
         ret = []
@@ -1382,10 +1397,10 @@ class dstat_swap(dstat):
 class dstat_swapold(dstat):
     def __init__(self):
         self.name = 'swap'
-        self.type = 'd'
-        self.open('/proc/meminfo')
         self.nick = ('used', 'free')
         self.vars = ('SwapUsed', 'SwapFree')
+        self.type = 'd'
+        self.open('/proc/meminfo')
 
     def extract(self):
         for l in self.splitlines():
@@ -1398,12 +1413,12 @@ class dstat_swapold(dstat):
 class dstat_sys(dstat):
     def __init__(self):
         self.name = 'system'
+        self.nick = ('int', 'csw')
+        self.vars = ('intr', 'ctxt')
         self.type = 'd'
         self.width = 5
         self.scale = 1000
         self.open('/proc/stat')
-        self.nick = ('int', 'csw')
-        self.vars = ('intr', 'ctxt')
 
     def extract(self):
         for l in self.splitlines():
@@ -1419,12 +1434,12 @@ class dstat_sys(dstat):
 class dstat_tcp(dstat):
     def __init__(self):
         self.name = 'tcp sockets'
+        self.nick = ('lis', 'act', 'syn', 'tim', 'clo')
+        self.vars = ('listen', 'established', 'syn', 'wait', 'close')
         self.type = 'd'
         self.width = 3
         self.scale = 100
         self.open('/proc/net/tcp', '/proc/net/tcp6')
-        self.nick = ('lis', 'act', 'syn', 'tim', 'clo')
-        self.vars = ('listen', 'established', 'syn', 'wait', 'close')
 
     def extract(self):
         for name in self.vars: self.val[name] = 0
@@ -1463,12 +1478,12 @@ class dstat_time(dstat):
 class dstat_udp(dstat):
     def __init__(self):
         self.name = 'udp'
+        self.nick = ('lis', 'act')
+        self.vars = ('listen', 'established')
         self.type = 'd'
         self.width = 3
         self.scale = 100
         self.open('/proc/net/udp', '/proc/net/udp6')
-        self.nick = ('lis', 'act')
-        self.vars = ('listen', 'established')
 
     def extract(self):
         for name in self.vars: self.val[name] = 0
@@ -1479,12 +1494,12 @@ class dstat_udp(dstat):
 class dstat_unix(dstat):
     def __init__(self):
         self.name = 'unix sockets'
+        self.nick = ('dgm', 'str', 'lis', 'act')
+        self.vars = ('datagram', 'stream', 'listen', 'established')
         self.type = 'd'
         self.width = 3
         self.scale = 100
         self.open('/proc/net/unix')
-        self.nick = ('dgm', 'str', 'lis', 'act')
-        self.vars = ('datagram', 'stream', 'listen', 'established')
 
     def extract(self):
         for name in self.vars: self.val[name] = 0
@@ -1501,12 +1516,12 @@ class dstat_unix(dstat):
 class dstat_vm(dstat):
     def __init__(self):
         self.name = 'virtual memory'
+        self.nick = ('majpf', 'minpf', 'alloc', 'free')
+        self.vars = ('pgmajfault', 'pgfault', 'pgalloc_normal', 'pgfree')
         self.type = 'd'
         self.width = 5
         self.scale = 1000
         self.open('/proc/vmstat')
-        self.nick = ('majpf', 'minpf', 'alloc', 'free')
-        self.vars = ('pgmajfault', 'pgfault', 'pgalloc_normal', 'pgfree')
 
     def extract(self):
         for l in self.splitlines():
@@ -1716,6 +1731,24 @@ def matchpipe(fileobj, string, tmout = 0.001):
     if op.debug:
         raise Exception, 'Nothing found during matchpipe data collection'
     return None
+
+def linecache_readlines(filename):
+    ### Implemented linecache (for top-plugins)
+    i = 1
+    while True:
+        line = linecache.getline(filename, i);
+        if not line: break
+        yield line
+        i += 1
+
+def linecache_splitlines(filename):
+    ### Implemented linecache (for top-plugins)
+    i = 1
+    while True:
+        line = linecache.getline(filename, i);
+        if not line: break
+        yield line.split()
+        i += 1
 
 def dchg(var, width, base):
     "Convert decimal to string given base and length"
@@ -1950,7 +1983,8 @@ def basename(name):
 def getnamebypid(pid, name):
     ret = None
     try:
-        cmdline = open('/proc/%s/cmdline' % pid).read().split('\0')
+#        cmdline = open('/proc/%s/cmdline' % pid).read().split('\0')
+        cmdline = linecache.getline('/proc/%s/cmdline' % pid, 1).split('\0')
         ret = basename(cmdline[0])
         if ret in ('bash', 'csh', 'ksh', 'perl', 'python', 'ruby', 'sh'):
             ret = basename(cmdline[1])
@@ -2072,7 +2106,7 @@ def listplugins():
         if filename.startswith('dstat_'):
             plugins.append(remod.match(filename).groups()[0])
     remod = re.compile('.+/dstat_(.+).py$')
-    for path in sys.path:
+    for path in pluginpath:
         for filename in glob.glob(path + '/dstat_*.py'):
             plugins.append(remod.match(filename).groups()[0].replace('_', '-'))
     plugins.sort()
@@ -2097,7 +2131,7 @@ def showplugins():
             print mod+',',
     print mod
     remod = re.compile('.+/dstat_(.+).py$')
-    for path in sys.path:
+    for path in pluginpath:
         plugins = []
         for filename in glob.glob(path + '/dstat_*.py'):
             plugins.append(remod.match(filename).groups()[0].replace('_', '-'))
@@ -2193,10 +2227,9 @@ def main():
     linewidth = 0
     totlist = []
     for plugin in op.plugins:
-        if plugin in ('list', 'help'):
-            showplugins()
-            exit(0)
-        elif plugin == 'cpu':  mods = ( 'cpu', 'cpu24' )
+
+        ### Set up fallback lists
+        if plugin == 'cpu':  mods = ( 'cpu', 'cpu24' )
         elif plugin == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
         elif plugin == 'int':  mods = ( 'int', 'int24' )
         elif plugin == 'page': mods = ( 'page', 'page24' )
@@ -2208,7 +2241,8 @@ def main():
             try:
                 if pluginfile not in globals().keys():
                     import imp
-                    filename, pathname, description = imp.find_module(pluginfile)
+                    fp, pathname, description = imp.find_module(pluginfile, pluginpath)
+                    fp.close()
 
                     ### TODO: Would using .pyc help with anything ?
                     ### Try loading python plugin
@@ -2216,7 +2250,7 @@ def main():
                         execfile(pathname)
                         exec 'o = dstat_plugin(); o.filename = "%s"; o.check(); o.prepare(); del(dstat_plugin);' % pluginfile
 
-                    ### Try loading C plugin
+                    ### Try loading C plugin (not functional yet)
                     elif description[0] == '.so':
                         exec 'import %s' % pluginfile
                         exec 'o = %s.new(); o.check(); o.prepare();' % pluginfile
@@ -2242,21 +2276,16 @@ def main():
 
             linewidth = linewidth + o.statwidth() + 1
             totlist.append(o)
+
+            if op.debug:
+                print 'Module', pluginfile,
+                if hasattr(o, 'file'):
+                    print 'requires', o.file,
+                print
             break
 
     if not totlist:
         die(8, 'None of the stats you selected are available.')
-
-    if op.debug:
-        for o in totlist:
-            print 'Module',
-            if hasattr(o, 'filename'):
-                print o.filename,
-            else:
-                print str(o.__class__).split('.')[1],
-            if hasattr(o, 'file'):
-                print 'requires', o.file,
-            print
 
     if op.output:
         outputfile.write(csvheader(totlist))
@@ -2274,6 +2303,7 @@ def main():
         scheduler.run()
         sys.stdout.flush()
         update = update + interval
+        linecache.clearcache()
 
     if op.update:
         sys.stdout.write('\n')

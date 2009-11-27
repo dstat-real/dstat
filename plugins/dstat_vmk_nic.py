@@ -55,7 +55,7 @@ class dstat_plugin(dstat):
 
     def extract(self):
         self.set2['total'] = [0, 0]
-        for line in self.readlines():
+        for line in self.fd[0].readlines():
             l = line.replace(' /','/').split()
             if len(l) != 12: continue
             if l[2][:5] == '<Link': continue

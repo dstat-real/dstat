@@ -36,7 +36,7 @@ class dstat_plugin(dstat):
             thread = c.fetchone()
             if thread[0] in self.vars:
                 self.set2[thread[0]] = float(thread[1])
-                self.set2['Threads'] = float(thread[1] / float(max[1]) 1.0 * 100)
+                self.set2['Threads'] = float(thread[1]) / float(max[1]) * 100.0
 
             for name in self.vars:
                 self.val[name] = self.set2[name] * 1.0 / elapsed

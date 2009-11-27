@@ -1,6 +1,8 @@
 * 0.7.0svn - ... - release 26/11/2009
-- Fix top-plugins on python 2.2 and older
+- Fix external plugins on python 2.2 and older (eg. RHEL3)
 - Documentation improvements
+- Implement linecache for top-plugins (caching for statistics)
+- Added external dstat_qmail plugin to show the length of qmail queues (Tom Van Looy)
 
 * 0.7.0 - Tokyo - release 25/11/2009
 - Fixed dstat_disk plugin for total calculation on 2.6.25+ kernels (Noel J. Bergman)

@@ -29,7 +29,8 @@ class dstat_plugin(dstat):
                 if pid == self.pid: continue
 
                 ### Using dopen() will cause too many open files
-                l = open('/proc/%s/stat' % pid).read().split()
+#                l = open('/proc/%s/stat' % pid).read().split()
+                l = linecache.getline('/proc/%s/stat' % pid, 1).split()
 
             except ValueError:
                 continue
@@ -42,7 +43,7 @@ class dstat_plugin(dstat):
             if not self.pidset1.has_key(pid):
                 self.pidset1[pid] = 0
 
-            self.pidset2[pid] = int(l[13]) + int(l[14])
+            self.pidset2[pid] = long(l[13]) + long(l[14])
             usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / elapsed / cpunr
 
             ### Is it a new topper ?
@@ -52,7 +53,8 @@ class dstat_plugin(dstat):
 
             self.val['max'] = usage
             self.val['pid'] = pid
-            self.val['name'] = getnamebypid(pid, name)
+#            self.val['name'] = getnamebypid(pid, name)
+            self.val['name'] = name
 
         if self.val['max'] != 0.0:
             self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['name'][0:self.width-3], cprint(self.val['max'], 'f', 3, 34))

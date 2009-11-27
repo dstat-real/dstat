@@ -24,6 +24,10 @@ class dstat_plugin(dstat):
         else:
             raise Exception, 'Needs kernel ACPI or IBM-ACPI support'
 
+    def check(self):
+        if not os.path.exists('/proc/acpi/ibm/thermal') and not os.path.exists('/proc/acpi/thermal_zone/'):
+            raise Exception, 'Needs kernel ACPI or IBM-ACPI support'
+
     def extract(self):
         if os.path.exists('/proc/acpi/ibm/thermal'):
             for line in dopen('/proc/acpi/ibm/thermal'):

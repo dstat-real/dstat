@@ -36,10 +36,12 @@ class dstat_plugin(dstat):
                     self.pidset1[pid] = {'wait_ticks': 0, 'ran': 0}
 
                 ### Extract name
-                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
+#                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
+                name = linecache.getline('/proc/%s/stat' % pid, 1).split()[1][1:-1]
 
                 ### Extract counters
-                l = open('/proc/%s/schedstat' % pid).read().split()
+#                l = open('/proc/%s/schedstat' % pid).read().split()
+                l = linecache.getline('/proc/%s/stat' % pid, 1).split()
 
             except ValueError:
                 continue
