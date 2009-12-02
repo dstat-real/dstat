@@ -89,6 +89,7 @@ class Options:
         self.header = True
         self.output = False
         self.pidfile = False
+        self.profile = False
 
         ### List of available plugins
         allplugins = listplugins()
@@ -115,7 +116,7 @@ class Options:
                 ['all', 'all-plugins', 'bw', 'blackonwhite', 'debug',
                  'filesystem', 'float', 'full', 'gonuts', 'help', 'integer',
                  'list', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate',
-                 'output=', 'pidfile=', 'version', 'vmstat'] + allplugins)
+                 'output=', 'pidfile=', 'profile', 'version', 'vmstat'] + allplugins)
         except getopt.error, exc:
             print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
             sys.exit(1)
@@ -170,15 +171,15 @@ class Options:
             elif opt in ['-f', '--full']:
                 self.full = True
 
-            elif opt in ['--bw', '--black-on-white']:
-                self.blackonwhite = True
-            elif opt in ['--debug']:
-                self.debug = self.debug + 1
             elif opt in ['--all-plugins']:
                 ### Make list unique in a fancy fast way
                 plugins = {}.fromkeys(allplugins).keys()
                 plugins.sort()
                 self.plugins += plugins
+            elif opt in ['--bw', '--black-on-white']:
+                self.blackonwhite = True
+            elif opt in ['--debug']:
+                self.debug = self.debug + 1
             elif opt in ['--float']:
                 self.float = True
             elif opt in ['--integer']:
@@ -197,6 +198,8 @@ class Options:
                 self.output = arg
             elif opt in ['--pidfile']:
                 self.pidfile = arg
+            elif opt in ['--profile']:
+                self.profile = True
             elif opt in ['-h', '--help']:
                 self.usage()
                 self.help()
@@ -215,6 +218,7 @@ class Options:
             sys.exit(1)
 
         if not self.plugins:
+            print 'You did not select any stats, using -cdngy by default.'
             self.plugins = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
 
         try:
@@ -2431,7 +2435,11 @@ if __name__ == '__main__':
         initterm()
         op = Options(sys.argv[1:])
         theme = set_theme()
-        main()
+        if op.profile:
+            import profile
+            profile.run('main()', 'dstat_profile.log')
+        else:
+            main()
     except KeyboardInterrupt, e:
         if op.update:
             sys.stdout.write('\n')
@@ -2440,6 +2448,17 @@ if __name__ == '__main__':
     if op.pidfile and os.path.exists(op.pidfile):
         os.remove(op.pidfile)
 
+    if op.profile:
+        rows, cols = gettermsize()
+        import pstats
+        p = pstats.Stats('dstat_profile.log')
+#        p.sort_stats('name')
+#        p.print_stats()
+        p.sort_stats('cumulative').print_stats(rows - 12)
+#        p.sort_stats('time').print_stats(rows - 12)
+#        p.sort_stats('file').print_stats('__init__')
+#        p.sort_stats('time', 'cum').print_stats(.5, 'init')
+#        p.print_callees()
     exit(0)
 else:
     op = Options('')

@@ -165,6 +165,9 @@ Possible internal stats are::
 --output file::
     write CSV output to file
 
+--profile::
+    show profiling statistics when exiting dstat
+
 
 == PLUGINS
 While anyone can create their own dstat plugins (and contribute them) dstat
@@ -260,6 +263,9 @@ Here is an overview of the plugins dstat ships with:
 
 --proc-count::
     show total number of processes
+
+--qmail::
+    show qmail queue sizes (needs qmail)
 
 --rpc::
     show RPC client calls stats

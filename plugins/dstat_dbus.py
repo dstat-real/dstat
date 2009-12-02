@@ -4,7 +4,6 @@ class dstat_plugin(dstat):
     """
     Number of active dbus sessions.
     """
-
     def __init__(self):
         self.name = 'dbus'
         self.nick = ('sys', 'ses')
