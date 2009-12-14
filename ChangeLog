@@ -6,6 +6,7 @@
 - Added external dstat_dstat plugin to show Dstat's own cputime and latency values
 - Added --profile option to get profiling statistics when you exit dstat
 - Show a message with the default options when no stats are being specified
+- Improved page allocation numbers in vm plugin (Hirofumi Ogawa)
 
 * 0.7.0 - Tokyo - release 25/11/2009
 - Fixed dstat_disk plugin for total calculation on 2.6.25+ kernels (Noel J. Bergman)

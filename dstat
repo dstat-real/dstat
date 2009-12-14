@@ -1521,17 +1521,22 @@ class dstat_vm(dstat):
     def __init__(self):
         self.name = 'virtual memory'
         self.nick = ('majpf', 'minpf', 'alloc', 'free')
-        self.vars = ('pgmajfault', 'pgfault', 'pgalloc_normal', 'pgfree')
+        self.vars = ('pgmajfault', 'pgfault', 'pgalloc', 'pgfree')
         self.type = 'd'
         self.width = 5
         self.scale = 1000
         self.open('/proc/vmstat')
 
+    ### Page allocations should include all page zones, not just ZONE_NORMAL,
+    ### but also ZONE_DMA, ZONE_HIGHMEM, ZONE_DMA32 (depending on architecture)
     def extract(self):
+        self.set2['pgalloc'] = 0
         for l in self.splitlines():
             if len(l) < 2: continue
-            if l[0] not in self.vars: continue
-            self.set2[l[0]] = long(l[1])
+            if l[0].startswith('pgalloc_'):
+                self.set2['pgalloc'] += long(l[1])
+            elif l[0] in self.vars:
+                self.set2[l[0]] = long(l[1])
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         if step == op.delay:
