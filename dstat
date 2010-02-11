@@ -17,7 +17,7 @@
 from __future__ import generators
 
 try:
-    import sys, os, time, sched, re
+    import sys, os, time, sched, re, getopt
     import types, resource, getpass, glob, linecache
 except KeyboardInterrupt:
     pass
@@ -111,10 +111,9 @@ class Options:
         }
 
         try:
-            import getopt
             opts, args = getopt.getopt(args, 'acdfghilmno:prstTvyC:D:I:M:N:S:V',
                 ['all', 'all-plugins', 'bw', 'blackonwhite', 'debug',
-                 'filesystem', 'float', 'full', 'gonuts', 'help', 'integer',
+                 'filesystem', 'float', 'full', 'help', 'integer',
                  'list', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate',
                  'output=', 'pidfile=', 'profile', 'version', 'vmstat'] + allplugins)
         except getopt.error, exc:
@@ -1605,6 +1604,7 @@ char = {
 }
 
 def set_theme():
+    "Provide a set of colors to use"
     if op.blackonwhite:
         theme = {
             'title': ansi['darkblue'],
@@ -1741,7 +1741,11 @@ def matchpipe(fileobj, string, tmout = 0.001):
         raise Exception, 'Nothing found during matchpipe data collection'
     return None
 
-def linecache_readlines(filename):
+def proc_readlines(filename):
+    "Return the lines of a file, one by one"
+#    for line in open(filename).readlines():
+#       yield line
+
     ### Implemented linecache (for top-plugins)
     i = 1
     while True:
@@ -1750,7 +1754,11 @@ def linecache_readlines(filename):
         yield line
         i += 1
 
-def linecache_splitlines(filename):
+def proc_splitlines(filename):
+    "Return the splitted lines of a file, one by one"
+#    for line in open(filename).readlines():
+#       yield line.split()
+
     ### Implemented linecache (for top-plugins)
     i = 1
     while True:
@@ -1758,6 +1766,33 @@ def linecache_splitlines(filename):
         if not line: break
         yield line.split()
         i += 1
+
+def proc_readline(filename):
+    "Return the first line of a file"
+#    return open(filename).read()
+    return linecache.getline(filename, 1)
+
+def proc_splitline(filename):
+    "Return the first line of a file splitted"
+#    return open(filename).read().split()
+    return linecache.getline(filename, 1).split()
+
+### FIXME: Should we cache this within every step ?
+def proc_pidlist():
+    "Return a list of process IDs"
+    dstat_pid = str(os.getpid())
+    for pid in os.listdir('/proc/'):
+        try:
+            ### Is it a pid ?
+            int(pid)
+
+            ### Filter out dstat
+            if pid == dstat_pid: continue
+
+            yield pid
+
+        except ValueError:
+            continue
 
 def dchg(var, width, base):
     "Convert decimal to string given base and length"
@@ -1797,6 +1832,17 @@ def fchg(var, width, base):
     else:
         c = -1
     return ret, c
+
+def tchg(var, width):
+    "Convert time string to given length"
+    ret = '%2dh%02d' % (var / 60, var % 60)
+    if len(ret) > width:
+        ret = '%2dh' % (var / 60)
+        if len(ret) > width:
+            ret = '%2dd' % (var / 60 / 24)
+            if len(ret) > width:
+                ret = '%2dw' % (var / 60 / 24 / 7)
+    return ret
 
 def cprintlist(varlist, type, width, scale):
     "Return all columns color printed"
@@ -1852,7 +1898,7 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     elif type in ('s'):
         ret, c = str(var), ctext
     elif type in ('t'):
-        ret, c = '%2dh%02d' % (var / 60, var % 60), ctext
+        ret, c = tchg(var, width), ctext
     else:
         raise Exception, 'Type %s not known to dstat.' % type
 
@@ -1886,6 +1932,7 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     return ret
 
 def header(totlist, vislist):
+    "Return the header for a set of module counters"
     line = ''
     ### Process title
     for o in vislist:
@@ -1905,6 +1952,7 @@ def header(totlist, vislist):
     return line + '\n'
 
 def csvheader(totlist):
+    "Return the CVS header for a set of module counters"
     line = ''
     ### Process title
     for o in totlist:
@@ -1972,6 +2020,7 @@ def gettermsize():
     return termsize
 
 def gettermcolor(color=True):
+    "Return whether the system can use colors or not"
     if color and sys.stdout.isatty():
         try:
             import curses
@@ -1985,11 +2034,13 @@ def gettermcolor(color=True):
 
 ### We only want to filter out paths, not ksoftirqd/1
 def basename(name):
+    "Perform basename on paths only"
     if name[0] in ('/', '.'):
         return os.path.basename(name)
     return name
 
 def getnamebypid(pid, name):
+    "Return the name of a process by taking best guesses and exclusion"
     ret = None
     try:
 #        cmdline = open('/proc/%s/cmdline' % pid).read().split('\0')
@@ -2106,6 +2157,19 @@ def dev(maj, min):
 
 def exit(ret):
     sys.stdout.write(ansi['reset'])
+
+    if op.profile:
+        rows, cols = gettermsize()
+        import pstats
+        p = pstats.Stats('dstat_profile.log')
+#        p.sort_stats('name')
+#        p.print_stats()
+        p.sort_stats('cumulative').print_stats(rows - 12)
+#        p.sort_stats('time').print_stats(rows - 12)
+#        p.sort_stats('file').print_stats('__init__')
+#        p.sort_stats('time', 'cum').print_stats(.5, 'init')
+#        p.print_callees()
+
     sys.exit(ret)
 
 def listplugins():
@@ -2158,6 +2222,7 @@ def showplugins():
         print mod
 
 def main():
+    "Initialization of the program, terminal, internal structures"
     global pagesize, cpunr, hz, ansi, theme, outputfile
     global totlist, inittime
     global update, missed
@@ -2318,6 +2383,7 @@ def main():
         sys.stdout.write('\n')
 
 def perform(update):
+        "Inner loop that calculates counters and constructs output"
         global totlist, oldvislist, vislist, showheader, rows, cols
         global elapsed, totaltime, starttime
         global loop, step, missed
@@ -2453,17 +2519,6 @@ if __name__ == '__main__':
     if op.pidfile and os.path.exists(op.pidfile):
         os.remove(op.pidfile)
 
-    if op.profile:
-        rows, cols = gettermsize()
-        import pstats
-        p = pstats.Stats('dstat_profile.log')
-#        p.sort_stats('name')
-#        p.print_stats()
-        p.sort_stats('cumulative').print_stats(rows - 12)
-#        p.sort_stats('time').print_stats(rows - 12)
-#        p.sort_stats('file').print_stats('__init__')
-#        p.sort_stats('time', 'cum').print_stats(.5, 'init')
-#        p.print_callees()
     exit(0)
 else:
     op = Options('')

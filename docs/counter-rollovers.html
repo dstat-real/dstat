@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.5.1" />
-<title>All you ever wanted to know about counter-rollovers and dstat</title>
+<title>All you ever wanted to know about counter-rollovers in Dstat</title>
 <style type="text/css">
 /* Debug borders */
 p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
@@ -544,12 +544,12 @@ footnotes: function () {
 </head>
 <body>
 <div id="header">
-<h1>All you ever wanted to know about counter-rollovers and dstat</h1>
+<h1>All you ever wanted to know about counter-rollovers in Dstat</h1>
 </div>
 <div id="content">
 <h2 id="_what_you_need_to_know_about_counter_rollovers">What you need to know about counter rollovers</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Unfortunately, dstat is susceptible for counter rollovers, which may give
+<div class="paragraph"><p>Unfortunately, Dstat is susceptible for counter rollovers, which may give
 you bogus performance output. Linux currently implements counters as 32bit
 values (not sure on 64bit platforms). This means a counter can go up to
 2^32 (= 4294967296 = 4G) values.</p></div>
@@ -559,19 +559,19 @@ that is fully used, this happens every 32 seconds. On 2 bonded 10Gbps
 interfaces, this happens after 1.6 seconds.</p></div>
 <div class="paragraph"><p>Since /proc is updated every second, this becomes almost impossible to catch.</p></div>
 </div>
-<h2 id="_how_does_this_impact_dstat">How does this impact dstat ?</h2>
+<h2 id="_how_does_this_impact_dstat">How does this impact Dstat ?</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Currently dstat has a problem if you specify delays that are too big. I.e.
-using 60 or 120 seconds delay in dstat will make dstat check these counters
+<div class="paragraph"><p>Currently Dstat has a problem if you specify delays that are too big. I.e.
+using 60 or 120 seconds delay in Dstat will make Dstat check these counters
 only once per minute or every two minutes. In the case the value is reset,
 it might be lower than the previous value (which causes negative values) or
 worse, the value is actually higher (which will go unnoticed and you get
-bogus information and dstat won&#8217;t know).</p></div>
+bogus information and Dstat won&#8217;t know).</p></div>
 <div class="paragraph"><p>This is very problematic, and it&#8217;s important you are aware of this.</p></div>
 </div>
 <h2 id="_what_are_the_solutions">What are the solutions ?</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The only fix for dstat is to check more often than the specified delay.
+<div class="paragraph"><p>The only fix for Dstat is to check more often than the specified delay.
 Unfortunately, this requires a re-design (or an ugly hack).</p></div>
 <div class="paragraph"><p>There are plans to use 64bit counters on Linux and/or changing the output from
 using bytes to kbytes. None of this is sure. (add pointers to threads)</p></div>
@@ -583,9 +583,9 @@ re-calculate the negative values (by adding 2^32 to them).</p></div>
 <h2 id="_what_can_i_do">What can I do ?</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Since this is Open Source, you are free to fix this and send me the fix. Or
-help with a redesign of dstat to overcome this problem. Also look at the
-TODO file to see what other changes are expected in a redesign of dstat.</p></div>
-<div class="paragraph"><p>Since I have a lot of other responsibilities and am currently not using dstat
+help with a redesign of Dstat to overcome this problem. Also look at the
+TODO file to see what other changes are expected in a redesign of Dstat.</p></div>
+<div class="paragraph"><p>Since I have a lot of other responsibilities and am currently not using Dstat
 for something where this problem matters much, I will have no time to look at
 it closely (unless the fix or the redesign is made fairly simple). It all
 depends on how quick I think I can fix/redesign it and how much time I have.</p></div>
@@ -603,7 +603,7 @@ depends on how quick I think I can fix/redesign it and how much time I have.</p>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2006-12-12 16:38:30 CEST
+Last updated 2010-02-11 11:26:02 CEST
 </div>
 </div>
 </body>

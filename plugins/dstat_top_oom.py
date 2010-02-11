@@ -13,7 +13,6 @@ class dstat_plugin(dstat):
         self.type = 's'
         self.width = 18
         self.scale = 0
-        self.pid = str(os.getpid())
 
     def check(self):
         if not os.access('/proc/self/oom_score', os.R_OK):
@@ -22,25 +21,16 @@ class dstat_plugin(dstat):
     def extract(self):
         self.val['max'] = 0.0
         self.val['kill score'] = ''
-        for pid in os.listdir('/proc/'):
+        for pid in proc_pidlist():
             try:
-                ### Is it a pid ?
-                int(pid)
-
-                ### Filter out dstat
-                if pid == self.pid: continue
-
                 ### Extract name
-#                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
-                name = linecache.getline('/proc/%s/stat' % pid, 1).split()[1][1:-1]
+                name = proc_splitline('/proc/%s/stat' % pid)[1][1:-1]
 
                 ### Using dopen() will cause too many open files
-#                l = open('/proc/%s/oom_score' % pid).read().split()
-                l = linecache.getline('/proc/%s/oom_score' % pid, 1).split()
-
-            except ValueError:
-                continue
+                l = proc_splitline('/proc/%s/oom_score' % pid)
             except IOError:
+                continue
+            except IndexError:
                 continue
 
             if len(l) < 1: continue

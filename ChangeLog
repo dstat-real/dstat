@@ -1,4 +1,4 @@
-* 0.7.0svn - ... - release 26/11/2009
+* 0.7.0svn - ... - release 10/02/2009
 - Fix external plugins on python 2.2 and older (eg. RHEL3)
 - Documentation improvements
 - Implement linecache for top-plugins (caching for statistics)
@@ -7,6 +7,10 @@
 - Added --profile option to get profiling statistics when you exit dstat
 - Show a message with the default options when no stats are being specified
 - Improved page allocation numbers in vm plugin (Hirofumi Ogawa)
+- Introduced proc_readline() and proc_spitline() using linecache for top-plugins
+- Introduced proc_readlines() and proc_splitlines() using linecache for top-plugins
+- Introduced proc_pidlist() for top-plugins
+- New tchg() function to format the time depending on width
 
 * 0.7.0 - Tokyo - release 25/11/2009
 - Fixed dstat_disk plugin for total calculation on 2.6.25+ kernels (Noel J. Bergman)

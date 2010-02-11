@@ -7,13 +7,21 @@
 ###     http://eaglet.rain.com/rick/linux/schedstat/
 
 class dstat_plugin(dstat):
+    """
+    Name and average amount of CPU time consumed in milliseconds of the process
+    that has the highest average amount of cputime for the different slices for
+    the measured timeframe.
+
+    On a system with one CPU and one core, the total cputime is 1000ms. On a
+    system with two cores the total cputime is 2000ms.
+    """
+
     def __init__(self):
         self.name = 'highest average'
         self.vars = ('cputime process',)
         self.type = 's'
         self.width = 17
         self.scale = 0
-        self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
 
     def check(self):
@@ -22,30 +30,21 @@ class dstat_plugin(dstat):
 
     def extract(self):
         self.val['result'] = 0
-        self.val['process'] = ''
-        for pid in os.listdir('/proc/'):
+        self.val['cputime process'] = ''
+        for pid in proc_pidlist():
             try:
-                ### Is it a pid ?
-                int(pid)
-
-                ### Filter out dstat
-                if pid == self.pid: continue
-
                 ### Reset values
                 if not self.pidset1.has_key(pid):
                     self.pidset1[pid] = {'run_ticks': 0, 'ran': 0}
 
                 ### Extract name
-#                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
-                name = linecache.getline('/proc/%s/stat' % pid, 1).split()[1][1:-1]
+                name = proc_splitline('/proc/%s/stat' % pid)[1][1:-1]
 
                 ### Extract counters
-#                l = open('/proc/%s/schedstat' % pid).read().split()
-                l = linecache.getline('/proc/%s/schedstat' % pid, 1).split()
-
-            except ValueError:
-                continue
+                l = proc_splitline('/proc/%s/schedstat' % pid)
             except IOError:
+                continue
+            except IndexError:
                 continue
 
             if len(l) != 3: continue

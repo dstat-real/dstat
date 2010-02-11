@@ -14,24 +14,13 @@ class dstat_plugin(dstat):
         self.type = 's'
         self.width = 17
         self.scale = 0
-        self.pid = str(os.getpid())
 
     def extract(self):
         self.val['max'] = 0.0
-        for pid in os.listdir('/proc/'):
+        for pid in proc_pidlist():
             try:
-                ### Is it a pid ?
-                int(pid)
-
-                ### Filter out dstat
-                if pid == self.pid: continue
-
                 ### Using dopen() will cause too many open files
-#                l = open('/proc/%s/stat' % pid).read().split()
-                l = linecache.getline('/proc/%s/stat' % pid, 1).split()
-
-            except ValueError:
-                continue
+                l = proc_splitline('/proc/%s/stat' % pid)
             except IOError:
                 continue
 

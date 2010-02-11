@@ -622,7 +622,7 @@ information.</td>
 </dt>
 <dd>
 <p>
-    include cpu0, cpu3 and total
+    include cpu0, cpu3 and total (when using -c/--cpu)
 </p>
 </dd>
 <dt class="hdlist1">
@@ -638,7 +638,7 @@ information.</td>
 </dt>
 <dd>
 <p>
-    include hda and total
+    include total and hda (when using -d/--disk)
 </p>
 </dd>
 <dt class="hdlist1">
@@ -662,7 +662,7 @@ information.</td>
 </dt>
 <dd>
 <p>
-    include interrupt 5 and 10
+    include interrupt 5 and 10 (when using -i/--int)
 </p>
 </dd>
 <dt class="hdlist1">
@@ -694,7 +694,7 @@ information.</td>
 </dt>
 <dd>
 <p>
-    include eth1 and total
+    include eth1 and total (when using -n/--net)
 </p>
 </dd>
 <dt class="hdlist1">
@@ -726,7 +726,7 @@ information.</td>
 </dt>
 <dd>
 <p>
-    include swap1 and total
+    include swap1 and total (when using -s/--swap)
 </p>
 </dd>
 <dt class="hdlist1">
@@ -939,6 +939,14 @@ Possible internal stats are
     write CSV output to file
 </p>
 </dd>
+<dt class="hdlist1">
+--profile
+</dt>
+<dd>
+<p>
+    show profiling statistics when exiting dstat
+</p>
+</dd>
 </dl></div>
 </div>
 <h2 id="_plugins">PLUGINS</h2>
@@ -985,6 +993,14 @@ Here is an overview of the plugins dstat ships with:</p></div>
 <dd>
 <p>
     per disk utilization in percentage
+</p>
+</dd>
+<dt class="hdlist1">
+--dstat
+</dt>
+<dd>
+<p>
+    show dstat cputime consumption and latency
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1188,6 +1204,14 @@ Here is an overview of the plugins dstat ships with:</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--qmail
+</dt>
+<dd>
+<p>
+    show qmail queue sizes (needs qmail)
+</p>
+</dd>
+<dt class="hdlist1">
 --rpc
 </dt>
 <dd>
@@ -1241,6 +1265,14 @@ Here is an overview of the plugins dstat ships with:</p></div>
 <dd>
 <p>
     show most expensive block I/O process
+</p>
+</dd>
+<dt class="hdlist1">
+--top-childwait
+</dt>
+<dd>
+<p>
+    show process waiting for child the most
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1511,7 +1543,7 @@ improvements or bugreports, please send them to:
 <div id="footer">
 <div id="footer-text">
 Version 0.7.0<br />
-Last updated 2009-11-26 03:35:03 CEST
+Last updated 2010-02-11 14:02:23 CEST
 </div>
 </div>
 </body>

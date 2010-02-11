@@ -549,27 +549,64 @@ footnotes: function () {
 <div id="content">
 <h2 id="_introduction">Introduction</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Since dstat is written in python, it is not optimized for performance.</p></div>
-<div class="paragraph"><p>When doing performance analysis, it is always important to verify that
-the monitoring tool is not messing with the performance numbers.
+<div class="paragraph"><p>Since Dstat is written in python, it is not optimized for performance.
+But that doesn&#8217;t mean that Dstat performs bad, it performs quite good
+given its written in python and a lot of dedication went into profiling
+and optimizing Dstat and Dstat plugins.</p></div>
+<div class="paragraph"><p>But when doing performance analysis, it is always important to verify
+that the monitoring tool is not interfering with the performance numbers.
 (eg. writing to disk, using cpu/memory/network, increasing load)</p></div>
-<div class="paragraph"><p>Depending on the stats being used and the load on the server itself
+</div>
+<h2 id="_compare_with_baseline">Compare with baseline</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Depending on the plugins being used and the load on the server itself
 the impact Dstat has on the system you are monitoring might be
 considerable. A lot of plugins are pretty fast (less than 0.1ms on
-an modest 1.2Ghz laptop, but some plugins may use up to 3ms using
-up to 2% of your CPU).</p></div>
+an modest 1.2Ghz laptop), but some plugins may use up to 3ms or even
+up to 2% of your CPU. (eg. each top-plugin scans the process-list)</p></div>
 <div class="paragraph"><p>Before performing any tests please verify for yourself what impact
 Dstat has on your test results and keep that in mind when analysing
-the results afterwards.</p></div>
-<div class="paragraph"><p>In case the impact is higher than expected, reduce the number of stats
-and remove expensive stats or even look at the plugin you&#8217;re using and
-send me optimisations.</p></div>
+the results afterwards. Especially if you suspect Dstat to be
+influencing your results, do a baseline with and without the Dstat
+commandline.</p></div>
+</div>
+<h2 id="_selection_of_plugins">Selection of plugins</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>In case the impact is higher than expected, reduce the number of plugins
+and remove expensive plugins, or even better, look at the plugin you&#8217;re
+using and send me optimizations.</p></div>
 <div class="paragraph"><p>Newer python versions are also faster than older ones, and hardware is
 only becoming faster at a pace that these considerations may not hold
 anylonger.</p></div>
+</div>
+<h2 id="_debugging_and_profiling_dstat">Debugging and profiling Dstat</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>If you need feedback about plugin performance, use the --debug option
 to profile different plugins. If you use -t together with --debug, you
 can see the time deviation on your system in relation to load/plugins.</p></div>
+<div class="paragraph"><p>If you want to profile certain plugins, you can use the --profile option
+which provides you with detailed information of the function calls that
+are the most expensive.</p></div>
+<div class="paragraph"><p>You can also run the dstat plugin (--dstat) to look what overhead (cputime)
+and response (latency) Dstat has during runtime, which can be very useful
+to compare with your baseline and the system in idle state.</p></div>
+<div class="paragraph"><p>One common way to profile a single plugin is to use the following
+commandline:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>dstat -t --dstat --debug --profile
+dstat -t --dstat --top-cpu --debug --profile</tt></pre>
+</div></div>
+<div class="paragraph"><p>The default profiling infrastructure is quite expensive, so it is important
+that you first make a baseline including the profiling itself, then
+compare it against the same commandline including the plugin you want to
+profile.</p></div>
+</div>
+<h2 id="_improving_dstat_8217_s_footprint_even_more">Improving Dstat&#8217;s footprint even more</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Another way to win a few CPU cycles is to pre-compile the Dstat plugins
+by running the compileall.py script that comes with python on your
+plugins directory. It can save about 10% in execution time.</p></div>
 <div class="paragraph"><p>Remember that invisible plugins (that run out of your terminal window)
 do take up cycles because the information is still being collected and
 possibly written to CSV output.</p></div>
@@ -600,7 +637,7 @@ Any feedback on this is welcomed.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-11-24 02:49:07 CEST
+Last updated 2010-02-11 11:24:41 CEST
 </div>
 </div>
 </body>

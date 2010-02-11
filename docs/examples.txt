@@ -1,17 +1,16 @@
-Dstat examples
-==============
+= Dstat examples
 
-I've written a few examples that make use of the dstat classes.
+I've written a few examples that make use of the Dstat classes.
 
 The following examples currently exist:
 
-	read.py	- shows how to access dstat data
-	mstat.py - small sub-second ministat tool
+    read.py   - shows how to access dstat data
+    mstat.py  - small sub-second ministat tool
 
-Please send other examples or tools that make use of dstat classes
+Please send other examples or tools that make use of Dstat classes
 or changes to extend the current infrastructure.
 
-I'm not particularly happy with the current interface to dstat,
+I'm not particularly happy with the current interface to Dstat,
 so any hints on how to improve it are welcome. Also look at the
 TODO for future changes.
 

@@ -2,11 +2,14 @@
 
 class dstat_plugin(dstat):
     """
-    Provide more information related to the dstat process
+    Provide more information related to the dstat process.
+
+    The dstat cputime is the total cputime dstat requires per second. On a
+    system with one cpu and one core, the total cputime is 1000ms. On a system
+    with 2 cores the total is 2000ms.
     """
     def __init__(self):
         self.name = 'dstat'
-        self.nick = ('time', 'latency')
         self.vars = ('cputime', 'latency')
         self.type = 'd'
         self.width = 4

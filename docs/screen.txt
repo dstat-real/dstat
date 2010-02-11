@@ -1,5 +1,4 @@
-Configuring screen to display multiple dstat for different systems
-==================================================================
+= Configuring screen to display multiple dstat for different systems
 
 Here is an example of how I monitor 5 nodes in a cluster with a minimum
 of effort using screen:

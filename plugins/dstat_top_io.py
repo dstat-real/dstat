@@ -10,7 +10,6 @@ class dstat_plugin(dstat):
         self.type = 's'
         self.width = 22
         self.scale = 0
-        self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
 
     def check(self):
@@ -20,14 +19,8 @@ class dstat_plugin(dstat):
     def extract(self):
         self.val['usage'] = 0.0
         self.val['i/o process'] = ''
-        for pid in os.listdir('/proc/'):
+        for pid in proc_pidlist():
             try:
-                ### Is it a pid ?
-                int(pid)
-
-                ### Filter out dstat
-                if pid == self.pid: continue
-
                 ### Reset values
                 if not self.pidset2.has_key(pid):
                     self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0}
@@ -35,19 +28,15 @@ class dstat_plugin(dstat):
                     self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0}
 
                 ### Extract name
-#                name = open('/proc/%s/stat' % pid).read().split()[1][1:-1]
-                name = linecache.getline('/proc/%s/stat' % pid, 1).split()[1][1:-1]
+                name = proc_splitline('/proc/%s/stat' % pid)[1][1:-1]
 
                 ### Extract counters
-#                for line in open('/proc/%s/io' % pid).readlines():
-#                    l = line.split()
-                for l in linecache_splitlines('/proc/%s/io' % pid):
+                for l in proc_splitlines('/proc/%s/io' % pid):
                     if len(l) != 2: continue
                     self.pidset2[pid][l[0]] = int(l[1])
-
-            except ValueError:
-                continue
             except IOError:
+                continue
+            except IndexError:
                 continue
 
             read_usage = (self.pidset2[pid]['rchar:'] - self.pidset1[pid]['rchar:']) * 1.0 / elapsed
@@ -72,7 +61,7 @@ class dstat_plugin(dstat):
             self.val['i/o process'] = '%-*s%s %s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
 
         ### Debug (show PID)
-#       self.val['i/o process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+#        self.val['i/o process'] = '%*s %-*s%s %s' % (5, self.val['pid'], self.width-17, self.val['name'][0:self.width-17], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
 
     def showcsv(self):
         return '%s / %d:%d' % (self.val['name'], self.val['read_usage'], self.val['write_usage'])

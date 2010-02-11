@@ -2,7 +2,7 @@
 .\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
 .\" Instead of manually editing it, you probably should edit the DocBook XML
 .\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
-.TH "DSTAT" "1" "11/26/2009" "\  0.7.0" "\ "
+.TH "DSTAT" "1" "02/11/2010" "\  0.7.0" "\ "
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -37,13 +37,13 @@ Users of Sleuthkit might find Sleuthkit\(cqs dstat being renamed to datastat to 
 enable cpu stats (system, user, idle, wait, hardware interrupt, software interrupt)
 .TP
 \-C 0,3,total
-include cpu0, cpu3 and total
+include cpu0, cpu3 and total (when using \-c/\-\-cpu)
 .TP
 \-d, \-\-disk
 enable disk stats (read, write)
 .TP
 \-D total,hda
-include hda and total
+include total and hda (when using \-d/\-\-disk)
 .TP
 \-g, \-\-page
 enable page stats (page in, page out)
@@ -52,7 +52,7 @@ enable page stats (page in, page out)
 enable interrupt stats
 .TP
 \-I 5,10
-include interrupt 5 and 10
+include interrupt 5 and 10 (when using \-i/\-\-int)
 .TP
 \-l, \-\-load
 enable load average stats (1 min, 5 mins, 15mins)
@@ -64,7 +64,7 @@ enable memory stats (used, buffers, cache, free)
 enable network stats (receive, send)
 .TP
 \-N eth1,total
-include eth1 and total
+include eth1 and total (when using \-n/\-\-net)
 .TP
 \-p, \-\-proc
 enable process stats (runnable, uninterruptible, new)
@@ -76,7 +76,7 @@ enable I/O request stats (read, write requests)
 enable swap stats (used, free)
 .TP
 \-S swap1,total
-include swap1 and total
+include swap1 and total (when using \-s/\-\-swap)
 .TP
 \-t, \-\-time
 enable time/date output
@@ -160,6 +160,9 @@ disable intermediate updates when delay > 1
 .TP
 \-\-output file
 write CSV output to file
+.TP
+\-\-profile
+show profiling statistics when exiting dstat
 .SH "PLUGINS"
 While anyone can create their own dstat plugins (and contribute them) dstat ships with a number of plugins already that extend its capabilities greatly. Here is an overview of the plugins dstat ships with:
 .sp
@@ -178,6 +181,9 @@ number of dbus connections (needs python\-dbus)
 .TP
 \-\-disk\-util
 per disk utilization in percentage
+.TP
+\-\-dstat
+show dstat cputime consumption and latency
 .TP
 \-\-fan
 fan speed (needs ACPI)
@@ -254,6 +260,9 @@ show power usage
 \-\-proc\-count
 show total number of processes
 .TP
+\-\-qmail
+show qmail queue sizes (needs qmail)
+.TP
 \-\-rpc
 show RPC client calls stats
 .TP
@@ -274,6 +283,9 @@ system temperature sensors
 .TP
 \-\-top\-bio
 show most expensive block I/O process
+.TP
+\-\-top\-childwait
+show process waiting for child the most
 .TP
 \-\-top\-cpu
 show most expensive CPU process

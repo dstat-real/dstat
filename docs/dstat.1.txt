@@ -44,13 +44,13 @@ information.
     interrupt)
 
 -C 0,3,total::
-    include cpu0, cpu3 and total
+    include cpu0, cpu3 and total (when using -c/--cpu)
 
 -d, --disk::
     enable disk stats (read, write)
 
 -D total,hda::
-    include hda and total
+    include total and hda (when using -d/--disk)
 
 -g, --page::
     enable page stats (page in, page out)
@@ -59,7 +59,7 @@ information.
     enable interrupt stats
 
 -I 5,10::
-    include interrupt 5 and 10
+    include interrupt 5 and 10 (when using -i/--int)
 
 -l, --load::
     enable load average stats (1 min, 5 mins, 15mins)
@@ -71,7 +71,7 @@ information.
     enable network stats (receive, send)
 
 -N eth1,total::
-    include eth1 and total
+    include eth1 and total (when using -n/--net)
 
 -p, --proc::
     enable process stats (runnable, uninterruptible, new)
@@ -83,7 +83,7 @@ information.
     enable swap stats (used, free)
 
 -S swap1,total::
-    include swap1 and total
+    include swap1 and total (when using -s/--swap)
 
 -t, --time::
     enable time/date output
@@ -189,6 +189,9 @@ Here is an overview of the plugins dstat ships with:
 --disk-util::
     per disk utilization in percentage
 
+--dstat::
+    show dstat cputime consumption and latency
+
 --fan::
     fan speed (needs ACPI)
 
@@ -287,6 +290,9 @@ Here is an overview of the plugins dstat ships with:
 
 --top-bio::
     show most expensive block I/O process
+
+--top-childwait::
+    show process waiting for child the most
 
 --top-cpu::
     show most expensive CPU process

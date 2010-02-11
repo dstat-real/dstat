@@ -19,7 +19,6 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Look into adding sched_setscheduler() calls for improved priority
 
 ### General improvements
-+ Base debug runtime stats on schedstat of own pid (when possible), make plugin out of it
 + Implement better (?) protection against counter rollovers (see mail from Sebastien Prud'homme)
 
 ### Documentation (help welcome!)

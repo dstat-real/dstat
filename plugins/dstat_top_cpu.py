@@ -14,26 +14,15 @@ class dstat_plugin(dstat):
         self.type = 's'
         self.width = 16
         self.scale = 0
-        self.pid = str(os.getpid())
         self.pidset1 = {}; self.pidset2 = {}
 
     def extract(self):
         self.val['max'] = 0.0
         self.val['cpu process'] = ''
-        for pid in os.listdir('/proc/'):
+        for pid in proc_pidlist():
             try:
-                ### Is it a pid ?
-                int(pid)
-
-                ### Filter out dstat
-                if pid == self.pid: continue
-
                 ### Using dopen() will cause too many open files
-#                l = open('/proc/%s/stat' % pid).read().split()
-                l = linecache.getline('/proc/%s/stat' % pid, 1).split()
-
-            except ValueError:
-                continue
+                l = proc_splitline('/proc/%s/stat' % pid)
             except IOError:
                 continue
 
@@ -53,8 +42,8 @@ class dstat_plugin(dstat):
 
             self.val['max'] = usage
             self.val['pid'] = pid
-#            self.val['name'] = getnamebypid(pid, name)
-            self.val['name'] = name
+            self.val['name'] = getnamebypid(pid, name)
+#            self.val['name'] = name
 
         if self.val['max'] != 0.0:
             self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['name'][0:self.width-3], cprint(self.val['max'], 'f', 3, 34))
