@@ -89,7 +89,7 @@ class Options:
         self.header = True
         self.output = False
         self.pidfile = False
-        self.profile = False
+        self.profile = ''
 
         ### List of available plugins
         allplugins = listplugins()
@@ -198,7 +198,7 @@ class Options:
             elif opt in ['--pidfile']:
                 self.pidfile = arg
             elif opt in ['--profile']:
-                self.profile = True
+                self.profile = 'dstat_profile.log'
             elif opt in ['-h', '--help']:
                 self.usage()
                 self.help()
@@ -2155,23 +2155,6 @@ def dev(maj, min):
 #    sp.sched_priority = nb
 #    sched_setscheduler (0,SCHED_FIFO , &sp);
 
-def exit(ret):
-    sys.stdout.write(ansi['reset'])
-
-    if op.profile:
-        rows, cols = gettermsize()
-        import pstats
-        p = pstats.Stats('dstat_profile.log')
-#        p.sort_stats('name')
-#        p.print_stats()
-        p.sort_stats('cumulative').print_stats(rows - 12)
-#        p.sort_stats('time').print_stats(rows - 12)
-#        p.sort_stats('file').print_stats('__init__')
-#        p.sort_stats('time', 'cum').print_stats(.5, 'init')
-#        p.print_callees()
-
-    sys.exit(ret)
-
 def listplugins():
     plugins = []
     remod = re.compile('dstat_(.+)$')
@@ -2220,6 +2203,29 @@ def showplugins():
             if mod != plugins[-1]:
                 print mod+',',
         print mod
+
+def exit(ret):
+    sys.stdout.write(ansi['reset'])
+    sys.stdout.flush()
+
+    if op.pidfile and os.path.exists(op.pidfile):
+        os.remove(op.pidfile)
+
+    if op.profile and os.path.exists(op.profile):
+        rows, cols = gettermsize()
+        import pstats
+        p = pstats.Stats(op.profile)
+#        p.sort_stats('name')
+#        p.print_stats()
+        p.sort_stats('cumulative').print_stats(rows - 13)
+#        p.sort_stats('time').print_stats(rows - 13)
+#        p.sort_stats('file').print_stats('__init__')
+#        p.sort_stats('time', 'cum').print_stats(.5, 'init')
+#        p.print_callees()
+    elif op.profile:
+        print >>sys.stderr, "No profiling data was found, maybe profiler was interrupted ?"
+
+    sys.exit(ret)
 
 def main():
     "Initialization of the program, terminal, internal structures"
@@ -2508,17 +2514,14 @@ if __name__ == '__main__':
         theme = set_theme()
         if op.profile:
             import profile
-            profile.run('main()', 'dstat_profile.log')
+            if os.path.exists(op.profile):
+                os.remove(op.profile)
+            profile.run('main()', op.profile)
         else:
             main()
     except KeyboardInterrupt, e:
         if op.update:
             sys.stdout.write('\n')
-        sys.stdout.write(theme['default'])
-
-    if op.pidfile and os.path.exists(op.pidfile):
-        os.remove(op.pidfile)
-
     exit(0)
 else:
     op = Options('')
