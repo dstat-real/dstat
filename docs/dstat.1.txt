@@ -186,6 +186,9 @@ Here is an overview of the plugins dstat ships with:
 --dbus::
     number of dbus connections (needs python-dbus)
 
+--disk-tps::
+    per disk transactions per second (tps) stats
+
 --disk-util::
     per disk utilization in percentage
 
