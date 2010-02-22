@@ -52,7 +52,10 @@ confusion, less mistakes.
 %{_datadir}/dstat/
 
 %changelog
-* Thu Nov 26 2009 Dag Wieers <dag@wieers.com> - 0.7.1-1
+* Tue Feb 23 2010 Dag Wieers <dag@wieers.com> - 0.7.1svn-1
+- Updated to release 0.7.1svn.
+
+* Mon Feb 22 2010 Dag Wieers <dag@wieers.com> - 0.7.1-1
 - Updated to release 0.7.1.
 
 * Wed Nov 25 2009 Dag Wieers <dag@wieers.com> - 0.7.0-1
