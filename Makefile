@@ -34,6 +34,7 @@ clean:
 
 dist: clean
 	$(MAKE) -C docs dist
+	svn up
 	svn list -R | pax -d -w -x ustar -s ,^,$(name)-$(version)/, | bzip2 >../$(name)-$(version).tar.bz2
 
 rpm: dist

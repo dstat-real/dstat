@@ -673,7 +673,7 @@ class dstat_disk(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'd'
-        self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)$')
+        self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hsv]d[a-z]+[0-9]+)$')
         self.open('/proc/diskstats')
         self.cols = 2
 
@@ -740,7 +740,7 @@ class dstat_disk24(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'd'
-        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
+        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hsv]d[a-z]+[0-9]+)')
         self.open('/proc/partitions')
         if self.fd and not self.discover:
             raise Exception, 'Kernel is not compiled with CONFIG_BLK_STATS'
@@ -805,7 +805,7 @@ class dstat_disk24old(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'd'
-        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
+        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hsv]d[a-z]+[0-9]+)')
         self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
         self.open('/proc/stat')
         self.cols = 2
@@ -1054,7 +1054,7 @@ class dstat_io(dstat):
         self.type = 'f'
         self.width = 5
         self.scale = 1000
-        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)')
+        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hsv]d[a-z]+[0-9]+)')
         self.open('/proc/diskstats')
         self.cols = 3
 

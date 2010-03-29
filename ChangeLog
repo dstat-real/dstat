@@ -1,4 +1,6 @@
 * 0.7.1svn - ... - release 23/02/2010
+- Added external dstat_disk_tps plugin to show transactions per second
+- Added support for filtering /dev/vdaX devices (KVM virtio)
 
 * 0.7.1 - Just the three of us - release 22/02/2010
 - Fix external plugins on python 2.2 and older (eg. RHEL3)
@@ -13,7 +15,6 @@
 - Introduced proc_readlines() and proc_splitlines() using linecache for top-plugins
 - Introduced proc_pidlist() for top-plugins
 - New tchg() function to format the time depending on width
-- Added external dstat_disk_tps plugin to show transactions per second
 
 * 0.7.0 - Tokyo - release 25/11/2009
 - Fixed dstat_disk plugin for total calculation on 2.6.25+ kernels (Noel J. Bergman)
