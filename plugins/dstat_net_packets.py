@@ -10,7 +10,7 @@ class dstat_plugin(dstat):
         self.type = 'f'
         self.width = 5
         self.scale = 1000
-        self.totalfilter = re.compile('^(lo|bond[0-9]+|face|.+\.[0-9]+)$')
+        self.totalfilter = re.compile('^(lo|bond\d+|face|.+\.\d+)$')
         self.open('/proc/net/dev')
         self.cols = 2
 

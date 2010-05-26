@@ -34,7 +34,7 @@ class dstat_plugin(dstat):
             self.val['name'] = getnamebypid(pid, l[1][1:-1])
             self.val['pid'] = pid
 
-        self.val['memory process'] = '%-*s%s' % (self.width-5, self.val['name'][0:self.width-5], cprint(self.val['max'], 'f', 5, 1024))
+        self.output = '%-*s%s' % (self.width-5, self.val['name'][0:self.width-5], cprint(self.val['max'], 'f', 5, 1024))
 
         ### Debug (show PID)
 #       self.val['memory process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])

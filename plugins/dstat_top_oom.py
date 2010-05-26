@@ -19,8 +19,8 @@ class dstat_plugin(dstat):
             raise Exception, 'Kernel does not support /proc/pid/oom_score, use at least 2.6.11.'
 
     def extract(self):
+        self.output = ''
         self.val['max'] = 0.0
-        self.val['kill score'] = ''
         for pid in proc_pidlist():
             try:
                 ### Extract name
@@ -44,10 +44,10 @@ class dstat_plugin(dstat):
             self.val['pid'] = pid
 
         if self.val['max'] != 0.0:
-            self.val['kill score'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['max'], 'f', 4, 1000))
+            self.output = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['max'], 'f', 4, 1000))
 
         ### Debug (show PID)
-#       self.val['kill score'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+#       self.output = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])

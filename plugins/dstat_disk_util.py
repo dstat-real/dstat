@@ -14,7 +14,7 @@ class dstat_plugin(dstat):
         self.type = 'f'
         self.width = 4
         self.scale = 34
-        self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hsv]d[a-z]+[0-9]+)$')
+        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+)$')
         self.open('/proc/diskstats')
         self.cols = 1
 
@@ -36,10 +36,9 @@ class dstat_plugin(dstat):
             varlist = op.disklist
         else:
             varlist = []
-            blockdevices = [os.path.basename(filename) for filename in glob.glob('/sys/block/*')]
             for name in self.discover:
                 if self.diskfilter.match(name): continue
-                if name not in blockdevices: continue
+                if name not in blockdevices(): continue
                 varlist.append(name)
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
@@ -49,7 +48,7 @@ class dstat_plugin(dstat):
         return ret
 
     def name(self):
-        return self.vars
+        return [sysfs_dev(name) for name in self.vars]
 
     def extract(self):
         for name in self.vars: self.set2[name] = (0, )

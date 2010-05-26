@@ -18,15 +18,16 @@ class dstat_plugin(dstat):
         self.type = 's'
         self.width = 17
         self.scale = 0
-        self.pidset1 = {}; self.pidset2 = {}
+        self.pidset1 = {}
 
     def check(self):
         if not os.access('/proc/self/schedstat', os.R_OK):
             raise Exception, 'Kernel has no scheduler statistics, use at least 2.6.12'
 
     def extract(self):
+        self.output = ''
+        self.pidset2 = {}
         self.val['result'] = 0
-        self.val['cputime process'] = ''
         for pid in proc_pidlist():
             try:
                 ### Reset values
@@ -56,14 +57,13 @@ class dstat_plugin(dstat):
                 self.val['name'] = getnamebypid(pid, name)
 
         if step == op.delay:
-            for pid in self.pidset2.keys():
-                self.pidset1[pid].update(self.pidset2[pid])
+            self.pidset1 = self.pidset2
 
         if self.val['result'] != 0.0:
-            self.val['cputime process'] = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['result'], 'd', 4, 100))
+            self.output = '%-*s%s' % (self.width-4, self.val['name'][0:self.width-4], cprint(self.val['result'], 'd', 4, 100))
 
         ### Debug (show PID)
-#       self.val['cputime process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+#       self.output = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
     def showcsv(self):
         return '%s / %.4f' % (self.val['name'], self.val['result'])

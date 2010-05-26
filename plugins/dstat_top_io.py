@@ -1,24 +1,27 @@
-### Dstat most expensive I/O process plugin
-### Displays the name of the most expensive I/O process
-###
-### Authority: dag@wieers.com
+### Author: Dag Wieers <dag@wieers.com>
 
 class dstat_plugin(dstat):
+    """
+    Top most expensive I/O process
+
+    Displays the name of the most expensive I/O process
+    """
     def __init__(self):
         self.name = 'most expensive'
         self.vars = ('i/o process',)
         self.type = 's'
         self.width = 22
         self.scale = 0
-        self.pidset1 = {}; self.pidset2 = {}
+        self.pidset1 = {}
 
     def check(self):
         if not os.access('/proc/self/io', os.R_OK):
             raise Exception, 'Kernel has no I/O accounting, use at least 2.6.20'
 
     def extract(self):
+        self.output = ''
+        self.pidset2 = {}
         self.val['usage'] = 0.0
-        self.val['i/o process'] = ''
         for pid in proc_pidlist():
             try:
                 ### Reset values
@@ -54,14 +57,13 @@ class dstat_plugin(dstat):
                 self.val['name'] = getnamebypid(pid, name)
 
         if step == op.delay:
-            for pid in self.pidset2.keys():
-                self.pidset1[pid].update(self.pidset2[pid])
+            self.pidset1 = self.pidset2
 
         if self.val['usage'] != 0.0:
-            self.val['i/o process'] = '%-*s%s %s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
+            self.output = '%-*s%s %s' % (self.width-11, self.val['name'][0:self.width-11], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
 
         ### Debug (show PID)
-#        self.val['i/o process'] = '%*s %-*s%s %s' % (5, self.val['pid'], self.width-17, self.val['name'][0:self.width-17], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
+#        self.output = '%*s %-*s%s %s' % (5, self.val['pid'], self.width-17, self.val['name'][0:self.width-17], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
 
     def showcsv(self):
         return '%s / %d:%d' % (self.val['name'], self.val['read_usage'], self.val['write_usage'])

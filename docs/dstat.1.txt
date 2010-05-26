@@ -195,6 +195,12 @@ Here is an overview of the plugins dstat ships with:
 --dstat::
     show dstat cputime consumption and latency
 
+--dstat-cpu::
+    show dstat advanced cpu usage
+
+--dstat-mem::
+    show dstat advanced memory usage
+
 --fan::
     fan speed (needs ACPI)
 
@@ -285,6 +291,9 @@ Here is an overview of the plugins dstat ships with:
 --snooze::
     show number of ticks per second
 
+--squid::
+    show squid usage statistics
+
 --test::
     show test plugin output
 
@@ -294,11 +303,17 @@ Here is an overview of the plugins dstat ships with:
 --top-bio::
     show most expensive block I/O process
 
+--top-bio-adv::
+    show most expensive block I/O process (incl. pid and other stats)
+
 --top-childwait::
     show process waiting for child the most
 
 --top-cpu::
     show most expensive CPU process
+
+--top-cpu-adv::
+    show most expensive CPU process (incl. pid and other stats)
 
 --top-cputime::
     show process using the most CPU time (in ms)
@@ -308,6 +323,9 @@ Here is an overview of the plugins dstat ships with:
 
 --top-io::
     show most expensive I/O process
+
+--top-io-adv::
+    show most expensive I/O process (incl. pid and other stats)
 
 --top-latency::
     show process with highest total latency (in ms)

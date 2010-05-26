@@ -14,6 +14,7 @@ class dstat_plugin(dstat):
         self.scale = 0
 
     def extract(self):
+        self.set2 = {}
         self.val['max'] = 0.0
         for pid in proc_pidlist():
             try:
@@ -42,7 +43,7 @@ class dstat_plugin(dstat):
 #       self.val['process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
         if step == op.delay:
-            self.set1.update(self.set2)
+            self.set1 = self.set2
 
     def show(self):
         if self.val['max'] == 0.0:

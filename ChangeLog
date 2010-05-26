@@ -1,6 +1,20 @@
 * 0.7.1svn - ... - release 23/02/2010
 - Added external dstat_disk_tps plugin to show transactions per second
 - Added support for filtering /dev/vdaX devices (KVM virtio)
+- Added external dstat_squid plugin to show squid counters (Jason Friedland)
+- Introduced blockdevices() to list available blockdevices
+- Added support for CCISS block devices (named cciss/c0d0)
+- Introduced cmd_test() to verify command and options
+- Introduced cmd_readlines() to read from command output
+- Introduced cmd_splitlines() to split lines read from command output
+- Implement best effort /proc integer overflow handling in dstat_net (Ross Brattain)
+- Added external dstat_dstat_mem plugin to show dstat's memory usage
+- Added external dstat_dstat_cpu plugin to show dstat's cpu usage
+- Added external dstat_top_bio_adv plugin to show advanced top I/O usage
+- Added external dstat_top_cpu_adv plugin to show advanced top cpu usage
+- Added external dstat_top_io_adv plugin to show advanced top block I/O usage
+- Allow specifying separator for splitline() and splitlines() functions
+- Make top-plugins free memory for processes that no longer exist
 
 * 0.7.1 - Just the three of us - release 22/02/2010
 - Fix external plugins on python 2.2 and older (eg. RHEL3)

@@ -12,4 +12,4 @@ class dstat_plugin(dstat):
         self.scale = 10
 
     def extract(self):
-        self.val['total'] = len(glob.glob('/proc/[0-9]*'))
+        self.val['total'] = len([pid for pid in proc_pidlist()])

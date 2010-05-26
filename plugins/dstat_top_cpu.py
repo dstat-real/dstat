@@ -14,11 +14,12 @@ class dstat_plugin(dstat):
         self.type = 's'
         self.width = 16
         self.scale = 0
-        self.pidset1 = {}; self.pidset2 = {}
+        self.pidset1 = {}
 
     def extract(self):
+        self.output = ''
+        self.pidset2 = {}
         self.val['max'] = 0.0
-        self.val['cpu process'] = ''
         for pid in proc_pidlist():
             try:
                 ### Using dopen() will cause too many open files
@@ -46,13 +47,13 @@ class dstat_plugin(dstat):
 #            self.val['name'] = name
 
         if self.val['max'] != 0.0:
-            self.val['cpu process'] = '%-*s%s' % (self.width-3, self.val['name'][0:self.width-3], cprint(self.val['max'], 'f', 3, 34))
+            self.output = '%-*s%s' % (self.width-3, self.val['name'][0:self.width-3], cprint(self.val['max'], 'f', 3, 34))
 
         ### Debug (show PID)
-#        self.val['cpu process'] = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
+#        self.output = '%*s %-*s' % (5, self.val['pid'], self.width-6, self.val['name'])
 
         if step == op.delay:
-            self.pidset1.update(self.pidset2)
+            self.pidset1 = self.pidset2
 
     def showcsv(self):
         return '%s / %d%%' % (self.val['name'], self.val['max'])

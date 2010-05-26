@@ -384,25 +384,25 @@ class dstat:
 #                yield line
 #                i += 1
 
-    def splitlines(self, delim=None, replace=None):
+    def splitlines(self, sep=None, replace=None):
         "Return split lines from any file descriptor"
         for fd in self.fd:
             fd.seek(0)
             for line in fd.readlines():
-                if replace and delim:
-                    yield line.replace(replace, delim).split(delim)
+                if replace and sep:
+                    yield line.replace(replace, sep).split(sep)
                 elif replace:
                     yield line.replace(replace, ' ').split()
                 else:
-                    yield line.split(delim)
+                    yield line.split(sep)
 #        ### Implemented linecache (for top-plugins) but slows down normal plugins
 #        for fd in self.fd:
-#                if replace and delim:
-#                    yield line.replace(replace, delim).split(delim)
+#                if replace and sep:
+#                    yield line.replace(replace, sep).split(sep)
 #                elif replace:
 #                    yield line.replace(replace, ' ').split()
 #                else:
-#                    yield line.split(delim)
+#                    yield line.split(sep)
 #                i += 1
 
     def statwidth(self):
@@ -492,6 +492,8 @@ class dstat:
     def show(self):
         "Display stat results"
         line = ''
+        if hasattr(self, 'output'):
+            return cprint(self.output, self.type, self.width, self.scale)
         for i, name in enumerate(self.vars):
             if isinstance(self.val[name], types.TupleType) or isinstance(self.val[name], types.ListType):
                 line = line + cprintlist(self.val[name], self.type, self.width, self.scale)
@@ -652,10 +654,10 @@ class dstat_cpu24(dstat):
     def name(self):
         ret = []
         for name in self.vars:
-            if name:
-                ret.append('cpu' + name)
+            if name == 'total':
+                ret.append('cpu usage')
             else:
-                ret.append('cpu total')
+                ret.append('cpu' + name)
         return ret
 
     def extract(self):
@@ -673,7 +675,7 @@ class dstat_disk(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'd'
-        self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hsv]d[a-z]+[0-9]+)$')
+        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+)$')
         self.open('/proc/diskstats')
         self.cols = 2
 
@@ -697,10 +699,9 @@ class dstat_disk(dstat):
             varlist = ('total',)
         else:
             varlist = []
-            blockdevices = [os.path.basename(filename) for filename in glob.glob('/sys/block/*')]
             for name in self.discover:
                 if self.diskfilter.match(name): continue
-                if name not in blockdevices: continue
+                if name not in blockdevices(): continue
                 varlist.append(name)
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
@@ -710,7 +711,7 @@ class dstat_disk(dstat):
         return ret
 
     def name(self):
-        return ['dsk/'+name for name in self.vars]
+        return ['dsk/'+sysfs_dev(name) for name in self.vars]
 
     def extract(self):
         for name in self.vars: self.set2[name] = (0, 0)
@@ -740,7 +741,7 @@ class dstat_disk24(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'd'
-        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hsv]d[a-z]+[0-9]+)')
+        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+)')
         self.open('/proc/partitions')
         if self.fd and not self.discover:
             raise Exception, 'Kernel is not compiled with CONFIG_BLK_STATS'
@@ -805,7 +806,7 @@ class dstat_disk24old(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'd'
-        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hsv]d[a-z]+[0-9]+)')
+        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+)')
         self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
         self.open('/proc/stat')
         self.cols = 2
@@ -1054,7 +1055,7 @@ class dstat_io(dstat):
         self.type = 'f'
         self.width = 5
         self.scale = 1000
-        self.diskfilter = re.compile('(dm-[0-9]+|md[0-9]+|[hsv]d[a-z]+[0-9]+)')
+        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+)')
         self.open('/proc/diskstats')
         self.cols = 3
 
@@ -1078,10 +1079,9 @@ class dstat_io(dstat):
             varlist = ('total',)
         else:
             varlist = []
-            blockdevices = [os.path.basename(filename) for filename in glob.glob('/sys/block/*')]
             for name in self.discover:
                 if self.diskfilter.match(name): continue
-                if name not in blockdevices: continue
+                if name not in blockdevices(): continue
                 varlist.append(name)
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
@@ -1160,14 +1160,10 @@ class dstat_lock(dstat):
         for name in self.vars: self.val[name] = 0
         for l in self.splitlines():
             if len(l) < 4: continue
-            if l[1] == 'POSIX':
-                self.val['posix'] = self.val['posix'] + 1
-            elif l[1] == 'FLOCK':
-                self.val['flock'] = self.val['flock'] + 1
-            if l[3] == 'READ':
-                self.val['read'] = self.val['read'] + 1
-            elif l[3] == 'WRITE':
-                self.val['write'] = self.val['write'] + 1
+            if l[1] == 'POSIX': self.val['posix'] += 1
+            elif l[1] == 'FLOCK': self.val['flock'] += 1
+            if l[3] == 'READ': self.val['read'] += 1
+            elif l[3] == 'WRITE': self.val['write'] += 1
 
 class dstat_mem(dstat):
     def __init__(self):
@@ -1188,7 +1184,7 @@ class dstat_net(dstat):
     def __init__(self):
         self.nick = ('recv', 'send')
         self.type = 'd'
-        self.totalfilter = re.compile('^(lo|bond[0-9]+|face|.+\.[0-9]+)$')
+        self.totalfilter = re.compile('^(lo|bond\d+|face|.+\.\d+)$')
         self.open('/proc/net/dev')
         self.cols = 2
 
@@ -1240,6 +1236,8 @@ class dstat_net(dstat):
                     (self.set2[name][0] - self.set1[name][0]) * 1.0 / elapsed,
                     (self.set2[name][1] - self.set1[name][1]) * 1.0 / elapsed,
                  )
+                if self.val[name][0] < 0: self.val[name][0] += maxint + 1
+                if self.val[name][1] < 0: self.val[name][1] += maxint + 1
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1451,13 +1449,12 @@ class dstat_tcp(dstat):
             ### 01: established, 02: syn_sent,  03: syn_recv, 04: fin_wait1,
             ### 05: fin_wait2,   06: time_wait, 07: close,    08: close_wait,
             ### 09: last_ack,    0A: listen,    0B: closing
-            if l[3] in ('0A',): self.val['listen'] = self.val['listen'] + 1
-            elif l[3] in ('01',): self.val['established'] = self.val['established'] + 1
-            elif l[3] in ('02', '03', '09',): self.val['syn'] = self.val['syn'] + 1
-            elif l[3] in ('06',): self.val['wait'] = self.val['wait'] + 1
-            elif l[3] in ('04', '05', '07', '08', '0B',): self.val['close'] = self.val['close'] + 1
+            if l[3] in ('0A',): self.val['listen'] += 1
+            elif l[3] in ('01',): self.val['established'] += 1
+            elif l[3] in ('02', '03', '09',): self.val['syn'] += 1
+            elif l[3] in ('06',): self.val['wait'] += 1
+            elif l[3] in ('04', '05', '07', '08', '0B',): self.val['close'] += 1
 
-### FIXME: If timefmt < len(self.nick) output is fucked up
 class dstat_time(dstat):
     def __init__(self):
         self.name = 'system'
@@ -1468,7 +1465,6 @@ class dstat_time(dstat):
         else:
             self.width = len(time.strftime(self.timefmt, time.localtime()))
         self.scale = 0
-        self.nick = ('date/time',)
         self.vars = ('time',)
 
     ### We are now using the starttime for this plugin, not the execution time of this plugin
@@ -1491,8 +1487,8 @@ class dstat_udp(dstat):
     def extract(self):
         for name in self.vars: self.val[name] = 0
         for l in self.splitlines():
-            if l[3] == '07': self.val['listen'] = self.val['listen'] + 1
-            elif l[3] == '01': self.val['established'] = self.val['established'] + 1
+            if l[3] == '07': self.val['listen'] += 1
+            elif l[3] == '01': self.val['established'] += 1
 
 class dstat_unix(dstat):
     def __init__(self):
@@ -1507,14 +1503,11 @@ class dstat_unix(dstat):
     def extract(self):
         for name in self.vars: self.val[name] = 0
         for l in self.splitlines():
-            if l[4] == '0002':
-                self.val['datagram'] = self.val['datagram'] + 1
+            if l[4] == '0002': self.val['datagram'] += 1
             elif l[4] == '0001':
-                self.val['stream'] = self.val['stream'] + 1
-                if l[5] == '01':
-                    self.val['listen'] = self.val['listen'] + 1
-                elif l[5] == '03':
-                    self.val['established'] = self.val['established'] + 1
+                self.val['stream'] += 1
+                if l[5] == '01': self.val['listen'] += 1
+                elif l[5] == '03': self.val['established'] += 1
 
 class dstat_vm(dstat):
     def __init__(self):
@@ -1691,7 +1684,8 @@ def dclose(filename):
 
 def dpopen(cmd):
     "Open a pipe for reuse, if already opened, return pipes"
-    global pipes
+    global pipes, select
+    import select
     if 'pipes' not in globals().keys(): pipes = {}
     if cmd not in pipes.keys():
         pipes[cmd] = os.popen3(cmd, 't', 0)
@@ -1741,6 +1735,21 @@ def matchpipe(fileobj, string, tmout = 0.001):
         raise Exception, 'Nothing found during matchpipe data collection'
     return None
 
+def cmd_test(cmd):
+    pipes = os.popen3(cmd, 't', 0)
+    for line in pipes[2].readlines():
+        raise Exception, line.strip()
+
+def cmd_readlines(cmd):
+    pipes = os.popen3(cmd, 't', 0)
+    for line in pipes[1].readlines():
+       yield line
+
+def cmd_splitlines(cmd, sep=None):
+    pipes = os.popen3(cmd, 't', 0)
+    for line in pipes[1].readlines():
+       yield line.split(sep)
+
 def proc_readlines(filename):
     "Return the lines of a file, one by one"
 #    for line in open(filename).readlines():
@@ -1754,17 +1763,17 @@ def proc_readlines(filename):
         yield line
         i += 1
 
-def proc_splitlines(filename):
+def proc_splitlines(filename, sep=None):
     "Return the splitted lines of a file, one by one"
 #    for line in open(filename).readlines():
-#       yield line.split()
+#       yield line.split(sep)
 
     ### Implemented linecache (for top-plugins)
     i = 1
     while True:
         line = linecache.getline(filename, i);
         if not line: break
-        yield line.split()
+        yield line.split(sep)
         i += 1
 
 def proc_readline(filename):
@@ -1772,10 +1781,10 @@ def proc_readline(filename):
 #    return open(filename).read()
     return linecache.getline(filename, 1)
 
-def proc_splitline(filename):
+def proc_splitline(filename, sep=None):
     "Return the first line of a file splitted"
-#    return open(filename).read().split()
-    return linecache.getline(filename, 1).split()
+#    return open(filename).read().split(sep)
+    return linecache.getline(filename, 1).split(sep)
 
 ### FIXME: Should we cache this within every step ?
 def proc_pidlist():
@@ -2066,16 +2075,24 @@ def getcpunr():
         raise "Problem finding number of CPUs in system."
     return cpunr
 
+def blockdevices():
+    ### We have to replace '!' by '/' to support cciss!c0d0 type devices :-/
+    return [os.path.basename(filename).replace('!', '/') for filename in glob.glob('/sys/block/*')]
+
 ### FIXME: Add scsi support too and improve
 def sysfs_dev(device):
     "Convert sysfs device names into device names"
-    m = re.match('ide/host([0-9])/bus([0-9])/target([0-9])/lun([0-9])/disc', device)
+    m = re.match('ide/host(\d)/bus(\d)/target(\d)/lun(\d)/disc', device)
     if m:
         l = m.groups()
         # ide/host0/bus0/target0/lun0/disc -> 0 -> hda
         # ide/host0/bus1/target0/lun0/disc -> 2 -> hdc
         nr = int(l[1]) * 2 + int(l[3])
         return 'hd' + chr(ord('a') + nr)
+    m = re.match('cciss/(c\dd\d)', device)
+    if m:
+        l = m.groups()
+        return l[0]
     m = re.match('placeholder', device)
     if m:
         return 'sdX'
@@ -2229,13 +2246,16 @@ def exit(ret):
 
 def main():
     "Initialization of the program, terminal, internal structures"
-    global pagesize, cpunr, hz, ansi, theme, outputfile
+    global cpunr, hz, maxint, ownpid, pagesize
+    global ansi, theme, outputfile
     global totlist, inittime
     global update, missed
 
-    pagesize = resource.getpagesize()
     cpunr = getcpunr()
     hz = os.sysconf('SC_CLK_TCK')
+    maxint = (sys.maxint + 1) * 2
+    ownpid = str(os.getpid())
+    pagesize = resource.getpagesize()
     interval = 1
 
     user = getpass.getuser()
@@ -2328,13 +2348,17 @@ def main():
                     ### Try loading python plugin
                     if description[0] in ('.py', ):
                         execfile(pathname)
-                        exec 'o = dstat_plugin(); o.filename = "%s"; o.check(); o.prepare(); del(dstat_plugin);' % pluginfile
+                        exec 'o = dstat_plugin(); del(dstat_plugin)'
+                        o.filename = pluginfile
+                        o.check()
+                        o.prepare()
 
                     ### Try loading C plugin (not functional yet)
                     elif description[0] == '.so':
                         exec 'import %s' % pluginfile
-                        exec 'o = %s.new(); o.check(); o.prepare();' % pluginfile
-#                        exec 'o = %s.init(dstat)' % pluginfile
+                        exec 'o = %s.new()' % pluginfile
+                        o.check()
+                        o.prepare()
 #                        print dir(o)
 #                        print o.__module__
 #                        print o.name
@@ -2342,7 +2366,9 @@ def main():
                         print >>sys.stderr, 'Module %s is of unknown type.' % pluginfile
 
                 else:
-                    exec 'o = %s(); o.check(); o.prepare();' % pluginfile
+                    exec 'o = %s()' % pluginfile
+                    o.check()
+                    o.prepare()
 #                print o.__module__
             except Exception, e:
                 if mod == mods[-1]:
@@ -2353,6 +2379,8 @@ def main():
                     raise
 #                tb = sys.exc_info()[2]
                 continue
+            except:
+                print >>sys.stderr, 'Module %s caused unknown exception' % pluginfile
 
             linewidth = linewidth + o.statwidth() + 1
             totlist.append(o)

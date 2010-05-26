@@ -19,7 +19,8 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Look into adding sched_setscheduler() calls for improved priority
 
 ### General improvements
-+ Implement better (?) protection against counter rollovers (see mail from Sebastien Prud'homme)
++ Implement better (?) protection against counter rollovers
+  (see mail from Sebastien Prud'homme/Ross Brattain)
 
 ### Documentation (help welcome!)
 + Document every plugin as part of python comments (explain unit, what it means etc...)
@@ -52,17 +53,18 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
   - amavisd, apache, bind, cifs, dhcpd, dnsmasq, gfs, samba, squid
 + Look into interfacing with specific HW counters in /proc
   - qla2300
-+ Look at /proc/meminfo, /proc/mdstat, /proc/net/netstat, /proc/net/snmp, /proc/vmstat
++ Look at /proc/meminfo, /proc/mdstat, /proc/net/netstat, /proc/net/snmp, /proc/vmstat, /proc/drbd
 + Look at /proc/fs/cifs/stats
 + Add i2c plugin (see /sys/class/i2c-adapter/i2c-*/*/*/*/*/*)
 + Allow for SNMP counters to be added
 + Add LVM stats
-+ Add 'most expensive io app' based on /proc/pid/io (topio_ops)
 + Allow to have multiple '1st expensive ... app' and '2nd expensive ... app'
 + Add 'most iowaiting app' plugin
++ Add 'most busy interrupt' plugin
++ Add systemtap/perf integration
 
 ### Plugin issues
-+ plugins that use /proc/pid are reasonably slow (implement in C and cache file-content between plugins might help)
++ plugins that use /proc/pid are reasonably slow (implement in C might help)
 + disk plugin: /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible?
 + proc plugin: (run and blk) does not work on 2.4.24+ (to be confirmed ?)
 + swap plugin: (new one) is slower than swapold
