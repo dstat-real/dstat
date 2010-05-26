@@ -2,7 +2,7 @@
 .\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
 .\" Instead of manually editing it, you probably should edit the DocBook XML
 .\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
-.TH "DSTAT" "1" "03/16/2010" "\  0.7.0" "\ "
+.TH "DSTAT" "1" "05/26/2010" "\  0.7.0" "\ "
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -188,6 +188,12 @@ per disk utilization in percentage
 \-\-dstat
 show dstat cputime consumption and latency
 .TP
+\-\-dstat\-cpu
+show dstat advanced cpu usage
+.TP
+\-\-dstat\-mem
+show dstat advanced memory usage
+.TP
 \-\-fan
 fan speed (needs ACPI)
 .TP
@@ -278,6 +284,9 @@ show sendmail queue size (needs sendmail)
 \-\-snooze
 show number of ticks per second
 .TP
+\-\-squid
+show squid usage statistics
+.TP
 \-\-test
 show test plugin output
 .TP
@@ -287,11 +296,17 @@ system temperature sensors
 \-\-top\-bio
 show most expensive block I/O process
 .TP
+\-\-top\-bio\-adv
+show most expensive block I/O process (incl. pid and other stats)
+.TP
 \-\-top\-childwait
 show process waiting for child the most
 .TP
 \-\-top\-cpu
 show most expensive CPU process
+.TP
+\-\-top\-cpu\-adv
+show most expensive CPU process (incl. pid and other stats)
 .TP
 \-\-top\-cputime
 show process using the most CPU time (in ms)
@@ -301,6 +316,9 @@ show process with the highest average timeslice (in ms)
 .TP
 \-\-top\-io
 show most expensive I/O process
+.TP
+\-\-top\-io\-adv
+show most expensive I/O process (incl. pid and other stats)
 .TP
 \-\-top\-latency
 show process with highest total latency (in ms)
