@@ -14,10 +14,10 @@ class dstat_plugin(dstat):
         self.type = 'd'
         self.width = 4
         self.scale = 100
+        self.open('/proc/%s/schedstat' % ownpid)
 
     def extract(self):
-        ### Extract counters
-        l = dopen('/proc/%s/schedstat' % ownpid).read().split()
+        l = self.splitline()
 #        l = linecache.getline('/proc/%s/schedstat' % self.pid, 1).split()
         self.set2['cputime'] = long(l[0])
         self.set2['latency'] = long(l[1])

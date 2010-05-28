@@ -9,21 +9,21 @@ class dstat_plugin(dstat):
     usage changes of dstat over time.
     """
     def __init__(self):
-        self.name = 'dstat cpu'
-        self.vars = ('user', 'system', 'total')
+        self.name = 'contxt sw'
+        self.vars = ('voluntary', 'involuntary', 'total')
         self.type = 'd'
-        self.width = 4
+        self.width = 3
         self.scale = 100
 
     def extract(self):
         res = resource.getrusage(resource.RUSAGE_SELF)
 
-        self.set2['user'] = float(res.ru_utime)
-        self.set2['system'] = float(res.ru_stime)
-        self.set2['total'] = float(res.ru_utime) + float(res.ru_stime)
+        self.set2['voluntary'] = float(res.ru_nvcsw)
+        self.set2['involuntary'] = float(res.ru_nivcsw)
+        self.set2['total'] = (float(res.ru_nvcsw) + float(res.ru_nivcsw))
 
         for name in self.vars:
-            self.val[name] = (self.set2[name] - self.set1[name]) * 1000.0 / elapsed
+            self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
 
         if step == op.delay:
             self.set1.update(self.set2)

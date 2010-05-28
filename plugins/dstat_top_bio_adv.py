@@ -6,7 +6,7 @@
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'most expensive block i/o process'
-        self.vars = ('process             pid   read:write:cpu',)
+        self.vars = ('process              pid  read write cpu',)
         self.type = 's'
         self.width = 40
         self.scale = 0
@@ -69,7 +69,7 @@ class dstat_plugin(dstat):
             self.pidset1 = self.pidset2
 
         if self.val['usage'] != 0.0:
-            self.output = '%-*s%s%-5s%s:%s:%s' % (self.width-16-len(pid), self.val['name'][0:self.width-16-len(pid)], ansi['darkblue'], self.val['pid'], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024), cprint(self.val['cpu_usage'], 'f', 3, 34))
+            self.output = '%-*s%s%-5s%s%s%s%s%%' % (self.width-14-len(pid), self.val['name'][0:self.width-14-len(pid)], ansi['darkblue'], self.val['pid'], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024), cprint(self.val['cpu_usage'], 'f', 3, 34), ansi['darkgray'])
 
     def showcsv(self):
         return self.output + 'Top: %s\t%s\t%s\t%s' % (self.val['name'][0:self.width-20], self.val['read_usage'], self.val['write_usage'], self.val['cpu_usage'])

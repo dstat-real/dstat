@@ -88,8 +88,10 @@ class dstat_plugin(dstat):
                 self.set2[name] = 0
                 for i in l[1:1+self.vmkcpunr()]:
                     self.set2[name] = self.set2[name] + long(i)
+
         for name in self.set2.keys():
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 

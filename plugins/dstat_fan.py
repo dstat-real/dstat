@@ -10,11 +10,11 @@ class dstat_plugin(dstat):
         self.type = 'd'
         self.width = 4
         self.scale = 500
+        self.open('/proc/acpi/ibm/fan')
 
     def vars(self):
         ret = None
-        for line in dopen('/proc/acpi/ibm/fan'):
-            l = line.split()
+        for l in self.splitlines():
             if l[0] == 'speed:':
                 ret = ('speed',)
         return ret
@@ -25,8 +25,7 @@ class dstat_plugin(dstat):
 
     def extract(self):
         if os.path.exists('/proc/acpi/ibm/fan'):
-            for line in dopen('/proc/acpi/ibm/fan'):
-                l = line.split()
+            for l in self.splitlines():
                 if l[0] == 'speed:':
                     self.val['speed'] = int(l[1])
 

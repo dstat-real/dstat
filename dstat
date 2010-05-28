@@ -384,6 +384,11 @@ class dstat:
 #                yield line
 #                i += 1
 
+    def splitline(self, sep=None):
+        for fd in self.fd:
+            fd.seek(0)
+            return fd.read().split(sep)
+
     def splitlines(self, sep=None, replace=None):
         "Return split lines from any file descriptor"
         for fd in self.fd:

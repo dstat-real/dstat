@@ -12,10 +12,10 @@ class dstat_plugin(dstat):
         self.name = 'dstat memory usage'
         self.vars = ('virtual', 'resident', 'shared', 'data')
         self.type = 'd'
+        self.open('/proc/%s/statm' % ownpid)
 
     def extract(self):
-        ### Extract counters
-        l = dopen('/proc/%s/statm' % ownpid).read().split()
+        l = self.splitline()
 #        l = linecache.getline('/proc/%s/schedstat' % self.pid, 1).split()
         self.val['virtual'] = long(l[0]) * pagesize / 1024
         self.val['resident'] = long(l[1]) * pagesize / 1024

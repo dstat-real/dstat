@@ -24,6 +24,6 @@ class dstat_plugin(dstat):
         if step != op.delay:
             color = 'gray'
 
-        snoze, c = fchg(self.val['snooze'], 7, 1000)
+        snoze, c = fchg(self.val['snooze'], 6, 1000)
 
         return ansi[color] + snoze
