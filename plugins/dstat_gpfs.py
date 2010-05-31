@@ -10,7 +10,7 @@ class dstat_plugin(dstat):
         self.nick = ('read', 'write')
         self.vars = ('_br_', '_bw_')
 
-    def check(self): 
+    def check(self):
         if os.access('/usr/lpp/mmfs/bin/mmpmon', os.X_OK):
             try:
                 self.stdin, self.stdout, self.stderr = dpopen('/usr/lpp/mmfs/bin/mmpmon -p -s')

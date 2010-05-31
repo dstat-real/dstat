@@ -16,6 +16,7 @@
 - Added external dstat_top_io_adv plugin to show advanced top block I/O usage
 - Allow specifying separator for splitline() and splitlines() functions
 - Make top-plugins free memory for processes that no longer exist
+- Added external dstat_top_int plugin to show most frequent interrupt (name)
 
 * 0.7.1 - Just the three of us - release 22/02/2010
 - Fix external plugins on python 2.2 and older (eg. RHEL3)
