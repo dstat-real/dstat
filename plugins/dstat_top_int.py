@@ -41,7 +41,10 @@ class dstat_plugin(dstat):
 
             ### Get the process that spends the most jiffies
             if total > self.val['total']:
-                self.val['name'] = self.names[str(i+1)]
+                if str(i+1) in self.names.keys():
+                    self.val['name'] = self.names[str(i+1)]
+                else:
+                    self.val['name'] = 'int ' + str(i+1)
                 self.val['total'] = total
 
         if step == op.delay:
