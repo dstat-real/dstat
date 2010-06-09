@@ -60,7 +60,6 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Add LVM stats
 + Allow to have multiple '1st expensive ... app' and '2nd expensive ... app'
 + Add 'most iowaiting app' plugin
-+ Add 'most busy interrupt' plugin
 + Add systemtap/perf integration
 
 ### Plugin issues

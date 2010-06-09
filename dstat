@@ -2077,7 +2077,7 @@ def getcpunr():
         if line[0:3] == 'cpu':
             cpunr = cpunr + 1
     if cpunr < 0:
-        raise "Problem finding number of CPUs in system."
+        raise Exception, "Problem finding number of CPUs in system."
     return cpunr
 
 def blockdevices():

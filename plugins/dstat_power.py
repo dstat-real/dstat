@@ -4,8 +4,8 @@ class dstat_plugin(dstat):
     """
     Power usage information from ACPI.
 
-    Displays the power usage in mwh of your system's battery using ACPI
-    information. This information is only available when the battery is
+    Displays the power usage in watt per hour of your system's battery using
+    ACPI information. This information is only available when the battery is
     being used (or being charged).
     """
 

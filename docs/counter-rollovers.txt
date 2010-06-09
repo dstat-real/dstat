@@ -17,26 +17,27 @@ Since /proc is updated every second, this becomes almost impossible to catch.
 == How does this impact Dstat ?
 Currently Dstat has a problem if you specify delays that are too big. I.e.
 using 60 or 120 seconds delay in Dstat will make Dstat check these counters
-only once per minute or every two minutes. In the case the value is reset,
-it might be lower than the previous value (which causes negative values) or
-worse, the value is actually higher (which will go unnoticed and you get
-bogus information and Dstat won't know).
+only once per minute or every two minutes.
 
+In case a counter rolls over, it may be lower than the previous value, or
+worse, the value may actually be higher. In the first case we compensate
+because we now a rollover (at least one) happened, but if in the interval more
+than one rollover happened, you're screwed. If however the rollover causes
+a higher value than the previous in that interval, you're screwed too :-)
+
+In both situations that you're screwed, we cannot help you either because we
+don't know. So we cannot compensate or even notify the user of the problem.
 This is very problematic, and it's important you are aware of this.
 
 
 == What are the solutions ?
 The only fix for Dstat is to check more often than the specified delay.
-Unfortunately, this requires a re-design (or an ugly hack).
+Unfortunately, this requires a re-design (or an ugly hack). But if rollovers
+happen more than once (or values are larger than the max value) we cannot fix
+this.
 
 There are plans to use 64bit counters on Linux and/or changing the output from
 using bytes to kbytes. None of this is sure. (add pointers to threads)
-
-To work-around this problem, you could always use a delay of 1 second, and
-re-calculate averages in Excel. This will work fine as long as you also
-re-calculate the negative values (by adding 2^32 to them).
-
-If the rollovers happen only sporadically, you can just ignore those values.
 
 
 == What can I do ?
