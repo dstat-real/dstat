@@ -198,6 +198,9 @@ Here is an overview of the plugins dstat ships with:
 --dstat-cpu::
     show dstat advanced cpu usage
 
+--dstat-ctxt::
+    show dstat context switches
+
 --dstat-mem::
     show dstat advanced memory usage
 
@@ -354,8 +357,11 @@ Here is an overview of the plugins dstat ships with:
 --vm-memctl::
     show ballooning status inside VMware guests
 
---vz-io::
+--vz-cpu::
     show CPU usage per OpenVZ guest
+
+--vz-io::
+    show I/O usage per OpenVZ guest
 
 --vz-ubc::
     show OpenVZ user beancounters

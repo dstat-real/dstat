@@ -2,7 +2,7 @@
 .\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
 .\" Instead of manually editing it, you probably should edit the DocBook XML
 .\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
-.TH "DSTAT" "1" "05/26/2010" "\  0.7.0" "\ "
+.TH "DSTAT" "1" "06/10/2010" "\  0.7.0" "\ "
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -191,6 +191,9 @@ show dstat cputime consumption and latency
 \-\-dstat\-cpu
 show dstat advanced cpu usage
 .TP
+\-\-dstat\-ctxt
+show dstat context switches
+.TP
 \-\-dstat\-mem
 show dstat advanced memory usage
 .TP
@@ -347,8 +350,11 @@ show VMware ESX kernel port stats
 \-\-vm\-memctl
 show ballooning status inside VMware guests
 .TP
-\-\-vz\-io
+\-\-vz\-cpu
 show CPU usage per OpenVZ guest
+.TP
+\-\-vz\-io
+show I/O usage per OpenVZ guest
 .TP
 \-\-vz\-ubc
 show OpenVZ user beancounters

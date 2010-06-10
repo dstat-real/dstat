@@ -570,22 +570,24 @@ interfaces, this happens after 1.6 seconds.</p></div>
 <div class="sectionbody">
 <div class="paragraph"><p>Currently Dstat has a problem if you specify delays that are too big. I.e.
 using 60 or 120 seconds delay in Dstat will make Dstat check these counters
-only once per minute or every two minutes. In the case the value is reset,
-it might be lower than the previous value (which causes negative values) or
-worse, the value is actually higher (which will go unnoticed and you get
-bogus information and Dstat won&#8217;t know).</p></div>
-<div class="paragraph"><p>This is very problematic, and it&#8217;s important you are aware of this.</p></div>
+only once per minute or every two minutes.</p></div>
+<div class="paragraph"><p>In case a counter rolls over, it may be lower than the previous value, or
+worse, the value may actually be higher. In the first case we compensate
+because we now a rollover (at least one) happened, but if in the interval more
+than one rollover happened, you&#8217;re screwed. If however the rollover causes
+a higher value than the previous in that interval, you&#8217;re screwed too :-)</p></div>
+<div class="paragraph"><p>In both situations that you&#8217;re screwed, we cannot help you either because we
+don&#8217;t know. So we cannot compensate or even notify the user of the problem.
+This is very problematic, and it&#8217;s important you are aware of this.</p></div>
 </div>
 <h2 id="_what_are_the_solutions">What are the solutions ?</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The only fix for Dstat is to check more often than the specified delay.
-Unfortunately, this requires a re-design (or an ugly hack).</p></div>
+Unfortunately, this requires a re-design (or an ugly hack). But if rollovers
+happen more than once (or values are larger than the max value) we cannot fix
+this.</p></div>
 <div class="paragraph"><p>There are plans to use 64bit counters on Linux and/or changing the output from
 using bytes to kbytes. None of this is sure. (add pointers to threads)</p></div>
-<div class="paragraph"><p>To work-around this problem, you could always use a delay of 1 second, and
-re-calculate averages in Excel. This will work fine as long as you also
-re-calculate the negative values (by adding 2^32 to them).</p></div>
-<div class="paragraph"><p>If the rollovers happen only sporadically, you can just ignore those values.</p></div>
 </div>
 <h2 id="_what_can_i_do">What can I do ?</h2>
 <div class="sectionbody">
@@ -610,7 +612,7 @@ depends on how quick I think I can fix/redesign it and how much time I have.</p>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2010-02-11 11:26:02 CEST
+Last updated 2010-06-01 15:25:14 CEST
 </div>
 </div>
 </body>

@@ -22,7 +22,7 @@ try:
 except KeyboardInterrupt:
     pass
 
-VERSION = '0.7.1svn'
+VERSION = '0.7.2'
 
 theme = { 'default': '' }
 
