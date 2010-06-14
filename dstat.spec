@@ -2,7 +2,7 @@
 # Authority: dag
 # Upstream: Dag Wieers <dag@wieers.com>
 
-Summary: Versatile resource statistics tool
+Summary: Pluggable real-time performance monitoring tool
 Name: dstat
 Version: 0.7.2
 Release: 1
@@ -14,8 +14,8 @@ Source: http://dag.wieers.com/home-made/dstat/dstat-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildArch: noarch
-BuildRequires: python
-Requires: python
+BuildRequires: python >= 2.0
+Requires: python >= 2.0
 
 %description
 Dstat is a versatile replacement for vmstat, iostat, netstat and ifstat.
@@ -23,14 +23,16 @@ Dstat overcomes some of their limitations and adds some extra features,
 more counters and flexibility. Dstat is handy for monitoring systems
 during performance tuning tests, benchmarks or troubleshooting.
 
-Dstat allows you to view all of your system resources instantly, you
-can eg. compare disk usage in combination with interrupts from your
+Dstat allows you to view all of your system resources in real-time, you
+can eg. compare disk utilization in combination with interrupts from your
 IDE controller, or compare the network bandwidth numbers directly
 with the disk throughput (in the same interval). 
 
 Dstat gives you detailed selective information in columns and clearly
 indicates in what magnitude and unit the output is displayed. Less
-confusion, less mistakes.
+confusion, less mistakes. And most importantly, it makes it very easy
+to write plugins to collect your own counters and extend in ways you
+never expected.
 
 %prep
 %setup
@@ -52,7 +54,7 @@ confusion, less mistakes.
 %{_datadir}/dstat/
 
 %changelog
-* Mon Jun 14 2010 Dag Wieers <dag@wieers.com> - 0.7.2-1
+* Tue Jun 15 2010 Dag Wieers <dag@wieers.com> - 0.7.2-1
 - Updated to release 0.7.2.
 
 * Mon Feb 22 2010 Dag Wieers <dag@wieers.com> - 0.7.1-1
