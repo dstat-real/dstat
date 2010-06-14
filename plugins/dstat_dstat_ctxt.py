@@ -2,11 +2,11 @@
 
 class dstat_plugin(dstat):
     """
-    Provide memory information related to the dstat process.
+    Provide Dstat's number of voluntary and involuntary context switches.
 
-    The various values provide information about the memory usage of the
-    dstat process. This plugin gives you the possibility to follow memory
-    usage changes of dstat over time.
+    This plugin provides a unique view of the number of voluntary and
+    involuntary context switches of the Dstat process itself. It may help
+    to vizualise the performance of Dstat and its selection of plugins.
     """
     def __init__(self):
         self.name = 'contxt sw'

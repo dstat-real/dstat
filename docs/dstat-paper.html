@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.5.3" />
-<title>Dstat: plugin-based real-time monitoring</title>
+<title>Dstat: pluggable real-time monitoring</title>
 <style type="text/css">
 /* Debug borders */
 p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
@@ -551,12 +551,19 @@ footnotes: function () {
 </head>
 <body>
 <div id="header">
-<h1>Dstat: plugin-based real-time monitoring</h1>
+<h1>Dstat: pluggable real-time monitoring</h1>
 <span id="author">Dag Wieers</span><br />
 <span id="email"><tt>&lt;<a href="mailto:dag@wieers.com">dag@wieers.com</a>&gt;</tt></span><br />
 <span id="revdate">$Id$</span>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p><em>This Dstat paper was originally written for LinuxConf Europe that was
+held together with the Linux Kernel summit at the University in Cambridge,
+UK in August 2007.</em></p></div>
+</div>
+</div>
 <h2 id="_introduction">Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Many tools exist to monitor hardware resources and software behaviour, but few
@@ -595,7 +602,7 @@ needed a different terminal. Besides, not all information was interesting.</p></
 <div class="paragraph"><p>After the project was finished I was able to correlate system resources with
 network throughput, TCP information, Samba sessions, GPFS throughput,
 accumulated block device throughput, HBA throughput, all within a single
-interval.</p></div>
+interval on one screen for the complete cluster.</p></div>
 </div>
 <h2 id="_dstat_characteristics">Dstat characteristics</h2>
 <div class="sectionbody">
@@ -603,11 +610,13 @@ interval.</p></div>
 serves to list all of them. Not all of them may appeal to the task you&#8217;re
 doing, but the combination may make it an appealing proposition nevertheless.</p></div>
 <h3 id="_history_of_counters">History of counters</h3><div style="clear:left"></div>
-<div class="paragraph"><p>An important characteristic in tools like vmstat, iostat or ifstat is the fact
-that you can compare historical collected data with new data. This allows you
-to have a good feeling of how something is evolving.</p></div>
+<div class="paragraph"><p>An important characteristic in line-based tools like vmstat, iostat or
+ifstat is the fact that you can compare historical collected data with
+new data. This allows you to have a good feeling of how something is
+evolving.</p></div>
 <div class="paragraph"><p>Compare this to tools like top or nmon, where data is often being refreshed
-and you loose historical information.</p></div>
+and you loose historical information (but in return can provide you with
+a lot more information at the same time).</p></div>
 <h3 id="_adding_unit_indication">Adding unit indication</h3><div style="clear:left"></div>
 <div class="paragraph"><p>It was very important that when numbers were compared, they were in the same
 unit, and not eg. a different power exponent. The human mind sometimes works
@@ -877,7 +886,32 @@ dbus: DBUS connections
 </li>
 <li>
 <p>
+disk-tps: disk transactions counters
+</p>
+</li>
+<li>
+<p>
 disk-util: disk utilization percentage
+</p>
+</li>
+<li>
+<p>
+dstat: dstat cputime consumption and latency
+</p>
+</li>
+<li>
+<p>
+dstat-cpu: dstat advanced cpu usage
+</p>
+</li>
+<li>
+<p>
+dstat-ctxt: dstat context switches
+</p>
+</li>
+<li>
+<p>
+dstat-mem: dstat advanced memory usage
 </p>
 </li>
 <li>
@@ -913,11 +947,6 @@ innodb-buffer: innodb buffer counters
 <li>
 <p>
 innodb-io: innodb I/O counters
-</p>
-</li>
-<li>
-<p>
-innodb-keys: innodb key operation counters
 </p>
 </li>
 <li>
@@ -967,7 +996,7 @@ mysql-ops: MySQL operations counters
 </li>
 <li>
 <p>
-nfs3-ops: NFS3 client operations counters
+net-mackets: number of packets received and transmitted
 </p>
 </li>
 <li>
@@ -977,12 +1006,17 @@ nfs3: NFS3 client counters
 </li>
 <li>
 <p>
-nfsd3-ops: NFS3 server operations counters
+nfs3-ops: NFS3 client operations counters
 </p>
 </li>
 <li>
 <p>
 nfsd3: NFS3 server counters
+</p>
+</li>
+<li>
+<p>
+nfsd3-ops: NFS3 server operations counters
 </p>
 </li>
 <li>
@@ -1002,12 +1036,22 @@ power: Power usage counters
 </li>
 <li>
 <p>
-rpcd: RPC server counters
+proc-count: total number of processes
+</p>
+</li>
+<li>
+<p>
+qmail: qmail queue sizes
 </p>
 </li>
 <li>
 <p>
 rpc: RPC client counters
+</p>
+</li>
+<li>
+<p>
+rpcd: RPC server counters
 </p>
 </li>
 <li>
@@ -1022,6 +1066,11 @@ snooze: Dstat time delay counters
 </li>
 <li>
 <p>
+squid: squid usage statistics
+</p>
+</li>
+<li>
+<p>
 thermal: Thermal counters
 </p>
 </li>
@@ -1032,7 +1081,17 @@ top-bio: most expensive block I/O process
 </li>
 <li>
 <p>
+top-bio-adv: most expensive block I/O process (advanced)
+</p>
+</li>
+<li>
+<p>
 top-cpu: most expensive cpu process
+</p>
+</li>
+<li>
+<p>
+top-cpu-adv: most expensive CPU process (advanced)
 </p>
 </li>
 <li>
@@ -1047,7 +1106,17 @@ top-cputime-avg: process having the highest average CPU time
 </li>
 <li>
 <p>
+top-int: most frequent interrupt
+</p>
+</li>
+<li>
+<p>
 top-io: most expensive I/O process
+</p>
+</li>
+<li>
+<p>
+top-io-adv: most expensive I/O process (advanced)
 </p>
 </li>
 <li>
@@ -1077,6 +1146,11 @@ utmp: utmp counters
 </li>
 <li>
 <p>
+vm-memctl: VMware guest memory counters
+</p>
+</li>
+<li>
+<p>
 vmk-hba: VMware kernel HBA counters
 </p>
 </li>
@@ -1092,12 +1166,12 @@ vmk-nic: VMware kernel NIC counters
 </li>
 <li>
 <p>
-vm-memctl: VMware guest memory counters
+vz-cpu: OpenVZ CPU counters
 </p>
 </li>
 <li>
 <p>
-vz-cpu: OpenVZ CPU counters
+vz-io: I/O usage per OpenVZ guest
 </p>
 </li>
 <li>
@@ -1311,15 +1385,6 @@ resources.</p></div>
 dstat -tn --top-x 120</tt></pre>
 </div></div>
 <div class="paragraph"><p>Leave it running during the night and in the morning you can see the light.</p></div>
-<h3 id="_what_device_is_slowing_down_my_system">What device is slowing down my system ?</h3><div style="clear:left"></div>
-<div class="paragraph"><p>Many devices generate interrupts, especially when used at maximum capacity.
-Sometimes too many interrupts can slow down a system. If you want to correlate
-bad performance with hardware interrupts, you can run a command like:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>dstat -tyif
-dstat -tyi -I 12,58,iwlagn -f 5</tt></pre>
-</div></div>
 <h3 id="_how_much_ticks_per_second_on_my_kernel">How much ticks per second on my kernel ?</h3><div style="clear:left"></div>
 <div class="paragraph"><p>In some cases it can be useful to see how many ticks (timer interrupts) your
 kernel is producing. With older kernels this is a fixed number (usually 100,
@@ -1333,12 +1398,20 @@ so in that case if you want to see what is happening, you can simply do:</p></di
 <div class="paragraph"><p>Dstat nowadays can also detect lost ticks (when the number of ticks do not
 match the time progress. This is useful to correlate VM issues with other
 problems.</p></div>
-<h3 id="_what_device_is_slowing_down_my_system_2">What device is slowing down my system ?</h3><div style="clear:left"></div>
+<h3 id="_what_device_is_slowing_down_my_system">What device is slowing down my system ?</h3><div style="clear:left"></div>
 <div class="paragraph"><p>A nice feature of Dstat is that it can show how many interrupts each of your
 devices is generating. The <em>cpu</em> stats already show this in percentage as
 <em>hard interrupt</em> and <em>soft interrupt</em>, and the <em>sys</em> stats shows the total
 number of interrupts, but the <em>int</em> stats go into detail. And you can specify
 exactly what IRQs you want to watch.</p></div>
+<div class="paragraph"><p>Many devices generate interrupts, especially when used at maximum capacity.
+Sometimes too many interrupts can slow down a system. If you want to correlate
+bad performance with hardware interrupts, you can run a command like:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>dstat -tyif
+dstat -tyi -I 12,58,iwlagn -f 5</tt></pre>
+</div></div>
 <div class="paragraph"><p>Much like <tt>watch -n1 -d cat /proc/interrupts</tt> on steroids.</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1381,6 +1454,19 @@ MIS:          0</tt></pre>
 <div class="content">
 <pre><tt>dstat -t -y -i -I 12,58,185 -f 5</tt></pre>
 </div></div>
+<div class="paragraph"><p>Another possibility is to use the <tt>--top-int</tt> plugin, showing you the most
+frequent plugin on your system:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>[dag@rhun ~]# dstat -t --top-int
+----system---- ---most-frequent----
+     time     |     interrupt
+11-06 08:34:53|ahci              5
+11-06 08:34:54|i8042            69
+11-06 08:34:55|i8042            45
+11-06 08:34:56|ehci/usb2        12
+11-06 08:34:57|</tt></pre>
+</div></div>
 <h3 id="_how_does_my_wifi_signal_evolve_when_i_move_my_laptop_or_ap_through_the_house">How does my WIFI signal evolve when I move my laptop or AP through the house ?</h3><div style="clear:left"></div>
 <div class="paragraph"><p>Something I was looking into when trying to find the optimal location for the
 WIFI access point. However I must say that another tool I wrote <em>Dwscan</em> is
@@ -1411,23 +1497,35 @@ output.</p></div>
 <div class="title">The dstat_helloworld plugin in its full glory.</div>
 <div class="content">
 <pre><tt>class dstat_helloworld(dstat):
+    ``"
+    Example "Hello world!" output plugin for aspiring Dstat developers.
+    ``"
     def __init__(self):
         self.name = 'plugin title'          <b>&lt;1&gt;</b>
-        self.type = 's'                     <b>&lt;2&gt;</b>
-        self.width = 12                     <b>&lt;3&gt;</b>
-        self.scale = 100                    <b>&lt;4&gt;</b>
-        self.nick = ('counter',)            <b>&lt;5&gt;</b>
-        self.vars = ('text',)               <b>&lt;6&gt;</b>
-        self.init(self.vars, 1)             <b>&lt;7&gt;</b>
+        self.nick = ('counter',)            <b>&lt;2&gt;</b>
+        self.vars = ('text',)               <b>&lt;3&gt;</b>
+        self.type = 's'                     <b>&lt;4&gt;</b>
+        self.width = 12                     <b>&lt;5&gt;</b>
+        self.scale = 0                      <b>&lt;6&gt;</b>
 
     def extract(self):
-        self.val['text'] = 'Hello world!'   <b>&lt;8&gt;</b></tt></pre>
+        self.val['text'] = 'Hello world!'   <b>&lt;7&gt;</b></tt></pre>
 </div></div>
 <div class="paragraph"><p>In this example, there are several components:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
 <tt>self.name</tt> contains the plugin&#8217;s visible title.
+</p>
+</li>
+<li>
+<p>
+<tt>self.nick</tt> is a list of the counter names
+</p>
+</li>
+<li>
+<p>
+<tt>self.vars</tt> is a list of the variable names for each counter
 </p>
 </li>
 <li>
@@ -1447,22 +1545,6 @@ output.</p></div>
 </li>
 <li>
 <p>
-<tt>self.nick</tt> is a list of the counter names
-</p>
-</li>
-<li>
-<p>
-<tt>self.vars</tt> is a list of the variable names for each counter
-</p>
-</li>
-<li>
-<p>
-<tt>self.init()</tt> is a function that initialises the counter structures
-   (<tt>self.cn1</tt>, <tt>self.cn2</tt> and <tt>self.val</tt>)
-</p>
-</li>
-<li>
-<p>
 <tt>self.val</tt> contains the counter values that are being displayed
 </p>
 </li>
@@ -1474,40 +1556,29 @@ system fails to meet some plugin criteria.</p></div>
 <div class="listingblock">
 <div class="title">The dstat_postfix plugin</div>
 <div class="content">
-<pre><tt>global glob                                                                <b>&lt;1&gt;</b>
-import glob
-
-class dstat_postfix(dstat):
+<pre><tt>class dstat_postfix(dstat):
     def __init__(self):
         self.name = 'postfix'
-        self.type = 'd'                                                    <b>&lt;2&gt;</b>
+        self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
+        self.vars = ('incoming', 'active', 'deferred', 'bounce', 'defer')
+        self.type = 'd'                                                    <b>&lt;1&gt;</b>
         self.width = 4
         self.scale = 100
-        self.vars = ('incoming', 'active', 'deferred', 'bounce', 'defer')
-        self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
-        self.init(self.vars, 1)
 
-    def check(self):                                                       <b>&lt;3&gt;</b>
+    def check(self):                                                       <b>&lt;2&gt;</b>
         if not os.access('/var/spool/postfix/active', os.R_OK):
             raise Exception, 'Cannot access postfix queues'
-        return True
 
     def extract(self):
-        for item in self.vars:                                             <b>&lt;4&gt;</b>
+        for item in self.vars:                                             <b>&lt;3&gt;</b>
             self.val[item] = len(glob.glob('/var/spool/postfix/'+item+'/*/*')</tt></pre>
 </div></div>
 <div class="paragraph"><p>This example shows the following items:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-Since the plugin is imported at runtime, it is important that these are
-   are included in the global scope to reuse them
-</p>
-</li>
-<li>
-<p>
 type, width and scale specify decimal, column width a,d coloring based on
-   multiplication of 100
+    multiplication of 100
 </p>
 </li>
 <li>
@@ -1518,7 +1589,7 @@ The <tt>check()</tt> method tests conditions and bails out of they are not met
 <li>
 <p>
 To make processing easier we have opted to use as value names (<tt>self.vars</tt>)
-   the name of the postfix queues and store counts in <tt>self.val</tt>
+    the name of the postfix queues and store counts in <tt>self.val</tt>
 </p>
 </li>
 </ol></div>
@@ -1539,6 +1610,20 @@ the <tt>dstat_mysql</tt> plugins.</p></div>
 <h2 id="_known_issues">Known issues</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>There are some known issues that are important to understand when using Dstat.</p></div>
+<h3 id="_writing_dstat_and_plugins_in_c">Writing Dstat and plugins in C</h3><div style="clear:left"></div>
+<div class="paragraph"><p>It makes sense to reimplement Dstat or some of its plugins in C and still
+allow the writing of Python (or even Perl) plugins. Tests have shown that for
+example processing <em>/proc/pid</em> in C makes the plugin 3 times faster. And this
+did not take into account the processing of the results and displaying the
+output.</p></div>
+<div class="paragraph"><p>So rewriting in C makes a lot of sense, but it is also much more complicated.</p></div>
+<h3 id="_python_1_5">Python 1.5</h3><div style="clear:left"></div>
+<div class="paragraph"><p>There used to be a Python 1.5 version of Dstat, but with RHEL2 going out of
+support in 2009 I decided to no longer spend the extra effort to sync and test
+the Dstat15 version.</p></div>
+<div class="paragraph"><p>Leaving Python 1.5 behind means that plugins do not longer have to be
+compatible with Python 1.5 either. It is no coincedence that after this event
+a major overhaul was made to the plugin interface.</p></div>
 <h3 id="_counter_rollovers">Counter rollovers</h3><div style="clear:left"></div>
 <div class="paragraph"><p>Unfortunately Dstat is susceptible for counters that &#8220;rollover&#8221;. This means
 that a counter gets bigger than its maximum value the data-structure is capable
@@ -1551,14 +1636,11 @@ example on a bonded 2x10Gbps interfaces that is using its theoretical transfer
 limit, this would happen every 1.6 seconds.</p></div>
 <div class="paragraph"><p>Since <em>/proc</em> is updated every second, this would be impossible for Dstat to
 catch. Currently if Dstat encounters a negative difference for an interval it
-displays a dash.</p></div>
-<div class="paragraph"><p>Obviously, if Dstat were know what the counter&#8217;s maximum value is, it could
-recalculate the difference. However that is currently not implemented and does
-not guarantee a correct result either, since a negative value could be the
-result of 2 or more rollovers.</p></div>
+assumes a single rollover has happened and compensates for it. If that
+assumption is wrong, the user is working with wrong counters nonetheless.</p></div>
 <div class="paragraph"><p>If you suspect that the behaviour of your system is susceptible of counter
 rollovers, make sure you take this into account when using Dstat (or any other
-tool that uses these counters for that matter)</p></div>
+tool that uses these counters for that matter).</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -1570,11 +1652,13 @@ affects you, read that document and contact me for possible implementation
 changes to improve handling them.</td>
 </tr></table>
 </div>
-<h3 id="_dstat_performance">Dstat performance</h3><div style="clear:left"></div>
+</div>
+<h2 id="_dstat_performance">Dstat performance</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>As mentioned several times now, Dstat is written in python. There are various
-reasons that Python was chosen and the most important reason is that it
-simplifies writing plugins, processing counters and lowers the bar for
-people to contribute changes.</p></div>
+reasons that Python was chosen and the most important reason is that we target
+system engineers and users, so we need to simplify writing plugins, processing
+counters and lowers the bar for people to contribute changes.</p></div>
 <div class="paragraph"><p>The downside of choosing a scripting language is that it is slower than if it
 would be written in C, obviously. <strong>Dstat is not optimised for performance.</strong></p></div>
 <div class="admonitionblock">
@@ -1584,22 +1668,108 @@ would be written in C, obviously. <strong>Dstat is not optimised for performance
 </td>
 <td class="content">This may seem ironic: a performance monitoring tool that is not
 optimised for performance, but rather for flexibility. However the ease of
-writing plugins and prototyping gets precedence over performance at this time.</td>
+writing plugins and prototyping gets precedence over performance at this time.
+On the other hand we have pretty good tools to measure the overhead of a
+single plugin and profiling infrastructure to counter any excuses for sloppy
+plugin development.</td>
 </tr></table>
 </div>
-<h4 id="_plugin_performance">Plugin performance</h4>
+<h3 id="_plugin_performance">Plugin performance</h3><div style="clear:left"></div>
 <div class="paragraph"><p>If we look at the basic plugins, there are no real performance issues with
-Dstat. Loading Dstat takes longer than eg. vmstat, but once running, Dstat&#8217;s
-performance for the same functionality is up to par with vmstat, ifstat and
-other similar tools.</p></div>
-<div class="paragraph"><p>However there are plugins that are much more resource intensive than others
-and the selection of plugins determines Dstat&#8217;s performance in a major way.</p></div>
-<h4 id="_debugging_dstat">Debugging Dstat</h4>
-<div class="paragraph"><p>Dstat comes with a <tt>--debug</tt> option that helps to find the cost of running
-plugins. The <tt>--debug</tt> option show how long it takes Dstat to process the
-selected plugins.</p></div>
-<div class="paragraph"><p>You can see the cost of Dstat itself by simply using the <tt>dstat_time</tt> plugin
-together with the <tt>--debug</tt> option.</p></div>
+Dstat. Loading Dstat takes longer to start than eg. vmstat, but once running,
+Dstat&#8217;s performance for the same functionality is up to par with vmstat,
+ifstat and other similar tools.</p></div>
+<div class="paragraph"><p>However there are <strong>some plugins that are much more resource intensive than
+others</strong> and the selection of plugins determines Dstat&#8217;s performance in a major
+way.</p></div>
+<h3 id="_performance_monitoring_dstat">Performance monitoring Dstat</h3><div style="clear:left"></div>
+<div class="paragraph"><p>Dstat comes with some plugins (starting with <tt>dstat_</tt>) to check the overhead
+of itself, this together with the selection of plugins makes it very
+convenient to measure the overhead of individual plugins. The following
+options exist (as plugins):</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--dstat
+</dt>
+<dd>
+<p>
+Provides cputime and latency information for Dstat. This plugin can help you
+determine how accurate and how much overhead Dstat has with its current
+plugins enabled.
+</p>
+</dd>
+<dt class="hdlist1">
+--dstat-cpu
+</dt>
+<dd>
+<p>
+Provides cpu utilization (user-space and kernel-space) statistics for Dstat.
+This plugin can help determine where there is some room for improvement for
+individual plugins (or Dstat itself).
+</p>
+</dd>
+<dt class="hdlist1">
+--dstat-ctxt
+</dt>
+<dd>
+<p>
+Provides context switch information for Dstat. Both voluntary as well ass
+involuntary context switches are shown, providing you with some idea of how
+the system is providing timeslices and how Dstat is returning the cpu to the
+system.
+</p>
+</dd>
+<dt class="hdlist1">
+--dstat-mem
+</dt>
+<dd>
+<p>
+Provides memory information about the Dstat process. This plugin enables
+plugin developers to determine whether Dstat is increasing its memory usage
+and therefor is <em>leaking</em> memory over time. This plugin proved very useful in
+optimizing memory usage of the top-plugins, which typically scan all
+processes.
+</p>
+</dd>
+<dt class="hdlist1">
+--snooze
+</dt>
+<dd>
+<p>
+This plugin shows in milliseconds how much time is deviating from the previous
+run. Which is influenced by the time it takes for earlier stats to be
+calculated. So the output of this plugin is very dependant on the location on
+the command-line.
+</p>
+</dd>
+<dt class="hdlist1">
+--debug
+</dt>
+<dd>
+<p>
+This option is not a plugin, but internal to Dstat. It will cause Dstat to
+show the actual time in milliseconds from start to end at the end of each
+line. This should be more or less close to the output of the <tt>dstat_dstat</tt> and
+<tt>dstat_dstat_cpu</tt> plugins.
+</p>
+<div class="paragraph"><p>It also influences the internal <tt>dstat_time</tt> plugin to show milliseconds
+instead of seconds, which may help showing the accuracy of Dstat itself.</p></div>
+</dd>
+<dt class="hdlist1">
+--profile
+</dt>
+<dd>
+<p>
+Ths option is also not a plugin, but internal to Dstat. It provides you with
+detailed profiling information at the end of each run. The default settings
+can be changed inside Dstat (or a copy) to tweak the output you are looking
+for. It creates a termporary profiling file in the current directory when
+running, but will clean it up after exit.
+</p>
+</dd>
+</dl></div>
+<h3 id="_measuring_plugins">Measuring plugins</h3><div style="clear:left"></div>
+<div class="paragraph"><p>Here is a small example of how one can measure the impact of a plugin.</p></div>
 <div class="listingblock">
 <div class="title">The cost of running the timer plugin</div>
 <div class="content">
@@ -1658,26 +1828,6 @@ as well as on what the plugin exactly is doing.</td>
 information (eg. communicating with the mysql client, or processing the mail
 queue) may not actually use any local resources, but the latency causes
 Dstat to slow down processing other counters.</p></div>
-<h4 id="_writing_dstat_and_plugins_in_c">Writing Dstat and plugins in C</h4>
-<div class="paragraph"><p>It makes sense to reimplement Dstat or some of its plugins in C and still
-allow the writing of Python (or even Perl) plugins. Tests have shown that for
-example processing <em>/proc/pid</em> in C makes the plugin 3 times faster. And this
-did not take into account the processing of the results and displaying the
-output.</p></div>
-<div class="paragraph"><p>So rewriting in C makes a lot of sense, but it is also much more complicated.</p></div>
-<h3 id="_python_1_5">Python 1.5</h3><div style="clear:left"></div>
-<div class="paragraph"><p>Dstat works with python 2.0, however there is also a Dstat15 version that
-still works on python 1.5. The downside of having Dstat work on python 1.5 is
-that the external plugins cannot use the newer and more flexible python 2.0
-syntax and the differences between python 1.5 and 2.0 are considerable.</p></div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">Not all plugins work properly on Python 1.5.</td>
-</tr></table>
-</div>
 </div>
 <h2 id="_future_development">Future development</h2>
 <div class="sectionbody">
@@ -1692,7 +1842,6 @@ Output
 <li>
 <p>
 Changes in how Dstat colours digits within a value (the 6 in 6134B)
-   *
 </p>
 </li>
 </ul></div>
@@ -1739,12 +1888,6 @@ Redesign Dstat
 <div class="ulist"><ul>
 <li>
 <p>
-Work on the plugin infrastructure, make the API more simple and
-     straightforward
-</p>
-</li>
-<li>
-<p>
 Create an object-model and namespace for plugins and counters so that
      other tools can be based on Dstat
 </p>
@@ -1777,7 +1920,7 @@ Create an object-model and namespace for plugins and counters so that
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2009-11-25 13:04:13 CEST
+Last updated 2010-06-14 10:43:26 CEST
 </div>
 </div>
 </body>

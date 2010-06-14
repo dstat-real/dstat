@@ -1,6 +1,11 @@
-= Dstat: plugin-based real-time monitoring
+= Dstat: pluggable real-time monitoring
 Dag Wieers <dag@wieers.com>
 $Id$
+
+'This Dstat paper was originally written for LinuxConf Europe that was
+held together with the Linux Kernel summit at the University in Cambridge,
+UK in August 2007.'
+
 
 == Introduction
 Many tools exist to monitor hardware resources and software behaviour, but few
@@ -46,7 +51,7 @@ Eventually Dstat was born, to make a dull task more enjoyable.
 After the project was finished I was able to correlate system resources with
 network throughput, TCP information, Samba sessions, GPFS throughput,
 accumulated block device throughput, HBA throughput, all within a single
-interval.
+interval on one screen for the complete cluster.
 
 
 == Dstat characteristics
@@ -56,12 +61,14 @@ doing, but the combination may make it an appealing proposition nevertheless.
 
 
 === History of counters
-An important characteristic in tools like vmstat, iostat or ifstat is the fact
-that you can compare historical collected data with new data. This allows you
-to have a good feeling of how something is evolving.
+An important characteristic in line-based tools like vmstat, iostat or
+ifstat is the fact that you can compare historical collected data with
+new data. This allows you to have a good feeling of how something is
+evolving.
 
 Compare this to tools like top or nmon, where data is often being refreshed
-and you loose historical information.
+and you loose historical information (but in return can provide you with
+a lot more information at the same time).
 
 
 === Adding unit indication
@@ -217,7 +224,12 @@ into Dstat. A set of 'external' modules exist for:
     - battery-remain: remaining battery time
     - cpufreq: CPU frequency
     - dbus: DBUS connections
+    - disk-tps: disk transactions counters
     - disk-util: disk utilization percentage
+    - dstat: dstat cputime consumption and latency
+    - dstat-cpu: dstat advanced cpu usage
+    - dstat-ctxt: dstat context switches
+    - dstat-mem: dstat advanced memory usage
     - fan: Fan speed
     - freespace: free space on filesystems
     - gpfs: GPFS IO counters
@@ -225,7 +237,6 @@ into Dstat. A set of 'external' modules exist for:
     - helloworld: Hello world dispenser
     - innodb-buffer: innodb buffer counters
     - innodb-io: innodb I/O counters
-    - innodb-keys: innodb key operation counters
     - innodb-ops: innodb operations counters
     - lustre: lustre throughput counters
     - memcache-hits: Memcache hit counters
@@ -235,33 +246,42 @@ into Dstat. A set of 'external' modules exist for:
     - mysql5-keys: MySQL keys counters
     - mysql-io: MySQL I/O counters
     - mysql-ops: MySQL operations counters
-    - nfs3-ops: NFS3 client operations counters
+    - net-mackets: number of packets received and transmitted
     - nfs3: NFS3 client counters
-    - nfsd3-ops: NFS3 server operations counters
+    - nfs3-ops: NFS3 client operations counters
     - nfsd3: NFS3 server counters
+    - nfsd3-ops: NFS3 server operations counters
     - ntp: NTP time counters
     - postfix: postfix queue counters
     - power: Power usage counters
-    - rpcd: RPC server counters
+    - proc-count: total number of processes
+    - qmail: qmail queue sizes
     - rpc: RPC client counters
+    - rpcd: RPC server counters
     - sendmail: sendmail queue counters
     - snooze: Dstat time delay counters
+    - squid: squid usage statistics
     - thermal: Thermal counters
     - top-bio: most expensive block I/O process
+    - top-bio-adv: most expensive block I/O process (advanced)
     - top-cpu: most expensive cpu process
+    - top-cpu-adv: most expensive CPU process (advanced)
     - top-cputime: process using the most CPU time
     - top-cputime-avg: process having the highest average CPU time
+    - top-int: most frequent interrupt
     - top-io: most expensive I/O process
+    - top-io-adv: most expensive I/O process (advanced)
     - top-latency: process with the highest total latency
     - top-latency-avg: process with the highest average latency
     - top-mem: most expensive memory process
     - top-oom: process first shot by OOM killer
     - utmp: utmp counters
+    - vm-memctl: VMware guest memory counters
     - vmk-hba: VMware kernel HBA counters
     - vmk-int: VMware kernel interrupt counters
     - vmk-nic: VMware kernel NIC counters
-    - vm-memctl: VMware guest memory counters
     - vz-cpu: OpenVZ CPU counters
+    - vz-io: I/O usage per OpenVZ guest
     - vz-ubc: OpenVZ user beancounters
     - wifi: WIFI quality information
 
@@ -370,12 +390,12 @@ dstat -taf
 ----
 [dag@rhun dag]$ dstat -taf
 -----time----- -------cpu0-usage------ --dsk/sda-----dsk/sr0-- --net/eth1- ---paging-- ---system--
-  date/time   |usr sys idl wai hiq siq| read  writ: read  writ| recv  send|  in   out | int   csw
-02-08 02:42:48| 10   2  85   2   0   0|  22k   23k: 1.8B    0 |   0     0 |2588B 2952B| 558   580
-02-08 02:42:49|  4   3  93   0   0   0|   0     0 :   0     0 |   0     0 |   0     0 |1116   962
-02-08 02:42:50|  5   2  90   0   2   1|   0    28k:   0     0 |   0     0 |   0     0 |1380  1136
-02-08 02:42:51| 11   6  82   0   1   0|   0     0 :   0     0 |   0     0 |   0     0 |1277  1340
-02-08 02:42:52|  3   3  93   0   1   0|   0    84k:   0     0 |   0     0 |   0     0 |1311  1034
+  date/time   |usr sys idl wai hiq siq| read  writ: read  writ| recv  send|  in   out | int   csw 
+02-08 02:42:48| 10   2  85   2   0   0|  22k   23k: 1.8B    0 |   0     0 |2588B 2952B| 558   580 
+02-08 02:42:49|  4   3  93   0   0   0|   0     0 :   0     0 |   0     0 |   0     0 |1116   962 
+02-08 02:42:50|  5   2  90   0   2   1|   0    28k:   0     0 |   0     0 |   0     0 |1380  1136 
+02-08 02:42:51| 11   6  82   0   1   0|   0     0 :   0     0 |   0     0 |   0     0 |1277  1340 
+02-08 02:42:52|  3   3  93   0   1   0|   0    84k:   0     0 |   0     0 |   0     0 |1311  1034 
 ----
 
 NOTE: The +-t+ here is completely optional and generally wastes space. But
@@ -429,16 +449,6 @@ dstat -tn --top-x 120
 
 Leave it running during the night and in the morning you can see the light.
 
-=== What device is slowing down my system ?
-Many devices generate interrupts, especially when used at maximum capacity.
-Sometimes too many interrupts can slow down a system. If you want to correlate
-bad performance with hardware interrupts, you can run a command like:
-
-----
-dstat -tyif
-dstat -tyi -I 12,58,iwlagn -f 5
-----
-
 === How much ticks per second on my kernel ?
 In some cases it can be useful to see how many ticks (timer interrupts) your
 kernel is producing. With older kernels this is a fixed number (usually 100,
@@ -473,11 +483,19 @@ More on this later...
 
 === What device is slowing down my system ?
 A nice feature of Dstat is that it can show how many interrupts each of your
-devices is generating. The 'cpu' stats already show this in percentage as 
+devices is generating. The 'cpu' stats already show this in percentage as
 'hard interrupt' and 'soft interrupt', and the 'sys' stats shows the total
 number of interrupts, but the 'int' stats go into detail. And you can specify
 exactly what IRQs you want to watch.
 
+Many devices generate interrupts, especially when used at maximum capacity.
+Sometimes too many interrupts can slow down a system. If you want to correlate
+bad performance with hardware interrupts, you can run a command like:
+
+----
+dstat -tyif
+dstat -tyi -I 12,58,iwlagn -f 5
+----
 Much like +watch -n1 -d cat /proc/interrupts+ on steroids.
 
 ----
@@ -524,9 +542,23 @@ Or select specific interrupts:
 dstat -t -y -i -I 12,58,185 -f 5
 ----
 
+Another possibility is to use the +--top-int+ plugin, showing you the most
+frequent plugin on your system:
+
+----
+[dag@rhun ~]# dstat -t --top-int
+----system---- ---most-frequent----
+     time     |     interrupt      
+11-06 08:34:53|ahci              5 
+11-06 08:34:54|i8042            69 
+11-06 08:34:55|i8042            45 
+11-06 08:34:56|ehci/usb2        12 
+11-06 08:34:57|                    
+----
+
 === How does my WIFI signal evolve when I move my laptop or AP through the house ?
 Something I was looking into when trying to find the optimal location for the
-WIFI access point. However I must say that another tool I wrote 'Dwscan' is 
+WIFI access point. However I must say that another tool I wrote 'Dwscan' is
 currently more sophisticated.
 
 ----
@@ -556,30 +588,30 @@ output.
 .The dstat_helloworld plugin in its full glory.
 ----
 class dstat_helloworld(dstat):
+    ``"
+    Example "Hello world!" output plugin for aspiring Dstat developers.
+    ``"
     def __init__(self):
         self.name = 'plugin title'          <1>
-        self.type = 's'                     <2>
-        self.width = 12                     <3>
-        self.scale = 100                    <4>
-        self.nick = ('counter',)            <5>
-        self.vars = ('text',)               <6>
-        self.init(self.vars, 1)             <7>
+        self.nick = ('counter',)            <2>
+        self.vars = ('text',)               <3>
+        self.type = 's'                     <4>
+        self.width = 12                     <5>
+        self.scale = 0                      <6>
 
     def extract(self):
-        self.val['text'] = 'Hello world!'   <8>
+        self.val['text'] = 'Hello world!'   <7>
 ----
 
 In this example, there are several components:
 
- . +self.name+ contains the plugin's visible title.
- . +self.type+ defines the counter type: string, percentage, integer, float
- . +self.width+ defines the column width
- . +self.scale+ influences the coloring and unit type
- . +self.nick+ is a list of the counter names
- . +self.vars+ is a list of the variable names for each counter
- . +self.init()+ is a function that initialises the counter structures
-   (+self.cn1+, +self.cn2+ and +self.val+)
- . +self.val+ contains the counter values that are being displayed
+ 1. +self.name+ contains the plugin's visible title.
+ 2. +self.nick+ is a list of the counter names
+ 3. +self.vars+ is a list of the variable names for each counter
+ 4. +self.type+ defines the counter type: string, percentage, integer, float
+ 5. +self.width+ defines the column width
+ 6. +self.scale+ influences the coloring and unit type
+ 7. +self.val+ contains the counter values that are being displayed
 
 
 === Parsing counters
@@ -589,38 +621,31 @@ system fails to meet some plugin criteria.
 
 .The dstat_postfix plugin
 ----
-global glob                                                                <1>
-import glob
-
 class dstat_postfix(dstat):
     def __init__(self):
         self.name = 'postfix'
-        self.type = 'd'                                                    <2>
+        self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
+        self.vars = ('incoming', 'active', 'deferred', 'bounce', 'defer')
+        self.type = 'd'                                                    <1>
         self.width = 4
         self.scale = 100
-        self.vars = ('incoming', 'active', 'deferred', 'bounce', 'defer')
-        self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
-        self.init(self.vars, 1)
 
-    def check(self):                                                       <3>
+    def check(self):                                                       <2>
         if not os.access('/var/spool/postfix/active', os.R_OK):
             raise Exception, 'Cannot access postfix queues'
-        return True
 
     def extract(self):
-        for item in self.vars:                                             <4>
+        for item in self.vars:                                             <3>
             self.val[item] = len(glob.glob('/var/spool/postfix/'+item+'/*/*')
 ----
 
 This example shows the following items:
 
- . Since the plugin is imported at runtime, it is important that these are 
-   are included in the global scope to reuse them
- . type, width and scale specify decimal, column width a,d coloring based on
-   multiplication of 100
- . The +check()+ method tests conditions and bails out of they are not met
- . To make processing easier we have opted to use as value names (+self.vars+)
-   the name of the postfix queues and store counts in +self.val+
+ 1. type, width and scale specify decimal, column width a,d coloring based on
+    multiplication of 100
+ 2. The +check()+ method tests conditions and bails out of they are not met
+ 3. To make processing easier we have opted to use as value names (+self.vars+)
+    the name of the postfix queues and store counts in +self.val+
 
 
 === Opening files
@@ -644,6 +669,26 @@ _/proc_, but it beats having to run a program and capturing the output.
 == Known issues
 There are some known issues that are important to understand when using Dstat.
 
+=== Writing Dstat and plugins in C
+It makes sense to reimplement Dstat or some of its plugins in C and still
+allow the writing of Python (or even Perl) plugins. Tests have shown that for
+example processing _/proc/pid_ in C makes the plugin 3 times faster. And this
+did not take into account the processing of the results and displaying the
+output.
+
+So rewriting in C makes a lot of sense, but it is also much more complicated.
+
+
+=== Python 1.5
+There used to be a Python 1.5 version of Dstat, but with RHEL2 going out of
+support in 2009 I decided to no longer spend the extra effort to sync and test
+the Dstat15 version.
+
+Leaving Python 1.5 behind means that plugins do not longer have to be
+compatible with Python 1.5 either. It is no coincedence that after this event
+a major overhaul was made to the plugin interface.
+
+
 === Counter rollovers
 Unfortunately Dstat is susceptible for counters that ``rollover''. This means
 that a counter gets bigger than its maximum value the data-structure is capable
@@ -659,16 +704,12 @@ limit, this would happen every 1.6 seconds.
 
 Since _/proc_ is updated every second, this would be impossible for Dstat to
 catch. Currently if Dstat encounters a negative difference for an interval it
-displays a dash.
-
-Obviously, if Dstat were know what the counter's maximum value is, it could
-recalculate the difference. However that is currently not implemented and does
-not guarantee a correct result either, since a negative value could be the
-result of 2 or more rollovers.
+assumes a single rollover has happened and compensates for it. If that
+assumption is wrong, the user is working with wrong counters nonetheless.
 
 If you suspect that the behaviour of your system is susceptible of counter
 rollovers, make sure you take this into account when using Dstat (or any other
-tool that uses these counters for that matter)
+tool that uses these counters for that matter).
 
 TIP: Shipped with the Dstat documentation there is a document
 (_counter-rollovers.txt_) that goes deeper into counter rollovers. If this
@@ -676,11 +717,11 @@ affects you, read that document and contact me for possible implementation
 changes to improve handling them.
 
 
-=== Dstat performance
+== Dstat performance
 As mentioned several times now, Dstat is written in python. There are various
-reasons that Python was chosen and the most important reason is that it
-simplifies writing plugins, processing counters and lowers the bar for
-people to contribute changes.
+reasons that Python was chosen and the most important reason is that we target
+system engineers and users, so we need to simplify writing plugins, processing
+counters and lowers the bar for people to contribute changes.
 
 The downside of choosing a scripting language is that it is slower than if it
 would be written in C, obviously. *Dstat is not optimised for performance.*
@@ -688,32 +729,83 @@ would be written in C, obviously. *Dstat is not optimised for performance.*
 NOTE: This may seem ironic: a performance monitoring tool that is not
 optimised for performance, but rather for flexibility. However the ease of
 writing plugins and prototyping gets precedence over performance at this time.
+On the other hand we have pretty good tools to measure the overhead of a
+single plugin and profiling infrastructure to counter any excuses for sloppy
+plugin development.
 
 
-==== Plugin performance
+=== Plugin performance
 If we look at the basic plugins, there are no real performance issues with
-Dstat. Loading Dstat takes longer than eg. vmstat, but once running, Dstat's
-performance for the same functionality is up to par with vmstat, ifstat and
-other similar tools.
+Dstat. Loading Dstat takes longer to start than eg. vmstat, but once running,
+Dstat's performance for the same functionality is up to par with vmstat,
+ifstat and other similar tools.
 
-However there are plugins that are much more resource intensive than others
-and the selection of plugins determines Dstat's performance in a major way.
+However there are *some plugins that are much more resource intensive than
+others* and the selection of plugins determines Dstat's performance in a major
+way.
 
 
-==== Debugging Dstat
-Dstat comes with a +--debug+ option that helps to find the cost of running
-plugins. The +--debug+ option show how long it takes Dstat to process the
-selected plugins.
+=== Performance monitoring Dstat
+Dstat comes with some plugins (starting with +dstat_+) to check the overhead
+of itself, this together with the selection of plugins makes it very
+convenient to measure the overhead of individual plugins. The following
+options exist (as plugins):
 
-You can see the cost of Dstat itself by simply using the +dstat_time+ plugin
-together with the +--debug+ option.
+--dstat::
+Provides cputime and latency information for Dstat. This plugin can help you
+determine how accurate and how much overhead Dstat has with its current
+plugins enabled.
+
+--dstat-cpu::
+Provides cpu utilization (user-space and kernel-space) statistics for Dstat.
+This plugin can help determine where there is some room for improvement for
+individual plugins (or Dstat itself).
+
+--dstat-ctxt::
+Provides context switch information for Dstat. Both voluntary as well ass
+involuntary context switches are shown, providing you with some idea of how
+the system is providing timeslices and how Dstat is returning the cpu to the
+system.
+
+--dstat-mem::
+Provides memory information about the Dstat process. This plugin enables
+plugin developers to determine whether Dstat is increasing its memory usage
+and therefor is 'leaking' memory over time. This plugin proved very useful in
+optimizing memory usage of the top-plugins, which typically scan all
+processes.
+
+--snooze::
+This plugin shows in milliseconds how much time is deviating from the previous
+run. Which is influenced by the time it takes for earlier stats to be
+calculated. So the output of this plugin is very dependant on the location on
+the command-line.
+
+--debug::
+This option is not a plugin, but internal to Dstat. It will cause Dstat to
+show the actual time in milliseconds from start to end at the end of each
+line. This should be more or less close to the output of the +dstat_dstat+ and
++dstat_dstat_cpu+ plugins.
++
+It also influences the internal +dstat_time+ plugin to show milliseconds
+instead of seconds, which may help showing the accuracy of Dstat itself.
+
+--profile::
+Ths option is also not a plugin, but internal to Dstat. It provides you with
+detailed profiling information at the end of each run. The default settings
+can be changed inside Dstat (or a copy) to tweak the output you are looking
+for. It creates a termporary profiling file in the current directory when
+running, but will clean it up after exit.
+
+// FIXME: Please improve the examples by using the --dstat plugins
+=== Measuring plugins
+Here is a small example of how one can measure the impact of a plugin.
 
 .The cost of running the timer plugin
 ----
 [dag@rhun dag]$ dstat -t --debug
 Module dstat_time
 -----time-----
-  date/time
+  date/time   
 19-08 20:34:21  5.90ms
 19-08 20:34:22  0.17ms
 19-08 20:34:23  0.18ms
@@ -744,7 +836,7 @@ the +dstat_top_cpu+ plugin:
 [dag@rhun dstat]$ dstat --top-cpu --debug
 Module dstat_top_cpu
 -most-expensive-
-  cpu process
+  cpu process   
 Xorg           2 43.82ms
 Xorg           1 33.23ms
 firefox-bin    2 33.54ms
@@ -764,24 +856,7 @@ information (eg. communicating with the mysql client, or processing the mail
 queue) may not actually use any local resources, but the latency causes
 Dstat to slow down processing other counters.
 
-
-==== Writing Dstat and plugins in C
-It makes sense to reimplement Dstat or some of its plugins in C and still
-allow the writing of Python (or even Perl) plugins. Tests have shown that for
-example processing _/proc/pid_ in C makes the plugin 3 times faster. And this
-did not take into account the processing of the results and displaying the
-output.
-
-So rewriting in C makes a lot of sense, but it is also much more complicated.
-
-
-=== Python 1.5
-Dstat works with python 2.0, however there is also a Dstat15 version that
-still works on python 1.5. The downside of having Dstat work on python 1.5 is
-that the external plugins cannot use the newer and more flexible python 2.0
-syntax and the differences between python 1.5 and 2.0 are considerable.
-
-NOTE: Not all plugins work properly on Python 1.5.
+// FIXME: Write about profiling infrastructure
 
 
 == Future development
@@ -790,7 +865,6 @@ ideas that have been played with. Here is a list of the most important ones:
 
  - Output
    * Changes in how Dstat colours digits within a value (the 6 in 6134B)
-   * 
  - Exporting information
    * Connecting Dstat with rrdtool
    * Exporting to syslog or remote syslog (a way to transport counters ?)
@@ -799,8 +873,6 @@ ideas that have been played with. Here is a list of the most important ones:
      benefit)
    * Add more plugins
  - Redesign Dstat
-   * Work on the plugin infrastructure, make the API more simple and
-     straightforward
    * Create an object-model and namespace for plugins and counters so that
      other tools can be based on Dstat
 

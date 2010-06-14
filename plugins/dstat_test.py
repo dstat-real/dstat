@@ -1,6 +1,9 @@
 ### Author: Dag Wieers <dag@wieers.com>
 
 class dstat_plugin(dstat):
+    '''
+    Provides a test playground to test syntax and structure.
+    '''
     def __init__(self):
         self.name = 'test'
         self.nick = ( 'f1', 'f2' )

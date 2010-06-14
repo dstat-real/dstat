@@ -6,7 +6,8 @@ class dstat_plugin(dstat):
 
     The various values provide information about the memory usage of the
     dstat process. This plugin gives you the possibility to follow memory
-    usage changes of dstat over time.
+    usage changes of dstat over time. It may help to vizualise the
+    performance of Dstat and its selection of plugins.
     """
     def __init__(self):
         self.name = 'dstat memory usage'

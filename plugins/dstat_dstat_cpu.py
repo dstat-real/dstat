@@ -2,11 +2,14 @@
 
 class dstat_plugin(dstat):
     """
-    Provide memory information related to the dstat process.
+    Provide CPU information related to the dstat process.
 
-    The various values provide information about the memory usage of the
-    dstat process. This plugin gives you the possibility to follow memory
-    usage changes of dstat over time.
+    This plugin shows the CPU utilization for the dstat process itself,
+    including the user-space and system-space (kernel) utilization and
+    a total of both. On a system with one cpu and one core, the total
+    cputime is 1000ms. On a system with 2 cores the total is 2000ms.
+    It may help to vizualise the performance of Dstat and its selection
+    of plugins.
     """
     def __init__(self):
         self.name = 'dstat cpu'

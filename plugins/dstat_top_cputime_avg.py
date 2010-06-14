@@ -1,6 +1,3 @@
-### Dstat most expensive I/O process plugin
-### Displays the name of the most expensive I/O process
-###
 ### Authority: dag@wieers.com
 
 ### For more information, see:

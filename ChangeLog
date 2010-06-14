@@ -1,4 +1,4 @@
-* 0.7.2 - Real soon now - release 10/06/2010
+* 0.7.2 - Real soon now - release 14/06/2010
 - Added external dstat_disk_tps plugin to show transactions per second
 - Added support for filtering /dev/vdaX devices (KVM virtio)
 - Added external dstat_squid plugin to show squid counters (Jason Friedland)
@@ -18,6 +18,7 @@
 - Make top-plugins free memory for processes that no longer exist
 - Added external dstat_top_int plugin to show most frequent interrupt by name
 - Fixed python 2.6 string exception issue (Dbt 585219)
+- Documentation improvements
 
 * 0.7.1 - Just the three of us - release 22/02/2010
 - Fix external plugins on python 2.2 and older (eg. RHEL3)

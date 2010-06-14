@@ -6,7 +6,8 @@ class dstat_plugin(dstat):
 
     The dstat cputime is the total cputime dstat requires per second. On a
     system with one cpu and one core, the total cputime is 1000ms. On a system
-    with 2 cores the total is 2000ms.
+    with 2 cores the total is 2000ms. It may help to vizualise the performance
+    of Dstat and its selection of plugins.
     """
     def __init__(self):
         self.name = 'dstat'

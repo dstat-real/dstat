@@ -1,6 +1,5 @@
-# Dstat plugin for measuring various squid statistics.
-# Author: Jason Friedland <thesuperjason@gmail.com>
-#
+### Authority: Jason Friedland <thesuperjason@gmail.com>
+
 # This plugin has been tested with:
 # - Dstat 0.6.7
 # - CentOS release 5.4 (Final)
@@ -11,6 +10,9 @@ global squidclient_options
 squidclient_options = os.getenv('DSTAT_SQUID_OPTS') # -p 8080
  
 class dstat_plugin(dstat):
+    '''
+    Provides various Squid statistics.
+    '''
     def __init__(self):
         self.name = 'squid status'
         self.type = 's'

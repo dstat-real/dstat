@@ -2,11 +2,9 @@
 
 class dstat_plugin(dstat):
     """
-    Percentage of bandwidth utilization for block devices.
+    Number of read and write transactions per device.
 
-    Displays percentage of CPU time during which I/O requests were issued
-    to the device (bandwidth utilization for the device). Device saturation
-    occurs when this value is close to 100%.
+    Displays the number of read and write I/O transactions per device.
     """
 
     def __init__(self):
