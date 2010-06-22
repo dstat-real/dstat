@@ -17,7 +17,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.access('/proc/self/schedstat', os.R_OK):
-            raise Exception, 'Kernel has no scheduler statistics, use at least 2.6.12'
+            raise Exception, 'Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12'
 
     def extract(self):
         self.output = ''

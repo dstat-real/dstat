@@ -16,7 +16,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.access('/proc/self/io', os.R_OK):
-            raise Exception, 'Kernel has no I/O accounting, use at least 2.6.20'
+            raise Exception, 'Kernel has no per-process I/O accounting, use at least 2.6.20'
 
     def extract(self):
         self.output = ''

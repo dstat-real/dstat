@@ -1,3 +1,6 @@
+* 0.7.2svn - ... - release 17/06/2010
+- Provide kernel configuration options to error mesages where possible
+
 * 0.7.2 - Real soon now - release 15/06/2010
 - Added external dstat_disk_tps plugin to show transactions per second
 - Added support for filtering /dev/vdaX devices (KVM virtio)

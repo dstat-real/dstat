@@ -22,7 +22,7 @@ try:
 except KeyboardInterrupt:
     pass
 
-VERSION = '0.7.2'
+VERSION = '0.7.2svn'
 
 theme = { 'default': '' }
 
@@ -749,7 +749,7 @@ class dstat_disk24(dstat):
         self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+)')
         self.open('/proc/partitions')
         if self.fd and not self.discover:
-            raise Exception, 'Kernel is not compiled with CONFIG_BLK_STATS'
+            raise Exception, 'Kernel has no per-partition I/O accounting [CONFIG_BLK_STATS], use at least 2.4.20'
         self.cols = 2
 
     def discover(self, *objlist):

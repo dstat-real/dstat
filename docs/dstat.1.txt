@@ -443,7 +443,7 @@ Paths that may contain external dstat_*.py plugins:
 == SEE ALSO
 
 === Performance tools
-    ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, vmstat(1), xosview(1)
+    ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, powertop(1), vmstat(1), xosview(1)
 
 === Debugging tools
     htop(1), lslk(1), lsof(8), top(1)
