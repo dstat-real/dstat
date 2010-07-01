@@ -231,6 +231,9 @@ Here is an overview of the plugins dstat ships with:
 --lustre::
     show lustre I/O throughput
 
+--md-status::
+    show software raid (md) progress and speed
+
 --memcache-hits::
     show the number of hits and misses from memcache
 

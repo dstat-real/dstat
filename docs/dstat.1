@@ -2,7 +2,7 @@
 .\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
 .\" Instead of manually editing it, you probably should edit the DocBook XML
 .\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
-.TH "DSTAT" "1" "06/15/2010" "\  0.7.0" "\ "
+.TH "DSTAT" "1" "07/01/2010" "\  0.7.0" "\ "
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -224,6 +224,9 @@ show innodb operations counters
 \-\-lustre
 show lustre I/O throughput
 .TP
+\-\-md\-status
+show software raid (md) progress and speed
+.TP
 \-\-memcache\-hits
 show the number of hits and misses from memcache
 .TP
@@ -432,7 +435,7 @@ Paths that may contain external dstat_*.py plugins:
 .SS "Performance tools"
 .sp
 .nf
-ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, vmstat(1), xosview(1)
+ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, powertop(1), vmstat(1), xosview(1)
 .fi
 .SS "Debugging tools"
 .sp
