@@ -1613,6 +1613,7 @@ def set_theme():
             'roundtrip': ansi['darkblue'],
             'debug': ansi['darkred'],
             'input': ansi['darkgray'],
+            'done': ansi['gray'],
             'text_lo': ansi['black'],
             'text_hi': ansi['darkgray'],
             'unit_lo': ansi['black'],
@@ -1632,6 +1633,7 @@ def set_theme():
             'roundtrip': ansi['darkblue'],
             'debug': ansi['darkred'],
             'input': ansi['darkgray'],
+            'done': ansi['white'],
             'text_lo': ansi['gray'],
             'text_hi': ansi['darkgray'],
             'unit_lo': ansi['darkgray'],
@@ -1921,10 +1923,12 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
         color = cunit
     elif scale <= 0:
         color = ctext
+    elif type in ('p') and round(var) >= 100.0:
+        color = theme['done']
+#    elif type in ('p'):
+#        color = colors[int(round(var)/scale)%len(colors)]
     elif scale not in (1000, 1024):
         color = colors[int(var/scale)%len(colors)]
-    elif type in ('p'):
-        color = colors[int(round(var)/scale)%len(colors)]
     elif type in ('d', 'f'):
         color = colors[c%len(colors)]
     else:
