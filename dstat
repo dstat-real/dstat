@@ -1613,15 +1613,16 @@ def set_theme():
             'roundtrip': ansi['darkblue'],
             'debug': ansi['darkred'],
             'input': ansi['darkgray'],
-            'done': ansi['gray'],
+            'done_lo': ansi['black'],
+            'done_hi': ansi['darkgray'],
             'text_lo': ansi['black'],
             'text_hi': ansi['darkgray'],
             'unit_lo': ansi['black'],
             'unit_hi': ansi['darkgray'],
             'colors_lo': (ansi['darkred'], ansi['darkmagenta'], ansi['darkgreen'], ansi['darkblue'],
-                          ansi['darkcyan'], ansi['gray'], ansi['red'], ansi['green']),
+                          ansi['darkcyan'], ansi['black'], ansi['red'], ansi['green']),
             'colors_hi': (ansi['red'], ansi['magenta'], ansi['green'], ansi['blue'],
-                          ansi['cyan'], ansi['white'], ansi['darkred'], ansi['darkgreen']),
+                          ansi['cyan'], ansi['darkgray'], ansi['darkred'], ansi['darkgreen']),
         }
     else:
         theme = {
@@ -1633,7 +1634,8 @@ def set_theme():
             'roundtrip': ansi['darkblue'],
             'debug': ansi['darkred'],
             'input': ansi['darkgray'],
-            'done': ansi['white'],
+            'done_lo': ansi['white'],
+            'done_hi': ansi['gray'],
             'text_lo': ansi['gray'],
             'text_hi': ansi['darkgray'],
             'unit_lo': ansi['darkgray'],
@@ -1897,10 +1899,12 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
         colors = theme['colors_lo']
         ctext = theme['text_lo']
         cunit = theme['unit_lo']
+        cdone = theme['done_lo']
     else:
         colors = theme['colors_hi']
         ctext = theme['text_hi']
         cunit = theme['unit_hi']
+        cdone = theme['done_hi']
 
     ### Convert value to string given base and field-length
     if op.integer and type in ('d', 'p', 'f'):
@@ -1924,7 +1928,7 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     elif scale <= 0:
         color = ctext
     elif type in ('p') and round(var) >= 100.0:
-        color = theme['done']
+        color = cdone
 #    elif type in ('p'):
 #        color = colors[int(round(var)/scale)%len(colors)]
     elif scale not in (1000, 1024):

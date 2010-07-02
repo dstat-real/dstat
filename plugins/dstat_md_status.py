@@ -14,7 +14,7 @@ class dstat_plugin(dstat):
     """
 
     def __init__(self):
-        self.name = 'raid'
+        self.name = 'sw raid'
         self.type = 's'
         self.scale = 0
         self.nick = ('pct speed', )
@@ -37,7 +37,6 @@ class dstat_plugin(dstat):
                 pct += int(l[3][0:2].strip('.%'))
                 speed += int(l[6].strip('sped=K/sc')) * 1024
         if nr:
-            speed = speed / nr
             pct = pct / nr
         else:
             pct = 100
