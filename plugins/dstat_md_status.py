@@ -4,13 +4,12 @@ class dstat_plugin(dstat):
     """
     Recovery state of software RAID rebuild.
 
-    Prints completed recovery percentage and rebuild speed
-    of the md device that is actively being recovered or
-    resynced.
-    If no devices are being rebuilt, it displays 100%, 0B
+    Prints completed recovery percentage and rebuild speed of the md device
+    that is actively being recovered or resynced.
 
-    Known issues: if multiple md devices are being rebuilt
-    at the same time, it only displays the last one.
+    If no devices are being rebuilt, it displays 100%, 0B. If instead
+    multiple devices are being rebuilt, it displays the total progress
+    and total throughput.
     """
 
     def __init__(self):
