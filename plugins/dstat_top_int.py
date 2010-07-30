@@ -12,7 +12,7 @@ class dstat_plugin(dstat):
         self.type = 's'
         self.width = 20
         self.scale = 0
-        self.intset1 = [ 0 ] * 256
+        self.intset1 = [ 0 ] * 512
         self.open('/proc/stat')
         self.names = self.names()
 
