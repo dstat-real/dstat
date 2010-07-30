@@ -31,7 +31,7 @@ class dstat_plugin(dstat):
         nr = 0
         for l in self.splitlines():
             if len(l) < 2: continue
-            if l[1] in ('recovery', 'resync'):
+            if l[1] in ('recovery', 'reshape', 'resync'):
                 nr += 1
                 pct += int(l[3][0:2].strip('.%'))
                 speed += int(l[6].strip('sped=K/sc')) * 1024
