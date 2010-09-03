@@ -20,7 +20,7 @@ class dstat_plugin(dstat):
             if l[2] in ('binfmt_misc', 'devpts', 'iso9660', 'none', 'proc', 'sysfs', 'usbfs'): continue
             ### FIXME: Excluding 'none' here may not be what people want (/dev/shm)
             if l[0] in ('devpts', 'none', 'proc', 'sunrpc', 'usbfs'): continue
-            name = l[1] 
+            name = l[1]
             res = os.statvfs(name)
             if res[0] == 0: continue ### Skip zero block filesystems
             ret.append(name)
