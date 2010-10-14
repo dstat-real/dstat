@@ -17,7 +17,7 @@
 from __future__ import generators
 
 try:
-    import sys, os, time, sched, re, getopt
+    import sys, os, time, sched, re, getopt, fnmatch
     import types, resource, getpass, glob, linecache
 except KeyboardInterrupt:
     pass
@@ -234,6 +234,9 @@ class Options:
             print 'dstat: delay must be an integer, greater than zero'
             sys.exit(1)
 
+        if self.debug:
+            print 'Plugins: %s' % self.plugins
+
     def version(self):
         print 'Dstat %s' % VERSION
         print 'Written by Dag Wieers <dag@wieers.com>'
@@ -296,6 +299,8 @@ Dstat options:
   --udp                  enable udp stats
   --unix                 enable unix stats
   --vm                   enable vm stats
+  --vm-adv               enable advanced vm stats
+  --zones                enable zoneinfo stats
 
   --plugin-name          enable plugins by plugin name (see manual)
   --list                 list all available plugins
@@ -736,7 +741,7 @@ class dstat_disk(dstat):
             for diskset in self.vars:
                 if diskset in op.diskset.keys():
                     for disk in op.diskset[diskset]:
-                        if re.match('^'+disk+'$', name):
+                        if fnmatch.fnmatch(name, disk):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[5]), self.set2[diskset][1] + long(l[9]) )
         for name in self.set2.keys():
             self.val[name] = (
@@ -800,7 +805,7 @@ class dstat_disk24(dstat):
             for diskset in self.vars:
                 if diskset in op.diskset.keys():
                     for disk in op.diskset[diskset]:
-                        if re.match('^'+disk+'$', name):
+                        if fnmatch.fnmatch(name, disk):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[6]), self.set2[diskset][1] + long(l[10]) )
         for name in self.set2.keys():
             self.val[name] = (
@@ -811,7 +816,7 @@ class dstat_disk24(dstat):
             self.set1.update(self.set2)
 
 ### FIXME: Needs rework, does anyone care ?
-class dstat_disk24old(dstat):
+class dstat_disk24_old(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'b'
@@ -879,7 +884,7 @@ class dstat_disk24old(dstat):
                 for diskset in self.vars:
                     if diskset in op.diskset.keys():
                         for disk in op.diskset[diskset]:
-                            if re.match('^'+disk+'$', name):
+                            if fnmatch.fnmatch(name, disk):
                                 self.set2[diskset] = ( self.set2[diskset][0] + long(l[2]), self.set2[diskset][1] + long(l[3]) )
             break
         for name in self.set2.keys():
@@ -1116,7 +1121,7 @@ class dstat_io(dstat):
             for diskset in self.vars:
                 if diskset in op.diskset.keys():
                     for disk in op.diskset[diskset]:
-                        if re.match('^'+disk+'$', name):
+                        if fnmatch.fnmatch(name, disk):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
         for name in self.set2.keys():
             self.val[name] = (
@@ -1404,7 +1409,7 @@ class dstat_swap(dstat):
             self.val[name] = ( long(l[3]) * 1024.0, (long(l[2]) - long(l[3])) * 1024.0 )
             self.val['total'] = ( self.val['total'][0] + self.val[name][0], self.val['total'][1] + self.val[name][1])
 
-class dstat_swapold(dstat):
+class dstat_swap_old(dstat):
     def __init__(self):
         self.name = 'swap'
         self.nick = ('used', 'free')
@@ -1522,26 +1527,63 @@ class dstat_vm(dstat):
     def __init__(self):
         self.name = 'virtual memory'
         self.nick = ('majpf', 'minpf', 'alloc', 'free')
-        self.vars = ('pgmajfault', 'pgfault', 'pgalloc', 'pgfree')
+        ### Page allocations should include all page zones, not just ZONE_NORMAL,
+        ### but also ZONE_DMA, ZONE_HIGHMEM, ZONE_DMA32 (depending on architecture)
+        self.vars = ('pgmajfault', 'pgfault', 'pgalloc_*', 'pgfree')
         self.type = 'd'
         self.width = 5
         self.scale = 1000
         self.open('/proc/vmstat')
 
-    ### Page allocations should include all page zones, not just ZONE_NORMAL,
-    ### but also ZONE_DMA, ZONE_HIGHMEM, ZONE_DMA32 (depending on architecture)
     def extract(self):
-        self.set2['pgalloc'] = 0
+        for name in self.vars:
+            self.set2[name] = 0
         for l in self.splitlines():
             if len(l) < 2: continue
-            if l[0].startswith('pgalloc_'):
-                self.set2['pgalloc'] += long(l[1])
-            elif l[0] in self.vars:
-                self.set2[l[0]] = long(l[1])
+            for name in self.vars:
+                if fnmatch.fnmatch(l[0], name):
+                    self.set2[name] += long(l[1])
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
         if step == op.delay:
             self.set1.update(self.set2)
+
+class dstat_vm_adv(dstat_vm):
+    def __init__(self):
+        self.name = 'advanced virtual memory'
+        self.nick = ('steal', 'scanK', 'scanD', 'pgoru', 'astll')
+        self.vars = ('pgsteal_*', 'pgscan_kswapd_*', 'pgscan_direct_*', 'pageoutrun', 'allocstall')
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1000
+        self.open('/proc/vmstat')
+
+class dstat_zones(dstat):
+    def __init__(self):
+        self.name = 'zones memory'
+#        self.nick = ('dmaF', 'dmaH', 'd32F', 'd32H', 'movaF', 'movaH')
+#        self.vars = ('DMA_free', 'DMA_high', 'DMA32_free', 'DMA32_high', 'Movable_free', 'Movable_high')
+        self.nick = ('d32F', 'd32H', 'normF', 'normH')
+        self.vars = ('DMA32_free', 'DMA32_high', 'Normal_free', 'Normal_high')
+        self.type = 'd'
+        self.width = 5
+        self.scale = 1000
+        self.open('/proc/zoneinfo')
+
+    ### Page allocations should include all page zones, not just ZONE_NORMAL,
+    ### but also ZONE_DMA, ZONE_HIGHMEM, ZONE_DMA32 (depending on architecture)
+    def extract(self):
+        for l in self.splitlines():
+            if len(l) < 2: continue
+            if l[0].startswith('Node'):
+                zone = l[3]
+                found_high = 0
+            if l[0].startswith('pages'):
+                self.val[zone+'_free'] = long(l[2])
+            if l[0].startswith('high') and not found_high:
+                self.val[zone+'_high'] = long(l[1])
+                found_high = 1
+
 
 ### END STATS DEFINITIONS ###
 
@@ -2058,8 +2100,11 @@ def gettermcolor(color=True):
             curses.setupterm()
             if curses.tigetnum('colors') < 0:
                 return False
+        except ImportError:
+            print >>sys.stderr, 'Color support is disabled as python-curses is not installed.'
+            return False
         except:
-            print >>sys.stderr, 'Color support is disabled, python-curses is not installed.'
+            print >>sys.stderr, 'Color support is disabled as terminal (TERM=%s) does not support colors.' % os.getenv('TERM')
             return False
     return color
 
@@ -2199,7 +2244,7 @@ def listplugins():
     remod = re.compile('dstat_(.+)$')
     for filename in globals():
         if filename.startswith('dstat_'):
-            plugins.append(remod.match(filename).groups()[0])
+            plugins.append(remod.match(filename).groups()[0].replace('_', '-'))
     remod = re.compile('.+/dstat_(.+).py$')
     for path in pluginpath:
         for filename in glob.glob(path + '/dstat_*.py'):
@@ -2352,10 +2397,10 @@ def main():
 
         ### Set up fallback lists
         if plugin == 'cpu':  mods = ( 'cpu', 'cpu24' )
-        elif plugin == 'disk': mods = ( 'disk', 'disk24', 'disk24old' )
+        elif plugin == 'disk': mods = ( 'disk', 'disk24', 'disk24-old' )
         elif plugin == 'int':  mods = ( 'int', 'int24' )
         elif plugin == 'page': mods = ( 'page', 'page24' )
-        elif plugin == 'swap': mods = ( 'swap', 'swapold' )
+        elif plugin == 'swap': mods = ( 'swap', 'swap-old' )
         else: mods = ( plugin, )
 
         for mod in mods:
