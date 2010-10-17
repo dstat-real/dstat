@@ -13,14 +13,14 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 ### Usability
 + Add --config option and use /etc/dstat.conf and ~/.dstat to influence output (see example dstat.conf)
 + Allow to force to given magnitude (--unit=kilo)
-+ Look at possibilities to show deviation (on second line ?)
-+ Check for dark/light background color and change colors accordingly (see dstat.conf)
++ Look at possibilities to show deviation (on second line ? not practical)
++ Check for dark/light background color and change colors accordingly (option --bw/--blackonwhite)
 + Show parts of counters in other colors (eg. color the 6 in 6134B in yellow to indicate it's kilobyte)
 + Look into adding sched_setscheduler() calls for improved priority
 
 ### General improvements
 + Implement better (?) protection against counter rollovers
-  (see mail from Sebastien Prud'homme/Ross Brattain)
+  (see mail from Sebastien Prud'homme/Ross Brattain, already improved in meantime)
 
 ### Documentation (help welcome!)
 + Document every plugin as part of python comments (explain unit, what it means etc...)
@@ -34,8 +34,9 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Interface with rrdtool (python-rrd ?)
 + Allow for different types of export modules (only CSV now)
   - ODS could include graphs for plugins !
+  - HTML output plugin helps for people sharing output on websites
 + Allow to write out to syslog (or remote syslog)
-+ Allow to write unbuffered to disk
++ Allow to write buffered to disk (optional ?)
 + Write out user input to CSV
 
 ### Plugin improvements
@@ -63,7 +64,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Add systemtap/perf integration
 
 ### Plugin issues
-+ plugins that use /proc/pid are reasonably slow (implement in C might help)
++ plugins that use /proc/pid/stats are reasonably slow (implement in C might help)
 + disk plugin: /proc/partitions can have negative numbers, seen on systems with long uptime. dstat handles this except for calculating the very first stat, no work-around possible?
 + proc plugin: (run and blk) does not work on 2.4.24+ (to be confirmed ?)
 + swap plugin: (new one) is slower than swapold

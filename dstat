@@ -12,7 +12,7 @@
 ### You should have received a copy of the GNU Library General Public License
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-### Copyright 2004-2007 Dag Wieers <dag@wieers.com>
+### Copyright 2004-2010 Dag Wieers <dag@wieers.com>
 
 from __future__ import generators
 
@@ -2104,7 +2104,7 @@ def gettermcolor(color=True):
             print >>sys.stderr, 'Color support is disabled as python-curses is not installed.'
             return False
         except:
-            print >>sys.stderr, 'Color support is disabled as terminal (TERM=%s) does not support colors.' % os.getenv('TERM')
+            print >>sys.stderr, 'Color support is disabled as curses does not find terminal "%s".' % os.getenv('TERM')
             return False
     return color
 
@@ -2353,7 +2353,7 @@ def main():
     ### Check terminal capabilities
     op.color = gettermcolor(op.color)
 
-    ### Prepare CSV output file
+    ### Prepare CSV output file (unbuffered)
     if op.output:
         if os.path.exists(op.output):
             outputfile = open(op.output, 'a', 0)
@@ -2579,6 +2579,7 @@ def perform(update):
         sys.stdout.write(line + theme['input'])
         if op.output and step == op.delay:
             outputfile.write(oline + '\n')
+#            outputfile.flush()
 
         ### Print debugging output
         if op.debug:
