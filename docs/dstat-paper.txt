@@ -246,7 +246,7 @@ into Dstat. A set of 'external' modules exist for:
     - mysql5-keys: MySQL keys counters
     - mysql-io: MySQL I/O counters
     - mysql-ops: MySQL operations counters
-    - net-mackets: number of packets received and transmitted
+    - net-packets: number of packets received and transmitted
     - nfs3: NFS3 client counters
     - nfs3-ops: NFS3 client operations counters
     - nfsd3: NFS3 server counters

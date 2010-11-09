@@ -11,7 +11,7 @@ class dstat_plugin(dstat):
         self.open('/proc/net/rpc/nfs')
 
     def check(self):
-        info(1, 'Module %s is still experimental.') % self.filename
+        info(1, 'Module %s is still experimental.' % self.filename)
 
     def extract(self):
         for l in self.splitlines():
