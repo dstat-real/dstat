@@ -8,7 +8,7 @@
 - Added internal dstat_vm_adv plugin to show advanced VM counters (Pallai Roland)
 - Added internal dstat_zones plugin to show zoneinfo counters (Pallai Roland)
 - Fix warning message when colors are disabled because TERM is not found (Ulp 660181)
-- Fix typo in dstat_nfs3_ops (Chris Larsson)
+- Fix typo in dstat_nfs3_ops and dstat_nfsd3_ops (Chris Larsson)
 
 * 0.7.2 - Real soon now - release 15/06/2010
 - Added external dstat_disk_tps plugin to show transactions per second
