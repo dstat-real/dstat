@@ -452,13 +452,13 @@ Paths that may contain external dstat_*.py plugins:
 == SEE ALSO
 
 === Performance tools
-    ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, powertop(1), vmstat(1), xosview(1)
+    ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat(8), powertop(1), vmstat(1), xosview(1)
 
 === Debugging tools
     htop(1), lslk(1), lsof(8), top(1)
 
 === Process tracing
-    ltrace(1), pmap(1), ps(1), pstack(1), strace(1)
+    ltrace(1), pidstat(1), pmap(1), ps(1), pstack(1), strace(1)
 
 === Binary debugging
     ldd(1), file(1), nm(1), objdump(1), readelf(1)
@@ -467,7 +467,7 @@ Paths that may contain external dstat_*.py plugins:
     free(1), memusage, memusagestat, slabtop(1)
 
 === Accounting tools
-    dump-acct, dump-utmp, sa(8)
+    acct(2), dump-acct(8), dump-utmp(8), lastcomm(1), sa(8)
 
 === Hardware debugging tools
     dmidecode, ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
