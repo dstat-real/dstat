@@ -509,12 +509,12 @@ class dstat:
         if hasattr(self, 'output'):
             return cprint(self.output, self.type, self.width, self.scale)
         for i, name in enumerate(self.vars):
-            ### Make sure we don't show more values than we have nicknames
-            if i >= len(self.nick): break
             if isinstance(self.val[name], types.TupleType) or isinstance(self.val[name], types.ListType):
                 line = line + cprintlist(self.val[name], self.type, self.width, self.scale)
                 sep = theme['frame'] + char['colon']
             else:
+                ### Make sure we don't show more values than we have nicknames
+                if i >= len(self.nick): break
                 line = line + cprint(self.val[name], self.type, self.width, self.scale)
                 sep = char['space']
             if i + 1 != len(self.vars):
