@@ -10,6 +10,7 @@
 - Fix warning message when colors are disabled because TERM is not found (Ulp 660181)
 - Fix typo in dstat_nfs3_ops and dstat_nfsd3_ops (Chris Larsson)
 - Added external dstat_mem_adv plugin so show advanced memory counters (Damon Snyder)
+- Allow more variables (self.vars) than nicknames (self.nick) to simplify plugins
 
 * 0.7.2 - Real soon now - release 15/06/2010
 - Added external dstat_disk_tps plugin to show transactions per second
