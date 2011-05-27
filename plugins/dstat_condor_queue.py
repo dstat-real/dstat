@@ -2,6 +2,11 @@
 
 ### Condor queue plugin
 ### Display information about jobs in queue (using condor_q(1))
+###
+### WARNING: with many jobs in the queue, the condor_q might take quite
+### some time to execute and use quite a bit of resources. Consider
+### using a longer delay.
+
 import os
 import re
 
@@ -72,10 +77,8 @@ class dstat_plugin(dstat):
     Plugin for Condor queue stats
     """
 
-    global CONDOR_STATUS
-    CONDOR_STATUS = 'condor_status'
-    global CONDOR_STATUS_ARGS
-    CONDOR_STATUS_ARGS = r' -schedd -format "%d:" TotalIdleJobs -format "%d:" TotalRunningJobs -format "%d\n" TotalHeldJobs'
+    global CONDOR_Q_STAT_PATTER
+    CONDOR_Q_STAT_PATTER = re.compile(r'(\d+) jobs; (\d+) idle, (\d+) running, (\d+) held')
 
     def __init__(self):
         self.name = 'condor queue'
@@ -95,7 +98,7 @@ class dstat_plugin(dstat):
         if bin_dir == None:
             raise Exception, 'Unable to find BIN directory in condor config file %s' % config_file
 
-        self.condor_status_cmd = os.path.join(bin_dir, CONDOR_STATUS)
+        self.condor_status_cmd = os.path.join(bin_dir, 'condor_q')
 
         if not os.access(self.condor_status_cmd, os.X_OK):
             raise Exception, 'Needs %s in the path' % self.condor_status_cmd
@@ -103,15 +106,16 @@ class dstat_plugin(dstat):
         return True
 
     def extract(self):
-        cmd = self.condor_status_cmd+CONDOR_STATUS_ARGS
-        stats = cmd_splitlines(cmd,':').next()
-        if len(stats) != 3:
-           raise Exception, 'Invalid output from %s. Expected: \d+:\d+\d+, got: %s' % (cmd, stats)
+        last_line = None
+        for last_line in cmd_readlines(self.condor_status_cmd):
+            pass
 
-        stats = [int(s.strip()) for s in stats]
-        for i,j in enumerate(self.vars[1:]):
+        m = CONDOR_Q_STAT_PATTER.match(last_line)
+        if m == None:
+           raise Exception, 'Invalid output from %s. Got: %s' % (cmd, last_line)
+
+        stats = [int(s.strip()) for s in m.groups()]
+        for i,j in enumerate(self.vars):
             self.val[j] = stats[i]
-
-        self.val['jobs'] = sum(stats)
 
 # vim:ts=4:sw=4:et
