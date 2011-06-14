@@ -102,8 +102,15 @@ class dstat_plugin(dstat):
 
         if not os.access(self.condor_status_cmd, os.X_OK):
             raise Exception, 'Needs %s in the path' % self.condor_status_cmd
-        cmd_test(self.condor_status_cmd)
-        return True
+        else:
+            try:
+                p = os.popen(self.condor_status_cmd+' 2>&1 /dev/null')
+                ret = p.close()
+                if ret:
+                    raise Exception, 'Cannot interface with Condor - condor_q returned != 0?'
+            except IOError:
+                raise Exception, 'Unable to execute %s' % self.condor_status_cmd
+            return True
 
     def extract(self):
         last_line = None
