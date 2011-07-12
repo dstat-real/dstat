@@ -114,15 +114,21 @@ class dstat_plugin(dstat):
 
     def extract(self):
         last_line = None
-        for last_line in cmd_readlines(self.condor_status_cmd):
-            pass
 
-        m = CONDOR_Q_STAT_PATTER.match(last_line)
-        if m == None:
-           raise Exception, 'Invalid output from %s. Got: %s' % (cmd, last_line)
+        try:
+	    for repeats in range(3):
+                for last_line in cmd_readlines(self.condor_status_cmd):
+                    pass
 
-        stats = [int(s.strip()) for s in m.groups()]
-        for i,j in enumerate(self.vars):
-            self.val[j] = stats[i]
+                m = CONDOR_Q_STAT_PATTER.match(last_line)
+                if m == None:
+                    raise Exception, 'Invalid output from %s. Got: %s' % (cmd, last_line)
+
+                stats = [int(s.strip()) for s in m.groups()]
+                for i,j in enumerate(self.vars):
+                    self.val[j] = stats[i]
+        except Exception:
+            for name in self.vars:
+                self.val[name] = -1
 
 # vim:ts=4:sw=4:et
