@@ -44,7 +44,8 @@ information.
     interrupt)
 
 -C 0,3,total::
-    include cpu0, cpu3 and total (when using -c/--cpu)
+    include cpu0, cpu3 and total (when using -c/--cpu); use 'all' to show all
+    CPUs
 
 -d, --disk::
     enable disk stats (read, write)

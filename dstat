@@ -590,17 +590,17 @@ class dstat_cpu(dstat):
 
     def vars(self):
         ret = []
-        if op.cpulist:
-            varlist = op.cpulist
-        elif not op.full:
-            varlist = ('total',)
-        else:
+        if op.cpulist and 'all' in op.cpulist:
             varlist = []
             cpu = 0
             while cpu < cpunr:
                 varlist.append(str(cpu))
                 cpu = cpu + 1
 #           if len(varlist) > 2: varlist = varlist[0:2]
+        elif op.cpulist:
+            varlist = op.cpulist
+        else:
+            varlist = ('total',)
         for name in varlist:
             if name in self.discover + ['total']:
                 ret.append(name)
@@ -651,17 +651,17 @@ class dstat_cpu24(dstat):
 
     def vars(self):
         ret = []
-        if op.cpulist:
-            varlist = op.cpulist
-        elif not op.full:
-            varlist = ('total',)
-        else:
+        if op.cpulist and 'all' in op.cpulist:
             varlist = []
             cpu = 0
             while cpu < cpunr:
                 varlist.append(str(cpu))
                 cpu = cpu + 1
 #           if len(varlist) > 2: varlist = varlist[0:2]
+        elif op.cpulist:
+            varlist = op.cpulist
+        else:
+            varlist = ('total',)
         for name in varlist:
             if name in self.discover + ['total']:
                 ret.append(name)
@@ -2338,7 +2338,7 @@ def main():
         shell = os.getenv('XTERM_SHELL')
         term = os.getenv('TERM')
         if shell == '/bin/bash' and term and re.compile('(screen*|xterm*)').match(term):
-            sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname, os.path.basename(sys.argv[0]), ' '.join(op.args)))
+            sys.stdout.write('\033]0;(%s@%s) %s %s\007' % (user, hostname.split('.')[0], os.path.basename(sys.argv[0]), ' '.join(op.args)))
 
     ### Check background color (rxvt)
     ### COLORFGBG="15;default;0"

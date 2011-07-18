@@ -1,501 +1,861 @@
-.\" ** You probably do not want to edit this file directly **
-.\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
-.\" Instead of manually editing it, you probably should edit the DocBook XML
-.\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
-.TH "DSTAT" "1" "07/01/2010" "\  0.7.0" "\ "
+'\" t
+.\"     Title: dstat
+.\"    Author: Dag Wieers <dag@wieers.com>
+.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\"      Date: November 2009
+.\"    Manual: \ \&
+.\"    Source: \ \& 0.7.0
+.\"  Language: English
+.\"
+.TH "DSTAT" "1" "November 2009" "\ \& 0\&.7\&.0" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
 .ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
 .SH "NAME"
 dstat \- versatile tool for generating system resource statistics
 .SH "SYNOPSIS"
-dstat [\-afv] [options..] [delay [count]]
 .sp
+dstat [\-afv] [options\&.\&.] [delay [count]]
 .SH "DESCRIPTION"
-Dstat is a versatile replacement for vmstat, iostat and ifstat. Dstat overcomes some of the limitations and adds some extra features.
 .sp
-Dstat allows you to view all of your system resources instantly, you can eg. compare disk usage in combination with interrupts from your IDE controller, or compare the network bandwidth numbers directly with the disk throughput (in the same interval).
+Dstat is a versatile replacement for vmstat, iostat and ifstat\&. Dstat overcomes some of the limitations and adds some extra features\&.
 .sp
-Dstat also cleverly gives you the most detailed information in columns and clearly indicates in what magnitude and unit the output is displayed. Less confusion, less mistakes, more efficient.
+Dstat allows you to view all of your system resources instantly, you can eg\&. compare disk usage in combination with interrupts from your IDE controller, or compare the network bandwidth numbers directly with the disk throughput (in the same interval)\&.
 .sp
-Dstat is unique in letting you aggregate block device throughput for a certain diskset or network bandwidth for a group of interfaces, ie. you can see the throughput for all the block devices that make up a single filesystem or storage system.
+Dstat also cleverly gives you the most detailed information in columns and clearly indicates in what magnitude and unit the output is displayed\&. Less confusion, less mistakes, more efficient\&.
 .sp
-Dstat allows its data to be directly written to a CSV file to be imported and used by OpenOffice, Gnumeric or Excel to create graphs.
+Dstat is unique in letting you aggregate block device throughput for a certain diskset or network bandwidth for a group of interfaces, ie\&. you can see the throughput for all the block devices that make up a single filesystem or storage system\&.
 .sp
+Dstat allows its data to be directly written to a CSV file to be imported and used by OpenOffice, Gnumeric or Excel to create graphs\&.
+.if n \{\
 .sp
+.\}
+.RS 4
 .it 1 an-trap
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
+.ps +1
 \fBNote\fR
-Users of Sleuthkit might find Sleuthkit\(cqs dstat being renamed to datastat to avoid a name conflict. See Debian bug #283709 for more information.
+.ps -1
+.br
 .sp
+Users of Sleuthkit might find Sleuthkit\(cqs dstat being renamed to datastat to avoid a name conflict\&. See Debian bug #283709 for more information\&.
+.sp .5v
+.RE
 .SH "OPTIONS"
-.TP
+.PP
 \-c, \-\-cpu
+.RS 4
 enable cpu stats (system, user, idle, wait, hardware interrupt, software interrupt)
-.TP
+.RE
+.PP
 \-C 0,3,total
-include cpu0, cpu3 and total (when using \-c/\-\-cpu)
-.TP
+.RS 4
+include cpu0, cpu3 and total (when using \-c/\-\-cpu); use
+\fIall\fR
+to show all CPUs
+.RE
+.PP
 \-d, \-\-disk
+.RS 4
 enable disk stats (read, write)
-.TP
+.RE
+.PP
 \-D total,hda
+.RS 4
 include total and hda (when using \-d/\-\-disk)
-.TP
+.RE
+.PP
 \-g, \-\-page
+.RS 4
 enable page stats (page in, page out)
-.TP
+.RE
+.PP
 \-i, \-\-int
+.RS 4
 enable interrupt stats
-.TP
+.RE
+.PP
 \-I 5,10
+.RS 4
 include interrupt 5 and 10 (when using \-i/\-\-int)
-.TP
+.RE
+.PP
 \-l, \-\-load
+.RS 4
 enable load average stats (1 min, 5 mins, 15mins)
-.TP
+.RE
+.PP
 \-m, \-\-mem
+.RS 4
 enable memory stats (used, buffers, cache, free)
-.TP
+.RE
+.PP
 \-n, \-\-net
+.RS 4
 enable network stats (receive, send)
-.TP
+.RE
+.PP
 \-N eth1,total
+.RS 4
 include eth1 and total (when using \-n/\-\-net)
-.TP
+.RE
+.PP
 \-p, \-\-proc
+.RS 4
 enable process stats (runnable, uninterruptible, new)
-.TP
+.RE
+.PP
 \-r, \-\-io
+.RS 4
 enable I/O request stats (read, write requests)
-.TP
+.RE
+.PP
 \-s, \-\-swap
+.RS 4
 enable swap stats (used, free)
-.TP
+.RE
+.PP
 \-S swap1,total
+.RS 4
 include swap1 and total (when using \-s/\-\-swap)
-.TP
+.RE
+.PP
 \-t, \-\-time
+.RS 4
 enable time/date output
-.TP
+.RE
+.PP
 \-T, \-\-epoch
+.RS 4
 enable time counter (seconds since epoch)
-.TP
+.RE
+.PP
 \-y, \-\-sys
+.RS 4
 enable system stats (interrupts, context switches)
-.TP
+.RE
+.PP
 \-\-aio
+.RS 4
 enable aio stats (asynchronous I/O)
-.TP
+.RE
+.PP
 \-\-fs
+.RS 4
 enable filesystem stats (open files, inodes)
-.TP
+.RE
+.PP
 \-\-ipc
+.RS 4
 enable ipc stats (message queue, semaphores, shared memory)
-.TP
+.RE
+.PP
 \-\-lock
+.RS 4
 enable file lock stats (posix, flock, read, write)
-.TP
+.RE
+.PP
 \-\-raw
+.RS 4
 enable raw stats (raw sockets)
-.TP
+.RE
+.PP
 \-\-socket
+.RS 4
 enable socket stats (total, tcp, udp, raw, ip\-fragments)
-.TP
+.RE
+.PP
 \-\-tcp
+.RS 4
 enable tcp stats (listen, established, syn, time_wait, close)
-.TP
+.RE
+.PP
 \-\-udp
+.RS 4
 enable udp stats (listen, active)
-.TP
+.RE
+.PP
 \-\-unix
+.RS 4
 enable unix stats (datagram, stream, listen, active)
-.TP
+.RE
+.PP
 \-\-vm
+.RS 4
 enable vm stats (hard pagefaults, soft pagefaults, allocated, free)
-.TP
+.RE
+.PP
+\-\-vm\-adv
+.RS 4
+enable advance vm stats (steal, scanK, scanD, pgoru, astll)
+.RE
+.PP
+\-\-zones
+.RS 4
+enable zoneinfo stats (d32F, d32H, normF, normH)
+.RE
+.PP
 \-\-plugin\-name
+.RS 4
 enable (external) plugins by plugin name, see
 \fBPLUGINS\fR
 for options
-.TP
+.RE
+.PP
 Possible internal stats are
+.RS 4
 aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc, load, lock, mem, net, page, page24, proc, raw, socket, swap, swapold, sys, tcp, time, udp, unix, vm
-.TP
+.RE
+.PP
 \-\-list
+.RS 4
 list the internal and external plugin names
-.TP
+.RE
+.PP
 \-a, \-\-all
+.RS 4
 equals \-cdngy (default)
-.TP
+.RE
+.PP
 \-f, \-\-full
+.RS 4
 expand \-C, \-D, \-I, \-N and \-S discovery lists
-.TP
+.RE
+.PP
 \-v, \-\-vmstat
+.RS 4
 equals \-pmgdsc \-D total
-.TP
+.RE
+.PP
 \-\-float
+.RS 4
 force float values on screen (mutual exclusive with
 \fB\-\-integer\fR)
-.TP
+.RE
+.PP
 \-\-integer
+.RS 4
 force integer values on screen (mutual exclusive with
 \fB\-\-float\fR)
-.TP
+.RE
+.PP
 \-\-bw, \-\-blackonwhite
+.RS 4
 change colors for white background terminal
-.TP
+.RE
+.PP
 \-\-nocolor
+.RS 4
 disable colors (implies
 \fB\-\-noupdate\fR)
-.TP
+.RE
+.PP
 \-\-noheaders
+.RS 4
 disable repetitive headers
-.TP
+.RE
+.PP
 \-\-noupdate
+.RS 4
 disable intermediate updates when delay > 1
-.TP
+.RE
+.PP
 \-\-output file
+.RS 4
 write CSV output to file
-.TP
+.RE
+.PP
 \-\-profile
+.RS 4
 show profiling statistics when exiting dstat
+.RE
 .SH "PLUGINS"
-While anyone can create their own dstat plugins (and contribute them) dstat ships with a number of plugins already that extend its capabilities greatly. Here is an overview of the plugins dstat ships with:
 .sp
-.TP
+While anyone can create their own dstat plugins (and contribute them) dstat ships with a number of plugins already that extend its capabilities greatly\&. Here is an overview of the plugins dstat ships with:
+.PP
 \-\-battery
+.RS 4
 battery in percentage (needs ACPI)
-.TP
+.RE
+.PP
 \-\-battery\-remain
+.RS 4
 battery remaining in hours, minutes (needs ACPI)
-.TP
+.RE
+.PP
 \-\-cpufreq
+.RS 4
 CPU frequency in percentage (needs ACPI)
-.TP
+.RE
+.PP
 \-\-dbus
+.RS 4
 number of dbus connections (needs python\-dbus)
-.TP
+.RE
+.PP
 \-\-disk\-tps
+.RS 4
 per disk transactions per second (tps) stats
-.TP
+.RE
+.PP
 \-\-disk\-util
+.RS 4
 per disk utilization in percentage
-.TP
+.RE
+.PP
 \-\-dstat
+.RS 4
 show dstat cputime consumption and latency
-.TP
+.RE
+.PP
 \-\-dstat\-cpu
+.RS 4
 show dstat advanced cpu usage
-.TP
+.RE
+.PP
 \-\-dstat\-ctxt
+.RS 4
 show dstat context switches
-.TP
+.RE
+.PP
 \-\-dstat\-mem
+.RS 4
 show dstat advanced memory usage
-.TP
+.RE
+.PP
 \-\-fan
+.RS 4
 fan speed (needs ACPI)
-.TP
+.RE
+.PP
 \-\-freespace
+.RS 4
 per filesystem disk usage
-.TP
+.RE
+.PP
 \-\-gpfs
+.RS 4
 GPFS read/write I/O (needs mmpmon)
-.TP
+.RE
+.PP
 \-\-gpfs\-ops
+.RS 4
 GPFS filesystem operations (needs mmpmon)
-.TP
+.RE
+.PP
 \-\-helloworld
+.RS 4
 Hello world example dstat plugin
-.TP
+.RE
+.PP
 \-\-innodb\-buffer
+.RS 4
 show innodb buffer stats
-.TP
+.RE
+.PP
 \-\-innodb\-io
+.RS 4
 show innodb I/O stats
-.TP
+.RE
+.PP
 \-\-innodb\-ops
+.RS 4
 show innodb operations counters
-.TP
+.RE
+.PP
 \-\-lustre
+.RS 4
 show lustre I/O throughput
-.TP
+.RE
+.PP
 \-\-md\-status
+.RS 4
 show software raid (md) progress and speed
-.TP
+.RE
+.PP
 \-\-memcache\-hits
+.RS 4
 show the number of hits and misses from memcache
-.TP
+.RE
+.PP
 \-\-mysql5\-cmds
+.RS 4
 show the MySQL5 command stats
-.TP
+.RE
+.PP
 \-\-mysql5\-conn
+.RS 4
 show the MySQL5 connection stats
-.TP
+.RE
+.PP
 \-\-mysql5\-io
+.RS 4
 show the MySQL5 I/O stats
-.TP
+.RE
+.PP
 \-\-mysql5\-keys
+.RS 4
 show the MySQL5 keys stats
-.TP
+.RE
+.PP
 \-\-mysql\-io
+.RS 4
 show the MySQL I/O stats
-.TP
+.RE
+.PP
 \-\-mysql\-keys
+.RS 4
 show the MySQL keys stats
-.TP
+.RE
+.PP
 \-\-net\-packets
+.RS 4
 show the number of packets received and transmitted
-.TP
+.RE
+.PP
 \-\-nfs3
+.RS 4
 show NFS v3 client operations
-.TP
+.RE
+.PP
 \-\-nfs3\-ops
+.RS 4
 show extended NFS v3 client operations
-.TP
+.RE
+.PP
 \-\-nfsd3
+.RS 4
 show NFS v3 server operations
-.TP
+.RE
+.PP
 \-\-nfsd3\-ops
+.RS 4
 show extended NFS v3 server operations
-.TP
+.RE
+.PP
 \-\-ntp
+.RS 4
 show NTP time from an NTP server
-.TP
+.RE
+.PP
 \-\-postfix
+.RS 4
 show postfix queue sizes (needs postfix)
-.TP
+.RE
+.PP
 \-\-power
+.RS 4
 show power usage
-.TP
+.RE
+.PP
 \-\-proc\-count
+.RS 4
 show total number of processes
-.TP
+.RE
+.PP
 \-\-qmail
+.RS 4
 show qmail queue sizes (needs qmail)
-.TP
+.RE
+.PP
 \-\-rpc
+.RS 4
 show RPC client calls stats
-.TP
+.RE
+.PP
 \-\-rpcd
+.RS 4
 show RPC server calls stats
-.TP
+.RE
+.PP
 \-\-sendmail
+.RS 4
 show sendmail queue size (needs sendmail)
-.TP
+.RE
+.PP
 \-\-snooze
+.RS 4
 show number of ticks per second
-.TP
+.RE
+.PP
 \-\-squid
+.RS 4
 show squid usage statistics
-.TP
+.RE
+.PP
 \-\-test
+.RS 4
 show test plugin output
-.TP
+.RE
+.PP
 \-\-thermal
+.RS 4
 system temperature sensors
-.TP
+.RE
+.PP
 \-\-top\-bio
+.RS 4
 show most expensive block I/O process
-.TP
+.RE
+.PP
 \-\-top\-bio\-adv
-show most expensive block I/O process (incl. pid and other stats)
-.TP
+.RS 4
+show most expensive block I/O process (incl\&. pid and other stats)
+.RE
+.PP
 \-\-top\-childwait
+.RS 4
 show process waiting for child the most
-.TP
+.RE
+.PP
 \-\-top\-cpu
+.RS 4
 show most expensive CPU process
-.TP
+.RE
+.PP
 \-\-top\-cpu\-adv
-show most expensive CPU process (incl. pid and other stats)
-.TP
+.RS 4
+show most expensive CPU process (incl\&. pid and other stats)
+.RE
+.PP
 \-\-top\-cputime
+.RS 4
 show process using the most CPU time (in ms)
-.TP
+.RE
+.PP
 \-\-top\-cputime\-avg
+.RS 4
 show process with the highest average timeslice (in ms)
-.TP
+.RE
+.PP
 \-\-top\-int
+.RS 4
 show most frequent interrupt
-.TP
+.RE
+.PP
 \-\-top\-io
+.RS 4
 show most expensive I/O process
-.TP
+.RE
+.PP
 \-\-top\-io\-adv
-show most expensive I/O process (incl. pid and other stats)
-.TP
+.RS 4
+show most expensive I/O process (incl\&. pid and other stats)
+.RE
+.PP
 \-\-top\-latency
+.RS 4
 show process with highest total latency (in ms)
-.TP
+.RE
+.PP
 \-\-top\-latency\-avg
+.RS 4
 show process with the highest average latency (in ms)
-.TP
+.RE
+.PP
 \-\-top\-mem
+.RS 4
 show process using the most memory
-.TP
+.RE
+.PP
 \-\-top\-oom
+.RS 4
 show process that will be killed by OOM the first
-.TP
+.RE
+.PP
 \-\-utmp
+.RS 4
 show number of utmp connections (needs python\-utmp)
-.TP
+.RE
+.PP
 \-\-vmk\-hba
+.RS 4
 show VMware ESX kernel vmhba stats
-.TP
+.RE
+.PP
 \-\-vmk\-int
+.RS 4
 show VMware ESX kernel interrupt stats
-.TP
+.RE
+.PP
 \-\-vmk\-nic
+.RS 4
 show VMware ESX kernel port stats
-.TP
+.RE
+.PP
 \-\-vm\-memctl
+.RS 4
 show ballooning status inside VMware guests
-.TP
+.RE
+.PP
 \-\-vz\-cpu
+.RS 4
 show CPU usage per OpenVZ guest
-.TP
+.RE
+.PP
 \-\-vz\-io
+.RS 4
 show I/O usage per OpenVZ guest
-.TP
+.RE
+.PP
 \-\-vz\-ubc
+.RS 4
 show OpenVZ user beancounters
-.TP
+.RE
+.PP
 \-\-wifi
+.RS 4
 wireless link quality and signal to noise ratio
+.RE
 .SH "ARGUMENTS"
+.sp
 \fBdelay\fR is the delay in seconds between each update
 .sp
 \fBcount\fR is the number of updates to display before exiting
 .sp
 The default delay is 1 and count is unspecified (unlimited)
-.sp
 .SH "INTERMEDIATE UPDATES"
-When invoking dstat with a \fBdelay\fR greater than 1 and without the \fB\-\-noupdate\fR option, it will show intermediate updates, ie. the first time a 1 sec average, the second update a 2 second average, etc. until the delay has been reached.
 .sp
-So in case you specified a delay of 10, \fBthe 9 intermediate updates are NOT snapshots\fR, they are averages over the time that passed since the last final update. The end result is that you get a 10 second average on a new line, just like with vmstat.
+When invoking dstat with a \fBdelay\fR greater than 1 and without the \fB\-\-noupdate\fR option, it will show intermediate updates, ie\&. the first time a 1 sec average, the second update a 2 second average, etc\&. until the delay has been reached\&.
 .sp
+So in case you specified a delay of 10, \fBthe 9 intermediate updates are NOT snapshots\fR, they are averages over the time that passed since the last final update\&. The end result is that you get a 10 second average on a new line, just like with vmstat\&.
 .SH "EXAMPLES"
+.sp
 Using dstat to relate disk\-throughput with network\-usage (eth0), total CPU\-usage and system counters:
 .sp
-.sp
+.if n \{\
+.RS 4
+.\}
 .nf
 dstat \-dnyc \-N eth0 \-C total \-f 5
 .fi
+.if n \{\
+.RE
+.\}
+.sp
 Checking dstat\(cqs behaviour and the system impact of dstat:
 .sp
-.sp
+.if n \{\
+.RS 4
+.\}
 .nf
 dstat \-taf \-\-debug
 .fi
+.if n \{\
+.RE
+.\}
+.sp
 Using the time plugin together with cpu, net, disk, system, load, proc and top_cpu plugins:
 .sp
-.sp
+.if n \{\
+.RS 4
+.\}
 .nf
 dstat \-tcndylp \-\-top\-cpu
 .fi
+.if n \{\
+.RE
+.\}
+.sp
 this is identical to
 .sp
-.sp
+.if n \{\
+.RS 4
+.\}
 .nf
 dstat \-\-time \-\-cpu \-\-net \-\-disk \-\-sys \-\-load \-\-proc \-\-top\-cpu
 .fi
+.if n \{\
+.RE
+.\}
+.sp
 Using dstat to relate cpu stats with interrupts per device:
 .sp
-.sp
+.if n \{\
+.RS 4
+.\}
 .nf
 dstat \-tcyif
 .fi
+.if n \{\
+.RE
+.\}
 .SH "BUGS"
-Since it is practically impossible to test dstat on every possible permutation of kernel, python or distribution version, I need your help and your feedback to fix the remaining problems. If you have improvements or bugreports, please send them to: [1]\&\fIdag@wieers.com\fR
 .sp
+Since it is practically impossible to test dstat on every possible permutation of kernel, python or distribution version, I need your help and your feedback to fix the remaining problems\&. If you have improvements or bugreports, please send them to: \m[blue]\fBdag@wieers\&.com\fR\m[]\&\s-2\u[1]\d\s+2
+.if n \{\
 .sp
+.\}
+.RS 4
 .it 1 an-trap
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
+.ps +1
 \fBNote\fR
-Please see the TODO file for known bugs and future plans.
+.ps -1
+.br
 .sp
+Please see the TODO file for known bugs and future plans\&.
+.sp .5v
+.RE
 .SH "FILES"
-Paths that may contain external dstat_*.py plugins:
 .sp
+Paths that may contain external dstat_*\&.py plugins:
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
-~/.dstat/
+~/\&.dstat/
 (path of binary)/plugins/
 /usr/share/dstat/
 /usr/local/share/dstat/
 .fi
+.if n \{\
+.RE
+.\}
 .SH "SEE ALSO"
 .SS "Performance tools"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
-ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat, powertop(1), vmstat(1), xosview(1)
+ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat(8), powertop(1), vmstat(1), xosview(1)
 .fi
+.if n \{\
+.RE
+.\}
 .SS "Debugging tools"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
 htop(1), lslk(1), lsof(8), top(1)
 .fi
+.if n \{\
+.RE
+.\}
 .SS "Process tracing"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
-ltrace(1), pmap(1), ps(1), pstack(1), strace(1)
+ltrace(1), pidstat(1), pmap(1), ps(1), pstack(1), strace(1)
 .fi
+.if n \{\
+.RE
+.\}
 .SS "Binary debugging"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
 ldd(1), file(1), nm(1), objdump(1), readelf(1)
 .fi
+.if n \{\
+.RE
+.\}
 .SS "Memory usage tools"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
 free(1), memusage, memusagestat, slabtop(1)
 .fi
+.if n \{\
+.RE
+.\}
 .SS "Accounting tools"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
-dump\-acct, dump\-utmp, sa(8)
+acct(2), dump\-acct(8), dump\-utmp(8), lastcomm(1), sa(8)
 .fi
+.if n \{\
+.RE
+.\}
 .SS "Hardware debugging tools"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
 dmidecode, ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
 .fi
+.if n \{\
+.RE
+.\}
 .SS "Application debugging"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
 mailstats(8), qshape(1)
 .fi
+.if n \{\
+.RE
+.\}
 .SS "Xorg related tools"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
 xdpyinfo(1), xrestop(1)
 .fi
+.if n \{\
+.RE
+.\}
 .SS "Other useful info"
 .sp
+.if n \{\
+.RS 4
+.\}
 .nf
 collectl(1), proc(5), procinfo(8)
 .fi
+.if n \{\
+.RE
+.\}
 .SH "AUTHOR"
-Written by Dag Wieers [1]\&\fIdag@wieers.com\fR
 .sp
-Homepage at [2]\&\fIhttp://dag.wieers.com/home\-made/dstat/\fR
+Written by Dag Wieers \m[blue]\fBdag@wieers\&.com\fR\m[]\&\s-2\u[1]\d\s+2
 .sp
-This manpage was initially written by Andrew Pollock [3]\&\fIapollock@debian.org\fR for the Debian GNU/Linux system.
+Homepage at \m[blue]\fBhttp://dag\&.wieers\&.com/home\-made/dstat/\fR\m[]
 .sp
-.SH "REFERENCES"
-.TP 3
-1.\ dag@wieers.com
+This manpage was initially written by Andrew Pollock \m[blue]\fBapollock@debian\&.org\fR\m[]\&\s-2\u[2]\d\s+2 for the Debian GNU/Linux system\&.
+.SH "AUTHOR"
+.PP
+\fBDag Wieers\fR <\&dag@wieers\&.com\&>
+.RS 4
+Author.
+.RE
+.SH "NOTES"
+.IP " 1." 4
+dag@wieers.com
+.RS 4
 \%mailto:dag@wieers.com
-.TP 3
-2.\ http://dag.wieers.com/home\-made/dstat/
-\%http://dag.wieers.com/home\-made/dstat/
-.TP 3
-3.\ apollock@debian.org
+.RE
+.IP " 2." 4
+apollock@debian.org
+.RS 4
 \%mailto:apollock@debian.org
+.RE
