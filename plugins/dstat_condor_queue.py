@@ -102,20 +102,33 @@ class dstat_plugin(dstat):
 
         if not os.access(self.condor_status_cmd, os.X_OK):
             raise Exception, 'Needs %s in the path' % self.condor_status_cmd
-        cmd_test(self.condor_status_cmd)
-        return True
+        else:
+            try:
+                p = os.popen(self.condor_status_cmd+' 2>&1 /dev/null')
+                ret = p.close()
+                if ret:
+                    raise Exception, 'Cannot interface with Condor - condor_q returned != 0?'
+            except IOError:
+                raise Exception, 'Unable to execute %s' % self.condor_status_cmd
+            return True
 
     def extract(self):
         last_line = None
-        for last_line in cmd_readlines(self.condor_status_cmd):
-            pass
 
-        m = CONDOR_Q_STAT_PATTER.match(last_line)
-        if m == None:
-           raise Exception, 'Invalid output from %s. Got: %s' % (cmd, last_line)
+        try:
+	    for repeats in range(3):
+                for last_line in cmd_readlines(self.condor_status_cmd):
+                    pass
 
-        stats = [int(s.strip()) for s in m.groups()]
-        for i,j in enumerate(self.vars):
-            self.val[j] = stats[i]
+                m = CONDOR_Q_STAT_PATTER.match(last_line)
+                if m == None:
+                    raise Exception, 'Invalid output from %s. Got: %s' % (cmd, last_line)
+
+                stats = [int(s.strip()) for s in m.groups()]
+                for i,j in enumerate(self.vars):
+                    self.val[j] = stats[i]
+        except Exception:
+            for name in self.vars:
+                self.val[name] = -1
 
 # vim:ts=4:sw=4:et
