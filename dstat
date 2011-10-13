@@ -438,10 +438,10 @@ class dstat:
         ret = theme['title']
         if isinstance(self.name, types.StringType):
             width = self.statwidth()
-            return ret + self.name[0:width].center(width, char['space']).replace(' ', '-') + theme['default']
+            return ret + self.name[0:width].center(width).replace(' ', '-') + theme['default']
         for i, name in enumerate(self.name):
             width = self.colwidth()
-            ret = ret + name[0:width].center(width, char['space']).replace(' ', '-')
+            ret = ret + name[0:width].center(width).replace(' ', '-')
             if i + 1 != len(self.name):
                 if op.color:
                     ret = ret + theme['frame'] + char['dash'] + theme['title']
@@ -453,13 +453,13 @@ class dstat:
         ret = ''
         if isinstance(self.name, types.StringType):
             for i, nick in enumerate(self.nick):
-                ret = ret + theme['subtitle'] + nick[0:self.width].center(self.width, char['space']) + theme['default']
+                ret = ret + theme['subtitle'] + nick[0:self.width].center(self.width) + theme['default']
                 if i + 1 != len(self.nick): ret = ret + char['space']
             return ret
         else:
             for i, name in enumerate(self.name):
                 for j, nick in enumerate(self.nick):
-                    ret = ret + theme['subtitle'] + nick[0:self.width].center(self.width, char['space']) + theme['default']
+                    ret = ret + theme['subtitle'] + nick[0:self.width].center(self.width) + theme['default']
                     if j + 1 != len(self.nick): ret = ret + char['space']
                 if i + 1 != len(self.name): ret = ret + theme['frame'] + char['colon']
             return ret
@@ -1980,9 +1980,9 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
     ### If this is a negative value, return a dash
     if var < 0:
         if unit:
-            return theme['error'] + '-'.rjust(width, char['space']) + char['space'] + theme['default']
+            return theme['error'] + '-'.rjust(width) + char['space'] + theme['default']
         else:
-            return theme['error'] + '-'.rjust(width, char['space']) + theme['default']
+            return theme['error'] + '-'.rjust(width) + theme['default']
 
     if base != 1024:
         units = (char['space'], 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
@@ -2038,9 +2038,9 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
 
     ### Justify value to left if string
     if type in ('s',):
-        ret = color + ret.ljust(width, char['space'])
+        ret = color + ret.ljust(width)
     else:
-        ret = color + ret.rjust(width, char['space'])
+        ret = color + ret.rjust(width)
 
     ### Add unit to output
     if unit:
