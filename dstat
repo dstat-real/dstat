@@ -523,7 +523,7 @@ class dstat:
         return line
 
     def showend(self, totlist, vislist):
-        if self is not vislist[-1]:
+        if vislist and self is not vislist[-1]:
             return theme['frame'] + char['pipe']
         elif totlist != vislist:
             return theme['frame'] + char['gt']
@@ -551,9 +551,9 @@ class dstat:
         return line
 
     def showcsvend(self, totlist, vislist):
-        if self is not vislist[-1]:
+        if vislist and self is not vislist[-1]:
             return ','
-        elif self is not totlist[-1]:
+        elif totlist and self is not totlist[-1]:
             return ','
         return ''
 
