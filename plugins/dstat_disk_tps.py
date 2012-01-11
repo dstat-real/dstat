@@ -65,11 +65,10 @@ class dstat_plugin(dstat):
                     for disk in op.diskset[diskset]:
                         if re.match('^'+disk+'$', name):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
+
         for name in self.set2.keys():
-            self.val[name] = (
-                (self.set2[name][0] - self.set1[name][0]) / elapsed,
-                (self.set2[name][1] - self.set1[name][1]) / elapsed,
-            )
+            self.val[name] = map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name])
+
         if step == op.delay:
             self.set1.update(self.set2)
 

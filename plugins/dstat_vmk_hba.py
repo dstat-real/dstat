@@ -73,10 +73,7 @@ class dstat_plugin(dstat):
                     self.set2[name] = ( long(l[2]), long(l[4]) )
 
             for name in self.set2.keys():
-                self.val[name] = (
-                    (self.set2[name][0] - self.set1[name][0]) * 1024.0 / elapsed,
-                    (self.set2[name][1] - self.set1[name][1]) * 1024.0 / elapsed,
-                )
+                self.val[name] = map(lambda x, y: (y - x) * 1024.0 / elapsed, self.set1[name], self.set2[name])
 
         if step == op.delay:
             self.set1.update(self.set2)

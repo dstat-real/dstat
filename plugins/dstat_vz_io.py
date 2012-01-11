@@ -47,20 +47,19 @@ class dstat_plugin(dstat):
         return ret
 
     def extract(self):
-        for veid in self.vars:
+        for name in self.vars:
             self.set2['total'] = {}
-            for line in dopen('/proc/bc/%s/ioacct' % veid).readlines():
+            for line in dopen('/proc/bc/%s/ioacct' % name).readlines():
                 l = line.split()
                 if len(l) != 2: continue
                 if l[0] not in self.nick: continue
                 index = self.nick.index(l[0])
-                self.set2[veid][index] = long(l[1])
+                self.set2[name][index] = long(l[1])
                 self.set2['total'][index] = self.set2['total'][index] + long(l[1])
-#            print veid, self.val[veid], self.set2[veid][0], self.set2[veid][1]
-#            print veid, self.val[veid], self.set1[veid][0], self.set1[veid][1]
+#            print name, self.val[name], self.set2[name][0], self.set2[name][1]
+#            print name, self.val[name], self.set1[name][0], self.set1[name][1]
 
-            for i in range(len(self.nick)):
-                self.val[veid][i] = (self.set2[veid][i] - self.set1[veid][i]) / elapsed
+            self.val[name] = map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name])
 
         if step == op.delay:
             self.set1.update(self.set2)

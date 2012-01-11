@@ -480,14 +480,19 @@ class dstat:
             for i, nick in enumerate(self.nick):
                 ret = ret + '"' + nick + '"'
                 if i + 1 != len(self.nick): ret = ret + ','
-            return ret
-        else:
+        elif len(self.name) == 1:
             for i, name in enumerate(self.name):
                 for j, nick in enumerate(self.nick):
                     ret = ret + '"' + nick + '"'
                     if j + 1 != len(self.nick): ret = ret + ','
                 if i + 1 != len(self.name): ret = ret + ','
-            return ret
+        else:
+            for i, name in enumerate(self.name):
+                for j, nick in enumerate(self.nick):
+                    ret = ret + '"' + name + ':' + nick + '"'
+                    if j + 1 != len(self.nick): ret = ret + ','
+                if i + 1 != len(self.name): ret = ret + ','
+        return ret
 
     def check(self):
         "Check if stat is applicable"
@@ -533,7 +538,7 @@ class dstat:
         def printcsv(var):
             if var != round(var):
                 return '%.3f' % var
-            return '%s' % round(var)
+            return '%d' % round(var)
 
         line = ''
         for i, name in enumerate(self.vars):
@@ -622,13 +627,15 @@ class dstat_cpu(dstat):
             for name in self.vars:
                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
                     self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
+
         for name in self.vars:
-            for i in range(6):
+            for i in range(self.cols):
                 if sum(self.set2[name]) > sum(self.set1[name]):
                     self.val[name][i] = 100.0 * (self.set2[name][i] - self.set1[name][i]) / (sum(self.set2[name]) - sum(self.set1[name]))
                 else:
                     self.val[name][i] = 0
 #                    print >>sys.stderr, "Error: tick problem detected, this should never happen !"
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -682,9 +689,11 @@ class dstat_cpu24(dstat):
             for name in self.vars:
                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
                     self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]) )
+
         for name in self.vars:
-            for i in range(3):
+            for i in range(self.cols):
                 self.val[name][i] = 100.0 * (self.set2[name][i] - self.set1[name][i]) / (sum(self.set2[name]) - sum(self.set1[name]))
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -746,11 +755,10 @@ class dstat_disk(dstat):
                     for disk in op.diskset[diskset]:
                         if fnmatch.fnmatch(name, disk):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[5]), self.set2[diskset][1] + long(l[9]) )
+
         for name in self.set2.keys():
-            self.val[name] = (
-                (self.set2[name][0] - self.set1[name][0]) * 512.0 / elapsed,
-                (self.set2[name][1] - self.set1[name][1]) * 512.0 / elapsed,
-            )
+            self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -810,11 +818,10 @@ class dstat_disk24(dstat):
                     for disk in op.diskset[diskset]:
                         if fnmatch.fnmatch(name, disk):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[6]), self.set2[diskset][1] + long(l[10]) )
+
         for name in self.set2.keys():
-            self.val[name] = (
-                (self.set2[name][0] - self.set1[name][0]) * 512.0 / elapsed,
-                (self.set2[name][1] - self.set1[name][1]) * 512.0 / elapsed,
-            )
+            self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -890,11 +897,10 @@ class dstat_disk24_old(dstat):
                             if fnmatch.fnmatch(name, disk):
                                 self.set2[diskset] = ( self.set2[diskset][0] + long(l[2]), self.set2[diskset][1] + long(l[3]) )
             break
+
         for name in self.set2.keys():
-            self.val[name] = (
-                (self.set2[name][0] - self.set1[name][0]) * 512.0 / elapsed,
-                (self.set2[name][1] - self.set1[name][1]) * 512.0 / elapsed,
-            )
+            self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -991,8 +997,10 @@ class dstat_int(dstat):
                 if name != 'total':
                     self.set2[name] = long(l[int(name) + 2])
             self.set2['total'] = long(l[1])
+
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1061,8 +1069,10 @@ class dstat_int24(dstat):
 #               for hw in self.vars:
 #                   for mod in l[2+cpunr:]:
 #                       self.set2[mod] = long(l[1])
+
         for name in self.set2.keys():
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1074,7 +1084,7 @@ class dstat_io(dstat):
         self.scale = 1000
         self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+)')
         self.open('/proc/diskstats')
-        self.cols = 3
+        self.cols = 2
 
     def discover(self, *objlist):
         ret = []
@@ -1126,11 +1136,10 @@ class dstat_io(dstat):
                     for disk in op.diskset[diskset]:
                         if fnmatch.fnmatch(name, disk):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
+
         for name in self.set2.keys():
-            self.val[name] = (
-                (self.set2[name][0] - self.set1[name][0]) * 1.0 / elapsed,
-                (self.set2[name][1] - self.set1[name][1]) * 1.0 / elapsed,
-            )
+            self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1195,6 +1204,7 @@ class dstat_mem(dstat):
             name = l[0].split(':')[0]
             if name in self.vars + ('MemTotal', ):
                 self.val[name] = long(l[1]) * 1024.0
+
         self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
 
 class dstat_net(dstat):
@@ -1247,14 +1257,13 @@ class dstat_net(dstat):
                 self.set2[name] = ( long(l[1]), long(l[9]) )
             if not self.totalfilter.match(name):
                 self.set2['total'] = ( self.set2['total'][0] + long(l[1]), self.set2['total'][1] + long(l[9]))
+
         if update:
             for name in self.set2.keys():
-                self.val[name] = [
-                    (self.set2[name][0] - self.set1[name][0]) * 1.0 / elapsed,
-                    (self.set2[name][1] - self.set1[name][1]) * 1.0 / elapsed,
-                ]
+                self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
                 if self.val[name][0] < 0: self.val[name][0] += maxint + 1
                 if self.val[name][1] < 0: self.val[name][1] += maxint + 1
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1272,8 +1281,10 @@ class dstat_page(dstat):
             name = l[0]
             if name in self.vars:
                 self.set2[name] = long(l[1])
+
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * pagesize * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1293,8 +1304,10 @@ class dstat_page24(dstat):
             self.set2['pswpin'] = long(l[1])
             self.set2['pswpout'] = long(l[2])
             break
+
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * pagesize * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1319,9 +1332,11 @@ class dstat_proc(dstat):
                 self.set2[name] = self.set2[name] + long(l[1]) - 1
             elif name == 'procs_blocked':
                 self.set2[name] = self.set2[name] + long(l[1])
+
         self.val['processes'] = (self.set2['processes'] - self.set1['processes']) * 1.0 / elapsed
         for name in ('procs_running', 'procs_blocked'):
             self.val[name] = self.set2[name] * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
             for name in ('procs_running', 'procs_blocked'):
@@ -1359,6 +1374,7 @@ class dstat_socket(dstat):
         for l in self.splitlines():
             if len(l) < 3: continue
             self.val[l[0]] = long(l[2])
+
         self.val['other'] = self.val['sockets:'] - self.val['TCP:'] - self.val['UDP:'] - self.val['RAW:'] - self.val['FRAG:']
 
 class dstat_swap(dstat):
@@ -1426,6 +1442,7 @@ class dstat_swap_old(dstat):
             name = l[0].split(':')[0]
             if name in self.vars + ('SwapTotal',):
                 self.val[name] = long(l[1]) * 1024.0
+
         self.val['SwapUsed'] = self.val['SwapTotal'] - self.val['SwapFree']
 
 class dstat_sys(dstat):
@@ -1444,8 +1461,10 @@ class dstat_sys(dstat):
             name = l[0]
             if name in self.vars:
                 self.set2[name] = long(l[1])
+
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1546,8 +1565,10 @@ class dstat_vm(dstat):
             for name in self.vars:
                 if fnmatch.fnmatch(l[0], name):
                     self.set2[name] += long(l[1])
+
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 
@@ -1861,6 +1882,29 @@ def proc_pidlist():
 
         except ValueError:
             continue
+
+def snmpget(server, community, oid):
+    errorIndication, errorStatus, errorIndex, varBinds = cmdgen.CommandGenerator().getCmd(
+        cmdgen.CommunityData('test-agent', community, 0),
+        cmdgen.UdpTransportTarget((server, 161)),
+        oid
+    )
+#    print '%s -> ind: %s, stat: %s, idx: %s' % (oid, errorIndication, errorStatus, errorIndex)
+    for x in varBinds:
+        return str(x[1])
+
+def snmpwalk(server, community, oid):
+    ret = []
+    errorIndication, errorStatus, errorIndex, varBindTable = cmdgen.CommandGenerator().nextCmd(
+        cmdgen.CommunityData('test-agent', community, 0),
+        cmdgen.UdpTransportTarget((server, 161)),
+        oid
+    )
+#    print '%s -> ind: %s, stat: %s, idx: %s' % (oid, errorIndication, errorStatus, errorIndex)
+    for x in varBindTable:
+        for y in x:
+            ret.append(str(y[1]))
+    return ret
 
 def dchg(var, width, base):
     "Convert decimal to string given base and length"

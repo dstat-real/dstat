@@ -59,9 +59,11 @@ class dstat_plugin(dstat):
             if l[3:] == ['0',] * 11: continue
             if name in self.vars:
                 self.set2[name] = ( self.set2[name][0] + long(l[12]), )
+
         for name in self.set2.keys():
             self.val[name] = (
                 (self.set2[name][0] - self.set1[name][0]) * 1.0 * hz / elapsed / 1000,
             )
+
         if step == op.delay:
             self.set1.update(self.set2)

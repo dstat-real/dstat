@@ -24,8 +24,9 @@ class dstat_plugin(dstat):
                 elif l[0] == 'write_bytes':
                     write = long(l[6])
             self.set2[name] = (read, write)
-            self.val[name] = ( (self.set2[name][0] - self.set1[name][0]) * 1.0 / elapsed,
-                               (self.set2[name][1] - self.set1[name][1]) * 1.0 / elapsed )
+
+            self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+
         if step == op.delay:
             self.set1.update(self.set2)
 

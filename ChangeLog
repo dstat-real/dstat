@@ -12,6 +12,8 @@
 - Added external dstat_mem_adv plugin so show advanced memory counters (Damon Snyder)
 - Allow more variables (self.vars) than nicknames (self.nick) to simplify plugins
 - Using -f/--full does not impact -c/--cpu anymore, most systems ship with 2 or more CPUs
+- Added counter 'parent' when printing CSV subtitles of list-counters (Michael Boutillier)
+- Print decimal values as decimals where possible (so 0 instead of 0.0)
 
 * 0.7.2 - Real soon now - release 15/06/2010
 - Added external dstat_disk_tps plugin to show transactions per second

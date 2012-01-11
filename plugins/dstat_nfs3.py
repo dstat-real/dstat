@@ -22,8 +22,10 @@ class dstat_plugin(dstat):
             self.set2['inode'] = long(l[3]) + long(l[4]) + long(l[5]) + long(l[6]) + long(l[7]) + long(l[10]) + long(l[11]) + long(l[12]) + long(l[13]) + long(l[14]) + long(l[15]) + long(l[16])
             self.set2['filesystem'] = long(l[19]) + long(l[20]) + long(l[21])
             self.set2['commit'] = long(l[22])
+
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 

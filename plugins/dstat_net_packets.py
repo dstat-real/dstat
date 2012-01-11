@@ -56,11 +56,10 @@ class dstat_plugin(dstat):
                 self.set2[name] = ( long(l[2]), long(l[10]) )
             if not self.totalfilter.match(name):
                 self.set2['total'] = ( self.set2['total'][0] + long(l[2]), self.set2['total'][1] + long(l[10]))
+
         if update:
             for name in self.set2.keys():
-                self.val[name] = (
-                    (self.set2[name][0] - self.set1[name][0]) * 1.0 / elapsed,
-                    (self.set2[name][1] - self.set1[name][1]) * 1.0 / elapsed,
-                 )
+                self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+
         if step == op.delay:
             self.set1.update(self.set2)
