@@ -32,16 +32,16 @@ class dstat_plugin(dstat):
         import MySQLdb
         try:
             args = {}
-	    if mysql_user is not None:
-		args['user'] = mysql_user
-	    if mysql_pwd is not None:
-		args['passwd'] = mysql_pwd
-	    if mysql_host is not None:
-		args['host'] = mysql_host
-	    if mysql_port is not None:
-		args['port'] = mysql_port
-	    if mysql_socket is not None:
-		args['unix_socket'] = mysql_socket
+            if mysql_user:
+                args['user'] = mysql_user
+            if mysql_pwd:
+                args['passwd'] = mysql_pwd
+            if mysql_host:
+                args['host'] = mysql_host
+            if mysql_port:
+                args['port'] = mysql_port
+            if mysql_socket:
+                args['unix_socket'] = mysql_socket
 
             self.db = MySQLdb.connect(**args)
         except Exception, e:
