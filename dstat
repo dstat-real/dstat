@@ -2166,8 +2166,9 @@ def getnamebypid(pid, name):
     "Return the name of a process by taking best guesses and exclusion"
     ret = None
     try:
-#        cmdline = open('/proc/%s/cmdline' % pid).read().split('\0')
-        cmdline = linecache.getline('/proc/%s/cmdline' % pid, 1).split('\0')
+        #### man proc tells me there should be nulls in here, but sometimes it seems like spaces (esp google chrome)
+#        cmdline = open('/proc/%s/cmdline' % pid).read().split(('\0', ' '))
+        cmdline = linecache.getline('/proc/%s/cmdline' % pid, 1).split(('\0', ' '))
         ret = basename(cmdline[0])
         if ret in ('bash', 'csh', 'ksh', 'perl', 'python', 'ruby', 'sh'):
             ret = basename(cmdline[1])
