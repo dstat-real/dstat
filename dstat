@@ -130,7 +130,7 @@ class Options:
             elif opt in ['-d']:
                 self.plugins.append('disk')
             elif opt in ['-D']:
-                self.disklist = self.get_disklist(arg)
+                self.disklist = arg.split(',')
             elif opt in ['--filesystem']:
                 self.plugins.append('fs')
             elif opt in ['-g']:
@@ -237,32 +237,6 @@ class Options:
 
         if self.debug:
             print 'Plugins: %s' % self.plugins
-
-    def get_disklist(self, disks):
-        disklist = disks.split(',')
-        ret = []
-        for disk in disklist:
-            # e.g. /dev/sda1
-            if disk[:5] == '/dev/':
-                # file or symlink
-                if os.path.exists(disk):
-                    # e.g. /dev/disk/by-uuid/15e40cc5-85de-40ea-b8fb-cb3a2eaf872
-                    if os.path.islink(disk):
-                        target = os.readlink(disk)
-                        # convert relative pathname to absolute
-                        if target[0] != '/':
-                            target = os.path.join(os.path.dirname(disk), target)
-                            target = os.path.normpath(target)
-                        print 'dstat: symlink %s -> %s' % (disk, target)
-                        disk = target
-                    # trim leading /dev/
-                    disk = disk[5:]
-                    ret.append(disk)
-                else:
-                    print 'dstat: %s does not exist' % disk
-            else:
-                ret.append(disk)
-        return ret
 
     def version(self):
         print 'Dstat %s' % VERSION
@@ -734,10 +708,31 @@ class dstat_disk(dstat):
             raise Exception, "No suitable block devices found to monitor"
         return ret
 
+    def basename(self, disk):
+        "Strip /dev/ and convert symbolic link"
+        if disk[:5] == '/dev/':
+            # file or symlink
+            if os.path.exists(disk):
+                # e.g. /dev/disk/by-uuid/15e40cc5-85de-40ea-b8fb-cb3a2eaf872
+                if os.path.islink(disk):
+                    target = os.readlink(disk)
+                    # convert relative pathname to absolute
+                    if target[0] != '/':
+                        target = os.path.join(os.path.dirname(disk), target)
+                        target = os.path.normpath(target)
+                    print 'dstat: symlink %s -> %s' % (disk, target)
+                    disk = target
+                # trim leading /dev/
+                return disk[5:]
+            else:
+                print 'dstat: %s does not exist' % disk
+        else:
+            return disk
+
     def vars(self):
         ret = []
         if op.disklist:
-            varlist = op.disklist
+            varlist = map(self.basename, op.disklist)
         elif not op.full:
             varlist = ('total',)
         else:
@@ -801,10 +796,31 @@ class dstat_disk24(dstat):
             raise Exception, "No suitable block devices found to monitor"
         return ret
 
+    def basename(self, disk):
+        "Strip /dev/ and convert symbolic link"
+        if disk[:5] == '/dev/':
+            # file or symlink
+            if os.path.exists(disk):
+                # e.g. /dev/disk/by-uuid/15e40cc5-85de-40ea-b8fb-cb3a2eaf872
+                if os.path.islink(disk):
+                    target = os.readlink(disk)
+                    # convert relative pathname to absolute
+                    if target[0] != '/':
+                        target = os.path.join(os.path.dirname(disk), target)
+                        target = os.path.normpath(target)
+                    print 'dstat: symlink %s -> %s' % (disk, target)
+                    disk = target
+                # trim leading /dev/
+                return disk[5:]
+            else:
+                print 'dstat: %s does not exist' % disk
+        else:
+            return disk
+
     def vars(self):
         ret = []
         if op.disklist:
-            varlist = op.disklist
+            varlist = map(self.basename, op.disklist)
         elif not op.full:
             varlist = ('total',)
         else:
