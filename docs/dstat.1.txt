@@ -151,6 +151,9 @@ Possible internal stats are::
 -v, --vmstat::
     equals -pmgdsc -D total
 
+--bits::
+    force bits for values expressed in bytes
+
 --float::
     force float values on screen (mutual exclusive with *--integer*)
 
