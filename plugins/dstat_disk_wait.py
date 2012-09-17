@@ -12,7 +12,7 @@ class dstat_plugin(dstat):
         self.type = 'f'
         self.width = 6
         self.scale = 34
-        self.diskfilter = re.compile('^(dm-[0-9]+|md[0-9]+|[hs]d[a-z]+[0-9]+)$')
+        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+)$')
         self.open('/proc/diskstats')
         self.nick = ('rawait','wawait' )
         self.cols = 1
