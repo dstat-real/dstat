@@ -1389,7 +1389,7 @@ class dstat_swap(dstat):
         for l in self.splitlines():
             if len(l) < 5: continue
             if l[0] == 'Filename': continue
-            try: 
+            try:
                 int(l[2])
                 int(l[3])
             except:
@@ -2654,7 +2654,7 @@ def perform(update):
 if __name__ == '__main__':
     try:
         initterm()
-        op = Options(sys.argv[1:])
+        op = Options(sys.argv[1:]+os.getenv('DSTAT_OPTS','').split())
         theme = set_theme()
         if op.profile:
             import profile
