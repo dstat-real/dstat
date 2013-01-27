@@ -48,7 +48,7 @@ class dstat_plugin(dstat):
 
     def extract(self):
         self.set2['total'] = [0, 0, 0, 0]
-        for line in self.splitlines():
+        for l in self.splitlines():
             if len(l) < 6 or l[0] == 'VEID': continue
             name = l[0]
             self.set2[name] = ( long(l[1]), long(l[3]), long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), long(l[2]) )
