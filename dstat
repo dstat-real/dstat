@@ -86,7 +86,7 @@ class Options:
         self.intlist = None
         self.netlist = None
         self.swaplist = None
-        self.color = True
+        self.color = None
         self.update = True
         self.header = True
         self.output = False
@@ -114,8 +114,8 @@ class Options:
 
         try:
             opts, args = getopt.getopt(args, 'acdfghilmno:prstTvyC:D:I:M:N:S:V',
-                ['all', 'all-plugins', 'bits', 'bw', 'blackonwhite', 'debug',
-                 'filesystem', 'float', 'full', 'help', 'integer',
+                ['all', 'all-plugins', 'bits', 'bw', 'blackonwhite', 'color',
+                 'debug', 'filesystem', 'float', 'full', 'help', 'integer',
                  'list', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate',
                  'output=', 'pidfile=', 'profile', 'version', 'vmstat'] + allplugins)
         except getopt.error, exc:
@@ -181,6 +181,9 @@ class Options:
                 self.bits = True
             elif opt in ['--bw', '--black-on-white']:
                 self.blackonwhite = True
+            elif opt in ['--color']:
+                self.color = True
+                self.update = True
             elif opt in ['--debug']:
                 self.debug = self.debug + 1
             elif opt in ['--float']:
@@ -315,6 +318,7 @@ Dstat options:
   --integer              force integer values on screen
 
   --bw, --blackonwhite   change colors for white background terminal
+  --color                force colors (implies --update)
   --nocolor              disable colors (implies --noupdate)
   --noheaders            disable repetitive headers
   --noupdate             disable intermediate updates
@@ -1389,7 +1393,7 @@ class dstat_swap(dstat):
         for l in self.splitlines():
             if len(l) < 5: continue
             if l[0] == 'Filename': continue
-            try: 
+            try:
                 int(l[2])
                 int(l[3])
             except:
@@ -2399,7 +2403,8 @@ def main():
 #       print 'Background is unknown, assuming dark.'
 
     ### Check terminal capabilities
-    op.color = gettermcolor(op.color)
+    if op.color == None:
+        op.color = gettermcolor(op.color)
 
     ### Prepare CSV output file (unbuffered)
     if op.output:
@@ -2425,7 +2430,7 @@ def main():
             op.pidfile = False
 
     ### Empty ansi and theme database if no colors are requested
-    if not op.color:
+    if op.color != True:
         op.update = False
         for key in ansi.keys():
             ansi[key] = ''
@@ -2654,7 +2659,7 @@ def perform(update):
 if __name__ == '__main__':
     try:
         initterm()
-        op = Options(sys.argv[1:])
+        op = Options(sys.argv[1:]+os.getenv('DSTAT_OPTS','').split())
         theme = set_theme()
         if op.profile:
             import profile
