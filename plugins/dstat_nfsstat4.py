@@ -7,15 +7,15 @@ class dstat_plugin(dstat):
         self.nick = ('read', 'writ', 'rdir', 'cmmt', 'gatr')
         # this is every possible variable if you're into that
         #self.vars = ("read", "write", "commit", "open", "open_conf", "open_noat", "open_dgrd", "close", 
-                "setattr", "fsinfo", "renew", "setclntid", "confirm", "lock", "lockt", "locku", 
-                "access", "getattr", "lookup", "lookup_root", "remove", "rename", "link", "symlink", 
-                "create", "pathconf", "statfs", "readlink", "readdir", "server_caps", "delegreturn", 
-                "getacl", "setacl", "fs_locations", "rel_lkowner", "secinfo")
+        #        "setattr", "fsinfo", "renew", "setclntid", "confirm", "lock", "lockt", "locku", 
+        #        "access", "getattr", "lookup", "lookup_root", "remove", "rename", "link", "symlink", 
+        #        "create", "pathconf", "statfs", "readlink", "readdir", "server_caps", "delegreturn", 
+        #        "getacl", "setacl", "fs_locations", "rel_lkowner", "secinfo")
         # these are terrible shortnames for every possible variable
         #self.nick = ("read", "writ", "comt", "open", "opnc", "opnn", "opnd", "clse", "seta", "fnfo", 
-                "renw", "stcd", "cnfm", "lock", "lckt", "lcku", "accs", "gatr", "lkup", "lkp_r", 
-                "rem", "ren", "lnk", "slnk", "crte", "pthc", "stfs", "rdlk", "rdir", "scps", "delr", 
-                "gacl", "sacl", "fslo", "relo", "seco")
+        #        "renw", "stcd", "cnfm", "lock", "lckt", "lcku", "accs", "gatr", "lkup", "lkp_r", 
+        #        "rem", "ren", "lnk", "slnk", "crte", "pthc", "stfs", "rdlk", "rdir", "scps", "delr", 
+        #        "gacl", "sacl", "fslo", "relo", "seco")
         self.type = 'd'
         self.width = 5
         self.scale = 1000
