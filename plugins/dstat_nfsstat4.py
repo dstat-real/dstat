@@ -1,10 +1,12 @@
-### Author: Dag Wieers <dag@wieers.com>
+### Author: Adam Michel <elfurbe@furbism.com>
+### Based on work by: Dag Wieers <dag@wieers.com>
 
 class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'nfs4 client'
-        self.vars = ('read', 'write', 'readdir', 'commit', 'get_attr')
-        self.nick = ('read', 'writ', 'rdir', 'cmmt', 'gatr')
+        # this vars/nick pair is the ones I considered relevant. Any set of the full list would work.
+        self.vars = ('read', 'write', 'readdir', 'commit', 'getattr', 'create', 'link','remove')
+        self.nick = ('read', 'writ', 'rdir', 'cmmt', 'gatr','crt','link','rmv')
         # this is every possible variable if you're into that
         #self.vars = ("read", "write", "commit", "open", "open_conf", "open_noat", "open_dgrd", "close", 
         #        "setattr", "fsinfo", "renew", "setclntid", "confirm", "lock", "lockt", "locku", 
@@ -21,11 +23,17 @@ class dstat_plugin(dstat):
         self.scale = 1000
 
     def check(self):
+        # other NFS modules had this, so I left it. It seems to work.
         info(1, 'Module %s is still experimental.' % self.filename)
 
     def extract(self):
-        # list of fields from nfsstat.c, you can use any of these you like
-        nfs4_names = ("procver", "fieldcount", "null", "read", "write", "commit", "open", "open_conf", "open_noat", "open_dgrd", "close", "setattr", "fsinfo", "renew", "setclntid", "confirm", "lock", "lockt", "locku", "access", "getattr", "lookup", "lookup_root", "remove", "rename", "link", "symlink", "create", "pathconf", "statfs", "readlink", "readdir", "server_caps", "delegreturn", "getacl", "setacl", "fs_locations", "rel_lkowner", "secinfo")
+        # list of fields from nfsstat, in order of output from cat /proc/net/rpc/nfs 
+        nfs4_names = ("version", "fieldcount", "null", "read", "write", "commit", "open", "open_conf",
+                "open_noat", "open_dgrd", "close", "setattr", "fsinfo", "renew", "setclntid",
+                "confirm", "lock", "lockt", "locku", "access", "getattr", "lookup", "lookup_root",
+                "remove", "rename", "link", "symlink", "create", "pathconf", "statfs", "readlink",
+                "readdir", "server_caps", "delegreturn", "getacl", "setacl", "fs_locations",
+                "rel_lkowner", "secinfo")
         f_nfs = open("/proc/net/rpc/nfs")
         f_nfs.seek(0)
         for line in f_nfs:
