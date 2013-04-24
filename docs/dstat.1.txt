@@ -449,6 +449,10 @@ Paths that may contain external dstat_*.py plugins:
     /usr/share/dstat/
     /usr/local/share/dstat/
 
+== ENVIRONMENT VARIABLES
+
+dstat will read additional command line arguments from the environment
+variable *DSTAT_OPTS*.
 
 == SEE ALSO
 
