@@ -9,7 +9,7 @@ class dstat_plugin(dstat):
 
     def __init__(self):
         self.name = 'advanced memory usage'
-        self.nick = ('used', 'buff', 'cach', 'free', 'dirty', 'total')
+        self.nick = ('used', 'buff', 'cach', 'free', 'dirty')
         self.vars = ('MemUsed', 'Buffers', 'Cached', 'MemFree', 'Dirty', 'MemTotal')
         self.open('/proc/meminfo')
 
