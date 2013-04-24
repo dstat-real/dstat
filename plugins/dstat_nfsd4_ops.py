@@ -9,7 +9,7 @@ class dstat_plugin(dstat):
                 'savefh','restorefh','open','open_conf','close','access','lookup','remove')
         self.nick = ('read', 'writ', 'rdir', 'gatr','satr','cmmt','gfh','pfh','sfh','rfh',
                 'open','opnc','clse','accs','lkup','rem')
-        # this is every possible variable for NFSv4 if you're into that
+        # this is every possible variable for NFSv4 server if you're into that
         #self.vars4 = ('op0-unused', 'op1-unused', 'op2-future' , 'access',
         #        'close', 'commit', 'create', 'delegpurge', 'delegreturn', 'getattr', 'getfh',
         #        'link', 'lock', 'lockt', 'locku', 'lookup', 'lookup_root', 'nverify', 'open',
