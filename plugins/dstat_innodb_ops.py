@@ -12,7 +12,7 @@ class dstat_plugin(dstat):
         self.width = 3
         self.scale = 1000
 
-    def check(self): 
+    def check(self):
         if os.access('/usr/bin/mysql', os.X_OK):
             try:
                 self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
@@ -24,14 +24,14 @@ class dstat_plugin(dstat):
     def extract(self):
         try:
             self.stdin.write('show engine innodb status\G\n')
-            line = greppipe(self.stdout, 'OS file reads ')
+            line = greppipe(self.stdout, 'Number of rows inserted')
 
             if line:
                 l = line.split()
-                self.set2['inserted'] = l[4].rstrip(',')
-                self.set2['updated'] = l[6].rstrip(',')
-                self.set2['deleted'] = l[8].rstrip(',')
-                self.set2['read'] = l[10]
+                self.set2['inserted'] = int(l[4].rstrip(','))
+                self.set2['updated'] = int(l[6].rstrip(','))
+                self.set2['deleted'] = int(l[8].rstrip(','))
+                self.set2['read'] = int(l[10])
 
             for name in self.vars:
                 self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
