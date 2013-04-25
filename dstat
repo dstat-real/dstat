@@ -337,6 +337,7 @@ class dstat:
     width = 5
     scale = 1024
     cols = 0
+    struct = None
 #    val = {}
 #    set1 = {}
 #    set2 = {}
@@ -356,10 +357,15 @@ class dstat:
             self.nick = self.vars
 
         self.val = {}; self.set1 = {}; self.set2 = {}
-        if self.cols <= 0:
+        if self.struct: ### Plugin API version 2
+            for name in self.vars + [ 'total', ]:
+                self.val[name] = self.struct
+                self.set1[name] = self.struct
+                self.set2[name] = {}
+        elif self.cols <= 0: ### Plugin API version 1
             for name in self.vars:
                 self.val[name] = self.set1[name] = self.set2[name] = 0
-        else:
+        else: ### Plugin API version 1
             for name in self.vars + [ 'total', ]:
                 self.val[name] = range(self.cols)
                 self.set1[name] = range(self.cols)
@@ -582,17 +588,17 @@ class dstat_aio(dstat):
 
 class dstat_cpu(dstat):
     def __init__(self):
-        self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq' )
+        self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq', 'stl' )
         self.type = 'p'
         self.width = 3
         self.scale = 34
         self.open('/proc/stat')
-        self.cols = 6
+        self.cols = 7
 
     def discover(self, *objlist):
         ret = []
         for l in self.splitlines():
-            if len(l) < 8 or l[0][0:3] != 'cpu': continue
+            if len(l) < 9 or l[0][0:3] != 'cpu': continue
             ret.append(l[0][3:])
         ret.sort()
         for item in objlist: ret.append(item)
@@ -627,10 +633,10 @@ class dstat_cpu(dstat):
 
     def extract(self):
         for l in self.splitlines():
-            if len(l) < 8: continue
+            if len(l) < 9: continue
             for name in self.vars:
                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
-                    self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]) )
+                    self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]), long(l[8]) )
 
         for name in self.vars:
             for i in range(self.cols):
@@ -1772,7 +1778,13 @@ def dpopen(cmd):
     import select
     if 'pipes' not in globals().keys(): pipes = {}
     if cmd not in pipes.keys():
-        pipes[cmd] = os.popen3(cmd, 't', 0)
+        try:
+            import asubprocess
+            p = subprocess.Popen(cmd, shell=True, bufsize=0, close_fds=True,
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            pipes[cmd] = (p.stdin, p.stdout, p.stderr)
+        except ImportError:
+            pipes[cmd] = os.popen3(cmd, 't', 0)
     return pipes[cmd]
 
 def readpipe(fileobj, tmout = 0.001):
@@ -2143,9 +2155,9 @@ def gettermsize():
             termsize = 25, 80
     return termsize
 
-def gettermcolor(color=True):
+def gettermcolor():
     "Return whether the system can use colors or not"
-    if color and sys.stdout.isatty():
+    if sys.stdout.isatty():
         try:
             import curses
             curses.setupterm()
@@ -2157,7 +2169,8 @@ def gettermcolor(color=True):
         except:
             print >>sys.stderr, 'Color support is disabled as curses does not find terminal "%s".' % os.getenv('TERM')
             return False
-    return color
+        return True
+    return False
 
 ### We only want to filter out paths, not ksoftirqd/1
 def basename(name):
@@ -2404,7 +2417,7 @@ def main():
 
     ### Check terminal capabilities
     if op.color == None:
-        op.color = gettermcolor(op.color)
+        op.color = gettermcolor()
 
     ### Prepare CSV output file (unbuffered)
     if op.output:
