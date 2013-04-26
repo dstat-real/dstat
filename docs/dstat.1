@@ -2,12 +2,12 @@
 .\"     Title: dstat
 .\"    Author: Dag Wieers <dag@wieers.com>
 .\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
-.\"      Date: November 2009
+.\"      Date: April 2013
 .\"    Manual: \ \&
-.\"    Source: \ \& 0.7.0
+.\"    Source: \ \& 0.7.2
 .\"  Language: English
 .\"
-.TH "DSTAT" "1" "November 2009" "\ \& 0\&.7\&.0" "\ \&"
+.TH "DSTAT" "1" "April 2013" "\ \& 0\&.7\&.2" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * set default formatting
 .\" -----------------------------------------------------------------
@@ -302,14 +302,34 @@ CPU frequency in percentage (needs ACPI)
 number of dbus connections (needs python\-dbus)
 .RE
 .PP
+\-\-disk\-avgrq
+.RS 4
+average size (in sectors) of the requests that were issued to the device
+.RE
+.PP
+\-\-disk\-avgqu
+.RS 4
+average queue length of the requests that were issued to the device
+.RE
+.PP
+\-\-disk\-svctm
+.RS 4
+average service time (in milliseconds) for I/O requests that were issued to the device
+.RE
+.PP
 \-\-disk\-tps
 .RS 4
-per disk transactions per second (tps) stats
+number of transfers per second that were issued to the device
 .RE
 .PP
 \-\-disk\-util
 .RS 4
-per disk utilization in percentage
+percentage of CPU time during which I/O requests were issued to the device (bandwidth utilization for the device)
+.RE
+.PP
+\-\-disk\-wait
+.RS 4
+average time (in milliseconds) for I/O requests issued to the device to be served
 .RE
 .PP
 \-\-dstat
@@ -734,18 +754,7 @@ dstat will read additional command line arguments from the environment variable 
 .RS 4
 .\}
 .nf
-ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat(8), powertop(1), vmstat(1), xosview(1)
-.fi
-.if n \{\
-.RE
-.\}
-.SS "Debugging tools"
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-htop(1), lslk(1), lsof(8), top(1)
+htop(1), ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(8), nfsstat(8), perf(1), powertop(1), rtacct(8), top(1), vmstat(8), xosview(1)
 .fi
 .if n \{\
 .RE
@@ -756,7 +765,7 @@ htop(1), lslk(1), lsof(8), top(1)
 .RS 4
 .\}
 .nf
-ltrace(1), pidstat(1), pmap(1), ps(1), pstack(1), strace(1)
+lslk(8), lsof(8), ltrace(1), pidstat(1), pmap(1), ps(1), pstack(1), strace(1)
 .fi
 .if n \{\
 .RE
@@ -778,7 +787,7 @@ ldd(1), file(1), nm(1), objdump(1), readelf(1)
 .RS 4
 .\}
 .nf
-free(1), memusage, memusagestat, slabtop(1)
+free(1), memusage, memusagestat, smem(8), slabtop(1)
 .fi
 .if n \{\
 .RE
@@ -800,7 +809,7 @@ acct(2), dump\-acct(8), dump\-utmp(8), lastcomm(1), sa(8)
 .RS 4
 .\}
 .nf
-dmidecode, ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
+dmidecode(8), ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
 .fi
 .if n \{\
 .RE
