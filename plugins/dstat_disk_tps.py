@@ -54,8 +54,8 @@ class dstat_plugin(dstat):
         for l in self.splitlines():
             if len(l) < 13: continue
             if l[3] == '0' and l[7] == '0': continue
-            name = l[2]
             if l[3:] == ['0',] * 11: continue
+            name = l[2]
             if not self.diskfilter.match(name):
                 self.set2['total'] = ( self.set2['total'][0] + long(l[3]), self.set2['total'][1] + long(l[7]) )
             if name in self.vars and name != 'total':
@@ -71,7 +71,3 @@ class dstat_plugin(dstat):
 
         if step == op.delay:
             self.set1.update(self.set2)
-
-# S_VALUE(ioj->rd_ios, ioi->rd_ios, itv),
-# S_VALUE(ioj->wr_ios, ioi->wr_ios, itv),
-
