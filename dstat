@@ -476,12 +476,12 @@ class dstat:
 
     def csvtitle(self):
         if isinstance(self.name, types.StringType):
-            return '"' + self.name + '"' + ',' * (len(self.nick) - 1)
+            return '"' + self.name + '"' + ';' * (len(self.nick) - 1)
         else:
             ret = ''
             for i, name in enumerate(self.name):
-                ret = ret + '"' + name + '"' + ',' * (len(self.nick) - 1)
-                if i + 1 != len(self.name): ret = ret + ','
+                ret = ret + '"' + name + '"' + ';' * (len(self.nick) - 1)
+                if i + 1 != len(self.name): ret = ret + ';'
             return ret
 
     def csvsubtitle(self):
@@ -489,19 +489,19 @@ class dstat:
         if isinstance(self.name, types.StringType):
             for i, nick in enumerate(self.nick):
                 ret = ret + '"' + nick + '"'
-                if i + 1 != len(self.nick): ret = ret + ','
+                if i + 1 != len(self.nick): ret = ret + ';'
         elif len(self.name) == 1:
             for i, name in enumerate(self.name):
                 for j, nick in enumerate(self.nick):
                     ret = ret + '"' + nick + '"'
-                    if j + 1 != len(self.nick): ret = ret + ','
-                if i + 1 != len(self.name): ret = ret + ','
+                    if j + 1 != len(self.nick): ret = ret + ';'
+                if i + 1 != len(self.name): ret = ret + ';'
         else:
             for i, name in enumerate(self.name):
                 for j, nick in enumerate(self.nick):
                     ret = ret + '"' + name + ':' + nick + '"'
-                    if j + 1 != len(self.nick): ret = ret + ','
-                if i + 1 != len(self.name): ret = ret + ','
+                    if j + 1 != len(self.nick): ret = ret + ';'
+                if i + 1 != len(self.name): ret = ret + ';'
         return ret
 
     def check(self):
@@ -556,20 +556,20 @@ class dstat:
                 for j, val in enumerate(self.val[name]):
                     line = line + printcsv(val)
                     if j + 1 != len(self.val[name]):
-                        line = line + ','
+                        line = line + ';'
             elif isinstance(self.val[name], types.StringType):
                 line = line + self.val[name]
             else:
                 line = line + printcsv(self.val[name])
             if i + 1 != len(self.vars):
-                line = line + ','
+                line = line + ';'
         return line
 
     def showcsvend(self, totlist, vislist):
         if vislist and self is not vislist[-1]:
-            return ','
+            return ';'
         elif totlist and self is not totlist[-1]:
-            return ','
+            return ';'
         return ''
 
 class dstat_aio(dstat):
@@ -711,7 +711,7 @@ class dstat_disk(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'b'
-        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+)$')
+        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+|cciss/c\dd\d)$')
         self.open('/proc/diskstats')
         self.cols = 2
 
@@ -776,7 +776,7 @@ class dstat_disk24(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'b'
-        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+)')
+        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+|cciss/c\dd\d)')
         self.open('/proc/partitions')
         if self.fd and not self.discover:
             raise Exception, 'Kernel has no per-partition I/O accounting [CONFIG_BLK_STATS], use at least 2.4.20'
@@ -840,7 +840,7 @@ class dstat_disk24_old(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'b'
-        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+)')
+        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+|cciss/c\dd\d)')
         self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
         self.open('/proc/stat')
         self.cols = 2
@@ -1092,7 +1092,7 @@ class dstat_io(dstat):
         self.type = 'f'
         self.width = 5
         self.scale = 1000
-        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+)')
+        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+|cciss/c\dd\d)')
         self.open('/proc/diskstats')
         self.cols = 2
 
@@ -2094,13 +2094,13 @@ def csvheader(totlist):
     for o in totlist:
         line = line + o.csvtitle()
         if o is not totlist[-1]:
-            line = line + ','
+            line = line + ';'
     line += '\n'
     ### Process subtitle
     for o in totlist:
         line = line + o.csvsubtitle()
         if o is not totlist[-1]:
-            line = line + ','
+            line = line + ';'
     return line + '\n'
 
 def info(level, str):
