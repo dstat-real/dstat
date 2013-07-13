@@ -252,7 +252,7 @@ class Options:
         print
 
         color = ""
-        if not gettermcolor(self.color):
+        if not gettermcolor():
             color = "no "
         print 'Terminal type: %s (%scolor support)' % (os.getenv('TERM'), color)
         rows, cols = gettermsize()
