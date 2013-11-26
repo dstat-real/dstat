@@ -98,7 +98,7 @@ information.
 --aio::
     enable aio stats (asynchronous I/O)
 
---fs::
+--fs, --filesystem::
     enable filesystem stats (open files, inodes)
 
 --ipc::
