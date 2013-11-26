@@ -43,6 +43,7 @@ contact me as well. :) Send an email to: Dag Wieers <dag@wieers.com>
 + Don't calculate counters twice when a plugin is loaded twice
 
 ### Extending statistics (help welcome!)
++ Add %steal, %guest to --cpu-adv plugin
 + Add slab plugin (see /proc/slabinfo and slabtop)
 + Add xorg plugin (xdpyinfo, xrestop)
   - Add 'most expensive X app' (look at xrestop)
