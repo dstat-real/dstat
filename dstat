@@ -334,8 +334,10 @@ class dstat:
     name = None
     nick = None
     type = 'f'
+    types = ()
     width = 5
     scale = 1024
+    scales = ()
     cols = 0
     struct = None
 #    val = {}
@@ -525,13 +527,21 @@ class dstat:
         if hasattr(self, 'output'):
             return cprint(self.output, self.type, self.width, self.scale)
         for i, name in enumerate(self.vars):
+            if i < len(self.types):
+                type = self.types[i]
+            else:
+                type = self.type
+            if i < len(self.scales):
+                scale = self.scales[i]
+            else:
+                scale = self.scale
             if isinstance(self.val[name], types.TupleType) or isinstance(self.val[name], types.ListType):
-                line = line + cprintlist(self.val[name], self.type, self.width, self.scale)
+                line = line + cprintlist(self.val[name], type, self.width, scale)
                 sep = theme['frame'] + char['colon']
             else:
                 ### Make sure we don't show more values than we have nicknames
                 if i >= len(self.nick): break
-                line = line + cprint(self.val[name], self.type, self.width, self.scale)
+                line = line + cprint(self.val[name], type, self.width, scale)
                 sep = char['space']
             if i + 1 != len(self.vars):
                 line = line + sep
