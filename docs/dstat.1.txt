@@ -478,7 +478,7 @@ variable *DSTAT_OPTS*.
     ldd(1), file(1), nm(1), objdump(1), readelf(1)
 
 === Memory usage tools
-    free(1), memusage, memusagestat, smem(8), slabtop(1)
+    free(1), memusage, memusagestat, slabtop(1), smem(8)
 
 === Accounting tools
     acct(2), dump-acct(8), dump-utmp(8), lastcomm(1), sa(8)
