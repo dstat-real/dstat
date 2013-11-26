@@ -220,7 +220,7 @@ class Options:
                 sys.exit(1)
 
         if self.float and self.integer:
-            print 'dstat: option --float and --integer are mutual exlusive, you can only force one'
+            print 'dstat: option --float and --integer are mutual exclusive, you can only force one'
             sys.exit(1)
 
         if not self.plugins:
@@ -1355,7 +1355,7 @@ class dstat_proc(dstat):
 
         self.val['processes'] = (self.set2['processes'] - self.set1['processes']) * 1.0 / elapsed
         for name in ('procs_running', 'procs_blocked'):
-            self.val[name] = self.set2[name] * 1.0 / elapsed
+            self.val[name] = self.set2[name] * 1.0
 
         if step == op.delay:
             self.set1.update(self.set2)
