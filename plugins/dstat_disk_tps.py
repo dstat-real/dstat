@@ -11,7 +11,7 @@ class dstat_plugin(dstat):
         self.nick = ('reads', 'writs' )
         self.type = 'd'
         self.scale = 1000
-        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+|cciss/c\dd\d)$')
+        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+|mmcblk\d+|cciss/c\dd\d)$')
         self.open('/proc/diskstats')
         self.cols = 2
 

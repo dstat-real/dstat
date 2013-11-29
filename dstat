@@ -722,7 +722,7 @@ class dstat_disk(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'b'
-        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+|cciss/c\dd\d)$')
+        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+|mmcblk\d+|cciss/c\dd\d)$')
         self.open('/proc/diskstats')
         self.cols = 2
 
@@ -787,7 +787,7 @@ class dstat_disk24(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'b'
-        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+|cciss/c\dd\d)')
+        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+|mmcblk\d+|cciss/c\dd\d)$')
         self.open('/proc/partitions')
         if self.fd and not self.discover:
             raise Exception, 'Kernel has no per-partition I/O accounting [CONFIG_BLK_STATS], use at least 2.4.20'
@@ -851,7 +851,7 @@ class dstat_disk24_old(dstat):
     def __init__(self):
         self.nick = ('read', 'writ')
         self.type = 'b'
-        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+|cciss/c\dd\d)')
+        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+|mmcblk\d+|cciss/c\dd\d)$')
         self.regexp = re.compile('^\((\d+),(\d+)\):\(\d+,\d+,(\d+),\d+,(\d+)\)$')
         self.open('/proc/stat')
         self.cols = 2
@@ -1103,7 +1103,7 @@ class dstat_io(dstat):
         self.type = 'f'
         self.width = 5
         self.scale = 1000
-        self.diskfilter = re.compile('(dm-\d+|md\d+|[hsv]d[a-z]+\d+|cciss/c\dd\d)')
+        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+|mmcblk\d+|cciss/c\dd\d)$')
         self.open('/proc/diskstats')
         self.cols = 2
 
