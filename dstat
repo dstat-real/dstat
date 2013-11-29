@@ -318,7 +318,7 @@ Dstat options:
   --integer              force integer values on screen
 
   --bw, --blackonwhite   change colors for white background terminal
-  --color                force colors (implies --update)
+  --color                force colors
   --nocolor              disable colors (implies --noupdate)
   --noheaders            disable repetitive headers
   --noupdate             disable intermediate updates
