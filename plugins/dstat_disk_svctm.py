@@ -15,7 +15,7 @@ class dstat_plugin(dstat):
         self.type = 'f'
         self.width = 4
         self.scale = 1
-        self.diskfilter = re.compile('^(dm-\d+|md\d+|[hsv]d[a-z]+\d+|mmcblk\d+|cciss/c\dd\d)$')
+        self.diskfilter = re.compile('^([hsv]d[a-z]+\d+|cciss/c\d+d\d+p\d+|dm-\d+|md\d+|mmcblk\d+p\d0|VxVM\d+)$')
         self.open('/proc/diskstats')
         self.cols = 1
         self.struct = dict( nr_ios=0, tot_ticks=0 )
