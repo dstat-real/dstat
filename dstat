@@ -2549,7 +2549,7 @@ def main():
     missed = 0
 
     ### Let the games begin
-    while update <= op.delay * op.count or op.count == -1:
+    while update <= op.delay * (op.count-1) or op.count == -1:
         scheduler.enterabs(inittime + update, 1, perform, (update,))
 #        scheduler.enter(1, 1, perform, (update,))
         scheduler.run()
