@@ -479,12 +479,12 @@ class dstat:
 
     def csvtitle(self):
         if isinstance(self.name, types.StringType):
-            return '"' + self.name + '"' + ';' * (len(self.nick) - 1)
+            return '"' + self.name + '"' + char['sep'] * (len(self.nick) - 1)
         else:
             ret = ''
             for i, name in enumerate(self.name):
-                ret = ret + '"' + name + '"' + ';' * (len(self.nick) - 1)
-                if i + 1 != len(self.name): ret = ret + ';'
+                ret = ret + '"' + name + '"' + char['sep'] * (len(self.nick) - 1)
+                if i + 1 != len(self.name): ret = ret + char['sep']
             return ret
 
     def csvsubtitle(self):
@@ -492,19 +492,19 @@ class dstat:
         if isinstance(self.name, types.StringType):
             for i, nick in enumerate(self.nick):
                 ret = ret + '"' + nick + '"'
-                if i + 1 != len(self.nick): ret = ret + ';'
+                if i + 1 != len(self.nick): ret = ret + char['sep']
         elif len(self.name) == 1:
             for i, name in enumerate(self.name):
                 for j, nick in enumerate(self.nick):
                     ret = ret + '"' + nick + '"'
-                    if j + 1 != len(self.nick): ret = ret + ';'
-                if i + 1 != len(self.name): ret = ret + ';'
+                    if j + 1 != len(self.nick): ret = ret + char['sep']
+                if i + 1 != len(self.name): ret = ret + char['sep']
         else:
             for i, name in enumerate(self.name):
                 for j, nick in enumerate(self.nick):
                     ret = ret + '"' + name + ':' + nick + '"'
-                    if j + 1 != len(self.nick): ret = ret + ';'
-                if i + 1 != len(self.name): ret = ret + ';'
+                    if j + 1 != len(self.nick): ret = ret + char['sep']
+                if i + 1 != len(self.name): ret = ret + char['sep']
         return ret
 
     def check(self):
@@ -567,20 +567,20 @@ class dstat:
                 for j, val in enumerate(self.val[name]):
                     line = line + printcsv(val)
                     if j + 1 != len(self.val[name]):
-                        line = line + ';'
+                        line = line + char['sep']
             elif isinstance(self.val[name], types.StringType):
                 line = line + self.val[name]
             else:
                 line = line + printcsv(self.val[name])
             if i + 1 != len(self.vars):
-                line = line + ';'
+                line = line + char['sep']
         return line
 
     def showcsvend(self, totlist, vislist):
         if vislist and self is not vislist[-1]:
-            return ';'
+            return char['sep']
         elif totlist and self is not totlist[-1]:
-            return ';'
+            return char['sep']
         return ''
 
 class dstat_aio(dstat):
@@ -1691,6 +1691,7 @@ char = {
     'dash': '-',
     'plus': '+',
     'underscore': '_',
+    'sep': ',',
 }
 
 def set_theme():
@@ -2105,13 +2106,13 @@ def csvheader(totlist):
     for o in totlist:
         line = line + o.csvtitle()
         if o is not totlist[-1]:
-            line = line + ';'
+            line = line + char['sep']
     line += '\n'
     ### Process subtitle
     for o in totlist:
         line = line + o.csvsubtitle()
         if o is not totlist[-1]:
-            line = line + ';'
+            line = line + char['sep']
     return line + '\n'
 
 def info(level, str):
@@ -2432,16 +2433,19 @@ def main():
 
     ### Prepare CSV output file (unbuffered)
     if op.output:
-        if os.path.exists(op.output):
-            outputfile = open(op.output, 'a', 0)
-            outputfile.write('\n\n')
-        else:
+        if not os.path.exists(op.output):
             outputfile = open(op.output, 'w', 0)
             outputfile.write('"Dstat %s CSV output"\n' % VERSION)
-            outputfile.write('"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"\n')
+            header = ('"Author:","Dag Wieers <dag@wieers.com>"','','','','"URL:"','"http://dag.wieers.com/home-made/dstat/"\n')
+            outputfile.write(char['sep'].join(header))
+        else:
+            outputfile = open(op.output, 'a', 0)
+            outputfile.write('\n\n')
 
-        outputfile.write('"Host:","%s",,,,"User:","%s"\n' % (hostname, user))
-        outputfile.write('"Cmdline:","dstat %s",,,,"Date:","%s"\n\n' % (' '.join(op.args), time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime())))
+        header = ('"Host:"','"%s"' % hostname,'','','','"User:"','"%s"\n' % user)
+        outputfile.write(char['sep'].join(header))
+        header = ('"Cmdline:"','"dstat %s"' % ' '.join(op.args),'','','','"Date:"','"%s"\n' % time.strftime('%d %b %Y %H:%M:%S %Z', time.localtime()))
+        outputfile.write(char['sep'].join(header))
 
     ### Create pidfile
     if op.pidfile:
