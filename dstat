@@ -2687,7 +2687,7 @@ def perform(update):
 if __name__ == '__main__':
     try:
         initterm()
-        op = Options(sys.argv[1:]+os.getenv('DSTAT_OPTS','').split())
+        op = Options(os.getenv('DSTAT_OPTS','').split() + sys.argv[1:])
         theme = set_theme()
         if op.profile:
             import profile
