@@ -544,7 +544,7 @@ class dstat:
                 if i >= len(self.nick): break
                 line = line + cprint(self.val[name], type, self.width, scale)
                 sep = char['space']
-            if i + 1 != len(self.vars):
+            if i + 1 != len(self.nick):
                 line = line + sep
         return line
 
