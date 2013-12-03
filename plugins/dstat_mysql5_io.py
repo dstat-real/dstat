@@ -53,7 +53,9 @@ class dstat_plugin(dstat):
             for line in lines:
                 if len(line[1]) < 2: continue
                 if line[0] in self.vars:
-                    self.set2[line[0]] = float(line[1])
+                    if line[0] + 'raw' in self.set2:
+                        self.set2[line[0]] = float(line[1]) - self.set2[line[0] + 'raw']
+                    self.set2[line[0] + 'raw'] = float(line[1])
 
             for name in self.vars:
                 self.val[name] = self.set2[name] * 1.0 / elapsed
