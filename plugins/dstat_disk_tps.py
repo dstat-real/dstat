@@ -8,8 +8,9 @@ class dstat_plugin(dstat):
     """
 
     def __init__(self):
-        self.nick = ('reads', 'writs' )
+        self.nick = ('#read', '#writ' )
         self.type = 'd'
+        self.width = 5
         self.scale = 1000
         self.diskfilter = re.compile('^([hsv]d[a-z]+\d+|cciss/c\d+d\d+p\d+|dm-\d+|md\d+|mmcblk\d+p\d0|VxVM\d+)$')
         self.open('/proc/diskstats')

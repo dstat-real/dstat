@@ -7,7 +7,7 @@ class dstat_plugin(dstat):
 
     def __init__(self):
         self.nick = ('#recv', '#send')
-        self.type = 'f'
+        self.type = 'd'
         self.width = 5
         self.scale = 1000
         self.totalfilter = re.compile('^(lo|bond\d+|face|.+\.\d+)$')
