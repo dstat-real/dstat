@@ -544,7 +544,7 @@ class dstat:
                 if i >= len(self.nick): break
                 line = line + cprint(self.val[name], type, self.width, scale)
                 sep = char['space']
-            if i + 1 != len(self.nick):
+            if i + 1 != len(self.vars):
                 line = line + sep
         return line
 
@@ -2041,7 +2041,7 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
         ret, c = dchg(var, width, base)
     elif type in ('f'):
         ret, c = fchg(var, width, base)
-    elif type in ('s'):
+    elif type in ('s',):
         ret, c = str(var), ctext
     elif type in ('t'):
         ret, c = tchg(var, width), ctext
