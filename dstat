@@ -455,7 +455,7 @@ class dstat:
         for i, name in enumerate(self.name):
             width = self.colwidth()
             ret = ret + name[0:width].center(width).replace(' ', '-')
-            if i + 1 != len(self.name):
+            if i + 1 != len(self.vars):
                 if op.color:
                     ret = ret + theme['frame'] + char['dash'] + theme['title']
                 else:
@@ -539,13 +539,15 @@ class dstat:
             if isinstance(self.val[name], types.TupleType) or isinstance(self.val[name], types.ListType):
                 line = line + cprintlist(self.val[name], type, self.width, scale)
                 sep = theme['frame'] + char['colon']
+                if i + 1 != len(self.vars):
+                    line = line + sep
             else:
                 ### Make sure we don't show more values than we have nicknames
                 if i >= len(self.nick): break
                 line = line + cprint(self.val[name], type, self.width, scale)
                 sep = char['space']
-            if i + 1 != len(self.vars):
-                line = line + sep
+                if i + 1 != len(self.nick):
+                    line = line + sep
         return line
 
     def showend(self, totlist, vislist):
@@ -2211,6 +2213,7 @@ def getnamebypid(pid, name):
 
 def getcpunr():
     "Return the number of CPUs in the system"
+
     cpunr = -1
     for line in dopen('/proc/stat').readlines():
         if line[0:3] == 'cpu':
