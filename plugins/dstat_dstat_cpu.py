@@ -14,8 +14,9 @@ class dstat_plugin(dstat):
     def __init__(self):
         self.name = 'dstat cpu'
         self.vars = ('user', 'system', 'total')
-        self.type = 'd'
-        self.width = 4
+        self.nick = ('usr', 'sys', 'tot')
+        self.type = 'p'
+        self.width = 3
         self.scale = 100
 
     def extract(self):
@@ -26,7 +27,7 @@ class dstat_plugin(dstat):
         self.set2['total'] = float(res.ru_utime) + float(res.ru_stime)
 
         for name in self.vars:
-            self.val[name] = (self.set2[name] - self.set1[name]) * 1000.0 / elapsed
+            self.val[name] = (self.set2[name] - self.set1[name]) * 100.0 / elapsed / cpunr
 
         if step == op.delay:
             self.set1.update(self.set2)

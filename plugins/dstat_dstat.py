@@ -13,8 +13,8 @@ class dstat_plugin(dstat):
         self.name = 'dstat'
         self.vars = ('cputime', 'latency')
         self.type = 'd'
-        self.width = 4
-        self.scale = 100
+        self.width = 5
+        self.scale = 1000
         self.open('/proc/%s/schedstat' % ownpid)
 
     def extract(self):
