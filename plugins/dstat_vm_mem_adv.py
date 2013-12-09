@@ -6,7 +6,7 @@
 
 class dstat_plugin(dstat):
     def __init__(self):
-        self.name = 'memory'
+        self.name = 'vmware advanced memory'
         self.vars = ('active', 'ballooned', 'mapped', 'overhead', 'saved', 'shared', 'swapped', 'targetsize', 'used')
         self.nick = ('active', 'balln', 'mappd', 'ovrhd', 'saved', 'shard', 'swapd', 'targt', 'used')
         self.type = 'd'
