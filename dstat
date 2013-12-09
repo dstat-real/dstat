@@ -2214,13 +2214,38 @@ def getnamebypid(pid, name):
 def getcpunr():
     "Return the number of CPUs in the system"
 
-    cpunr = -1
-    for line in dopen('/proc/stat').readlines():
-        if line[0:3] == 'cpu':
-            cpunr = cpunr + 1
-    if cpunr < 0:
+    # POSIX
+    try:
+        return os.sysconf("SC_NPROCESSORS_ONLN")
+    except ValueError:
+        pass
+
+    # Python 2.6+
+    try:
+        import multiprocessing
+        return multiprocessing.cpu_count()
+    except (ImportError, NotImplementedError):
+       pass
+
+    # Fallback 1
+    try:
+        cpunr = open('/proc/cpuinfo', 'r').read().count('processor\t:')
+        if cpunr > 0:
+            return cpunr
+    except IOError:
+        pass
+
+    # Fallback 2
+    try:
+        search = re.compile('^cpu\d+')
+        cpunr = 0
+        for line in dopen('/proc/stat').readlines():
+            if search.match(line):
+                cpunr += 1
+        if cpunr > 0:
+            return cpunr
+    except:
         raise Exception, "Problem finding number of CPUs in system."
-    return cpunr
 
 def blockdevices():
     ### We have to replace '!' by '/' to support cciss!c0d0 type devices :-/
