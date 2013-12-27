@@ -1497,7 +1497,7 @@ class dstat_tcp(dstat):
         self.nick = ('lis', 'act', 'syn', 'tim', 'clo')
         self.vars = ('listen', 'established', 'syn', 'wait', 'close')
         self.type = 'd'
-        self.width = 3
+        self.width = 4
         self.scale = 100
         self.open('/proc/net/tcp', '/proc/net/tcp6')
 
