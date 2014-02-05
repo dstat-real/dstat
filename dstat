@@ -601,12 +601,12 @@ class dstat_aio(dstat):
 
 class dstat_cpu(dstat):
     def __init__(self):
-        self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq', 'stl' )
+        self.nick = ( 'usr', 'sys', 'idl', 'wai' )
         self.type = 'p'
         self.width = 3
         self.scale = 34
         self.open('/proc/stat')
-        self.cols = 7
+        self.cols = 4
 
     def discover(self, *objlist):
         ret = []
@@ -643,6 +643,33 @@ class dstat_cpu(dstat):
             else:
                 ret.append('cpu' + name + ' usage')
         return ret
+
+    def extract(self):
+        for l in self.splitlines():
+            if len(l) < 9: continue
+            for name in self.vars:
+                if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
+                    self.set2[name] = ( long(l[1]) + long(l[2]) + long(l[6]) + long(l[7]), long(l[3]), long(l[4]), long(l[5]) )
+
+        for name in self.vars:
+            for i in range(self.cols):
+                if sum(self.set2[name]) > sum(self.set1[name]):
+                    self.val[name][i] = 100.0 * (self.set2[name][i] - self.set1[name][i]) / (sum(self.set2[name]) - sum(self.set1[name]))
+                else:
+                    self.val[name][i] = 0
+#                    print >>sys.stderr, "Error: tick problem detected, this should never happen !"
+
+        if step == op.delay:
+            self.set1.update(self.set2)
+
+class dstat_cpu_adv(dstat_cpu):
+    def __init__(self):
+        self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq', 'stl' )
+        self.type = 'p'
+        self.width = 3
+        self.scale = 34
+        self.open('/proc/stat')
+        self.cols = 7
 
     def extract(self):
         for l in self.splitlines():
@@ -1218,7 +1245,7 @@ class dstat_mem(dstat):
     def __init__(self):
         self.name = 'memory usage'
         self.nick = ('used', 'free', 'buff', 'cach')
-        self.vars = ('MemUsed', 'MemFree', 'Buffers', 'Cached')
+        self.vars = ('MemTotal', 'MemUsed', 'MemFree', 'Buffers', 'Cached', 'Shmem', 'SReclaimable')
         self.open('/proc/meminfo')
 
     def extract(self):
@@ -1228,7 +1255,20 @@ class dstat_mem(dstat):
             if name in self.vars + ('MemTotal', ):
                 self.val[name] = long(l[1]) * 1024.0
 
-        self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached']
+        self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached'] - self.val['SReclaimable'] + self.val['Shmem']
+
+class dstat_mem_adv(dstat_mem):
+    """
+    Advanced memory usage
+
+    Displays memory usage similarly to the internal plugin but with added total, shared and reclaimable counters.
+    Additionally, shared memory is added and reclaimable memory is subtracted from the used memory counter.
+    """
+    def __init__(self):
+        self.name = 'advanced memory usage'
+        self.nick = ('total', 'used', 'free', 'buff', 'cach', 'dirty', 'shmem', 'recl')
+        self.vars = ('MemTotal', 'MemUsed', 'MemFree', 'Buffers', 'Cached', 'Dirty', 'Shmem', 'SReclaimable')
+        self.open('/proc/meminfo')
 
 class dstat_net(dstat):
     def __init__(self):
@@ -2360,7 +2400,7 @@ def listplugins():
 def showplugins():
     rows, cols = gettermsize()
     print 'internal:\n\t',
-    remod = re.compile('dstat_(.+)$')
+    remod = re.compile('^dstat_(.+)$')
     plugins = []
     for filename in globals():
         if filename.startswith('dstat_'):
