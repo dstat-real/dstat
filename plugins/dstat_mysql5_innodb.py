@@ -1,7 +1,7 @@
 ### Author: HIROSE Masaaki <hirose31 _at_ gmail.com>
 
 global mysql_options
-mysql_options = os.getenv('DSTAT_MYSQL')
+mysql_options = os.getenv('DSTAT_MYSQL') or ''
 
 global target_status
 global _basic_status
