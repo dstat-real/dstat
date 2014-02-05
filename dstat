@@ -195,7 +195,6 @@ class Options:
                 sys.exit(0)
             elif opt in ['--nocolor']:
                 self.color = False
-                self.update = False
             elif opt in ['--noheaders']:
                 self.header = False
             elif opt in ['--noupdate']:
@@ -319,7 +318,7 @@ Dstat options:
 
   --bw, --blackonwhite   change colors for white background terminal
   --color                force colors
-  --nocolor              disable colors (implies --noupdate)
+  --nocolor              disable colors
   --noheaders            disable repetitive headers
   --noupdate             disable intermediate updates
   --output file          write CSV output to file
@@ -1716,7 +1715,7 @@ class dstat_zones(dstat):
 
 ### END STATS DEFINITIONS ###
 
-ansi = {
+color = {
     'black': '\033[0;30m',
     'darkred': '\033[0;31m',
     'darkgreen': '\033[0;32m',
@@ -1743,7 +1742,9 @@ ansi = {
     'magentabg': '\033[45m',
     'cyanbg': '\033[46m',
     'whitebg': '\033[47m',
+}
 
+ansi = {
     'reset': '\033[0;0m',
     'bold': '\033[1m',
     'reverse': '\033[2m',
@@ -1782,45 +1783,45 @@ def set_theme():
     "Provide a set of colors to use"
     if op.blackonwhite:
         theme = {
-            'title': ansi['darkblue'],
-            'subtitle': ansi['darkcyan'] + ansi['underline'],
-            'frame': ansi['darkblue'],
+            'title': color['darkblue'],
+            'subtitle': color['darkcyan'] + ansi['underline'],
+            'frame': color['darkblue'],
             'default': ansi['default'],
-            'error': ansi['white'] + ansi['redbg'],
-            'roundtrip': ansi['darkblue'],
-            'debug': ansi['darkred'],
-            'input': ansi['darkgray'],
-            'done_lo': ansi['black'],
-            'done_hi': ansi['darkgray'],
-            'text_lo': ansi['black'],
-            'text_hi': ansi['darkgray'],
-            'unit_lo': ansi['black'],
-            'unit_hi': ansi['darkgray'],
-            'colors_lo': (ansi['darkred'], ansi['darkmagenta'], ansi['darkgreen'], ansi['darkblue'],
-                          ansi['darkcyan'], ansi['black'], ansi['red'], ansi['green']),
-            'colors_hi': (ansi['red'], ansi['magenta'], ansi['green'], ansi['blue'],
-                          ansi['cyan'], ansi['darkgray'], ansi['darkred'], ansi['darkgreen']),
+            'error': color['white'] + color['redbg'],
+            'roundtrip': color['darkblue'],
+            'debug': color['darkred'],
+            'input': color['darkgray'],
+            'done_lo': color['black'],
+            'done_hi': color['darkgray'],
+            'text_lo': color['black'],
+            'text_hi': color['darkgray'],
+            'unit_lo': color['black'],
+            'unit_hi': color['darkgray'],
+            'colors_lo': (color['darkred'], color['darkmagenta'], color['darkgreen'], color['darkblue'],
+                          color['darkcyan'], color['black'], color['red'], color['green']),
+            'colors_hi': (color['red'], color['magenta'], color['green'], color['blue'],
+                          color['cyan'], color['darkgray'], color['darkred'], color['darkgreen']),
         }
     else:
         theme = {
-            'title': ansi['darkblue'],
-            'subtitle': ansi['blue'] + ansi['underline'],
-            'frame': ansi['darkblue'],
+            'title': color['darkblue'],
+            'subtitle': color['blue'] + ansi['underline'],
+            'frame': color['darkblue'],
             'default': ansi['default'],
-            'error': ansi['white'] + ansi['redbg'],
-            'roundtrip': ansi['darkblue'],
-            'debug': ansi['darkred'],
-            'input': ansi['darkgray'],
-            'done_lo': ansi['white'],
-            'done_hi': ansi['gray'],
-            'text_lo': ansi['gray'],
-            'text_hi': ansi['darkgray'],
-            'unit_lo': ansi['darkgray'],
-            'unit_hi': ansi['darkgray'],
-            'colors_lo': (ansi['red'], ansi['yellow'], ansi['green'], ansi['blue'],
-                          ansi['cyan'], ansi['white'], ansi['darkred'], ansi['darkgreen']),
-            'colors_hi': (ansi['darkred'], ansi['darkyellow'], ansi['darkgreen'], ansi['darkblue'],
-                          ansi['darkcyan'], ansi['gray'], ansi['red'], ansi['green']),
+            'error': color['white'] + color['redbg'],
+            'roundtrip': color['darkblue'],
+            'debug': color['darkred'],
+            'input': color['darkgray'],
+            'done_lo': color['white'],
+            'done_hi': color['gray'],
+            'text_lo': color['gray'],
+            'text_hi': color['darkgray'],
+            'unit_lo': color['darkgray'],
+            'unit_hi': color['darkgray'],
+            'colors_lo': (color['red'], color['yellow'], color['green'], color['blue'],
+                          color['cyan'], color['white'], color['darkred'], color['darkgreen']),
+            'colors_hi': (color['darkred'], color['darkyellow'], color['darkgreen'], color['darkblue'],
+                          color['darkcyan'], color['gray'], color['red'], color['green']),
         }
     return theme
 
@@ -2568,15 +2569,14 @@ def main():
             op.pidfile = False
 
     ### Empty ansi and theme database if no colors are requested
-    if op.color != True:
-        op.update = False
-        for key in ansi.keys():
-            ansi[key] = ''
+    if not op.color:
+        for key in color.keys():
+            color[key] = ''
         for key in theme.keys():
             theme[key] = ''
         theme['colors_hi'] = (ansi['default'],)
         theme['colors_lo'] = (ansi['default'],)
-#        print ansi['blackbg']
+#        print color['blackbg']
 
     if not op.update:
         interval = op.delay

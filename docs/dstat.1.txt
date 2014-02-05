@@ -40,15 +40,16 @@ information.
 
 == OPTIONS
 -c, --cpu::
-    enable cpu stats (system, user, idle, wait, hardware interrupt, software
-    interrupt)
+    enable cpu stats (system, user, idle, wait), for more CPU related
+    stats also try *--cpu-adv*
 
 -C 0,3,total::
     include cpu0, cpu3 and total (when using -c/--cpu); use 'all' to show all
     CPUs
 
 -d, --disk::
-    enable disk stats (read, write)
+    enable disk stats (read, write), for more disk related stats look
+    into the other *--disk* plugins
 
 -D total,hda::
     include total and hda (when using -d/--disk)
@@ -66,7 +67,8 @@ information.
     enable load average stats (1 min, 5 mins, 15mins)
 
 -m, --mem::
-    enable memory stats (used, buffers, cache, free)
+    enable memory stats (used, buffers, cache, free); for more memory
+    related stats also try *--mem-adv* and *--swap*
 
 -n, --net::
     enable network stats (receive, send)
@@ -98,6 +100,9 @@ information.
 --aio::
     enable aio stats (asynchronous I/O)
 
+--cpu-adv::
+    enable advanced cpu stats
+
 --fs, --filesystem::
     enable filesystem stats (open files, inodes)
 
@@ -106,6 +111,9 @@ information.
 
 --lock::
     enable file lock stats (posix, flock, read, write)
+
+--mem-adv::
+    enable advanced memory stats
 
 --raw::
     enable raw stats (raw sockets)
@@ -135,9 +143,9 @@ information.
     enable (external) plugins by plugin name, see *PLUGINS* for options
 
 Possible internal stats are::
-    aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc,
-    load, lock, mem, net, page, page24, proc, raw, socket, swap, swapold,
-    sys, tcp, time, udp, unix, vm
+    aio, cpu, cpu24, disk, disk24, disk24-old, epoch, fs, int, int24, io, ipc,
+    load, lock, mem, mem-adv, net, page, page24, proc, raw, socket, swap,
+    swap-old, sys, tcp, time, udp, unix, vm, vm-adv, zones
 
 --list::
     list the internal and external plugin names
@@ -164,7 +172,7 @@ Possible internal stats are::
     change colors for white background terminal
 
 --nocolor::
-    disable colors (implies *--noupdate*)
+    disable colors
 
 --noheaders::
     disable repetitive headers
@@ -466,8 +474,31 @@ Paths that may contain external dstat_*.py plugins:
 
 == ENVIRONMENT VARIABLES
 
-dstat will read additional command line arguments from the environment
-variable *DSTAT_OPTS*.
+Dstat will read additional command line arguments from the environment
+variable *DSTAT_OPTS*. You can use this to configure Dstat's default
+behavior, e.g. if you have a black-on-white terminal:
+
+    export DSTAT_OPTS="--bw --noupdate"
+
+Other internal or external plugins have their own environment variables
+to influence their behavior, e.g.
+
+
+    DSTAT_NTPSERVER
+
+    DSTAT_MYSQL
+    DSTAT_MYSQL_HOST
+    DSTAT_MYSQL_PORT
+    DSTAT_MYSQL_SOCKET
+    DSTAT_MYSQL_USER
+    DSTAT_MYSQL_PWD
+
+    DSTAT_SNMPSERVER
+    DSTAT_SNMPCOMMUNITY
+
+    DSTAT_SQUID_OPTS
+
+    DSTAT_TIMEFMT
 
 == SEE ALSO
 
