@@ -31,10 +31,31 @@ class dstat_plugin(dstat):
             raise Exception, "No suitable block devices found to monitor"
         return ret
 
+    def basename(self, disk):
+        "Strip /dev/ and convert symbolic link"
+        if disk[:5] == '/dev/':
+            # file or symlink
+            if os.path.exists(disk):
+                # e.g. /dev/disk/by-uuid/15e40cc5-85de-40ea-b8fb-cb3a2eaf872
+                if os.path.islink(disk):
+                    target = os.readlink(disk)
+                    # convert relative pathname to absolute
+                    if target[0] != '/':
+                        target = os.path.join(os.path.dirname(disk), target)
+                        target = os.path.normpath(target)
+                    print 'dstat: symlink %s -> %s' % (disk, target)
+                    disk = target
+                # trim leading /dev/
+                return disk[5:]
+            else:
+                print 'dstat: %s does not exist' % disk
+        else:
+            return disk
+
     def vars(self):
         ret = []
         if op.disklist:
-            varlist = op.disklist
+            varlist = map(self.basename, op.disklist)
         else:
             varlist = []
             for name in self.discover:
