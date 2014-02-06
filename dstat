@@ -600,12 +600,12 @@ class dstat_aio(dstat):
 
 class dstat_cpu(dstat):
     def __init__(self):
-        self.nick = ( 'usr', 'sys', 'idl', 'wai' )
+        self.nick = ( 'usr', 'sys', 'idl', 'wai', 'stl' )
         self.type = 'p'
         self.width = 3
         self.scale = 34
         self.open('/proc/stat')
-        self.cols = 4
+        self.cols = 5
 
     def discover(self, *objlist):
         ret = []
@@ -648,7 +648,7 @@ class dstat_cpu(dstat):
             if len(l) < 9: continue
             for name in self.vars:
                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
-                    self.set2[name] = ( long(l[1]) + long(l[2]) + long(l[6]) + long(l[7]), long(l[3]), long(l[4]), long(l[5]) )
+                    self.set2[name] = ( long(l[1]) + long(l[2]) + long(l[6]) + long(l[7]), long(l[3]), long(l[4]), long(l[5]), long(l[8]) )
 
         for name in self.vars:
             for i in range(self.cols):
