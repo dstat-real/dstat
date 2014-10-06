@@ -560,7 +560,7 @@ class dstat:
         def printcsv(var):
             if var != round(var):
                 return '%.3f' % var
-            return '%d' % round(var)
+            return '%d' % long(round(var))
 
         line = ''
         for i, name in enumerate(self.vars):
