@@ -661,6 +661,34 @@ class dstat_cpu(dstat):
         if step == op.delay:
             self.set1.update(self.set2)
 
+class dstat_cpu_use(dstat_cpu):
+    def __init__(self):
+        self.name = 'cpu usage'
+        self.type = 'p'
+        self.width = 3
+        self.scale = 34
+        self.open('/proc/stat')
+        self.cols = 7
+        if not op.cpulist:
+            self.vars = [ str(x) for x in range(cpunr) ]
+
+    def extract(self):
+        for l in self.splitlines():
+            if len(l) < 9: continue
+            for name in self.vars:
+                if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
+                    self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]), long(l[8]) )
+
+        for name in self.vars:
+            if sum(self.set2[name]) > sum(self.set1[name]):
+                self.val[name] = 100.0 - 100.0 * (self.set2[name][2] - self.set1[name][2]) / (sum(self.set2[name]) - sum(self.set1[name]))
+            else:
+                self.val[name] = 0
+#                    print >>sys.stderr, "Error: tick problem detected, this should never happen !"
+
+        if step == op.delay:
+            self.set1.update(self.set2)
+
 class dstat_cpu_adv(dstat_cpu):
     def __init__(self):
         self.nick = ( 'usr', 'sys', 'idl', 'wai', 'hiq', 'siq', 'stl' )

@@ -16,6 +16,7 @@
 - Print decimal values as decimals where possible (so 0 instead of 0.0)
 - Added external dstat_ddwrt_* plugins using DD-WRT counters using SNMP infrastructure
 - Fixed improper process names using spaces instead of \0 (Edward Smith)
+- Added --cpu-use plugin with onlu CPU usage per CPU (Christian Neukirchen)
 
 * 0.7.2 - Real soon now - release 15/06/2010
 - Added external dstat_disk_tps plugin to show transactions per second
