@@ -7,7 +7,17 @@ class dstat_plugin(dstat):
         self.width = 3
         self.scale = 20
 
-        if os.path.exists('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'):
+        if os.path.exists('/sys/devices/virtual/thermal/'):
+            self.nick = []
+            self.vars = []
+            for zone in os.listdir('/sys/devices/virtual/thermal/'):
+                zone_split=zone.split("thermal_zone")
+                if len(zone_split) == 2:
+                    self.vars.append(zone)
+                    name="".join(["tz",zone_split[1]])
+                    self.nick.append(name)
+
+        elif os.path.exists('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'):
             self.vars = os.listdir('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/')
             self.nick = []
             for name in self.vars:
@@ -31,16 +41,22 @@ class dstat_plugin(dstat):
                 self.nick.append(name.lower())
 
         else:
-            raise Exception, 'Needs kernel ACPI or IBM-ACPI support'
+            raise Exception, 'Needs kernel thermal, ACPI or IBM-ACPI support'
 
     def check(self):
         if not os.path.exists('/proc/acpi/ibm/thermal') and \
            not os.path.exists('/proc/acpi/thermal_zone/') and \
+           not os.path.exists('/sys/devices/virtual/thermal/') and \
            not os.path.exists('/sys/bus/acpi/devices/LNXTHERM:00/thermal_zone/'):
-            raise Exception, 'Needs kernel ACPI or IBM-ACPI support'
+            raise Exception, 'Needs kernel thermal, ACPI or IBM-ACPI support'
 
     def extract(self):
-        if os.path.exists('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'):
+        if os.path.exists('/sys/devices/virtual/thermal/'):
+            for zone in self.vars:
+                for line in dopen('/sys/devices/virtual/thermal/'+zone+'/temp').readlines():
+                    l = line.split()
+                    self.val[zone] = int(l[0])
+        elif os.path.exists('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'):
             for zone in self.vars:
                 if os.path.isdir('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'+zone) == False:
                     for line in dopen('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'+zone).readlines():
