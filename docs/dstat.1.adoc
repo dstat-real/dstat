@@ -1,6 +1,6 @@
 = dstat(1)
 Dag Wieers <dag@wieers.com>
-v0.7.2, April 2013
+v0.7.3, August 2014
 
 
 == NAME
@@ -41,7 +41,7 @@ information.
 == OPTIONS
 -c, --cpu::
     enable cpu stats (system, user, idle, wait), for more CPU related
-    stats also try *--cpu-adv*
+    stats also see *--cpu-adv* and *--cpu-use*
 
 -C 0,3,total::
     include cpu0, cpu3 and total (when using -c/--cpu); use 'all' to show all
@@ -103,6 +103,9 @@ information.
 --cpu-adv::
     enable advanced cpu stats
 
+--cpu-use::
+    enable only cpu usage stats
+
 --fs, --filesystem::
     enable filesystem stats (open files, inodes)
 
@@ -143,9 +146,9 @@ information.
     enable (external) plugins by plugin name, see *PLUGINS* for options
 
 Possible internal stats are::
-    aio, cpu, cpu24, disk, disk24, disk24-old, epoch, fs, int, int24, io, ipc,
-    load, lock, mem, mem-adv, net, page, page24, proc, raw, socket, swap,
-    swap-old, sys, tcp, time, udp, unix, vm, vm-adv, zones
+    aio, cpu, cpu24, cpu-adv, cpu-use, disk, disk24, disk24-old, epoch, fs,
+    int, int24, io, ipc, load, lock, mem, mem-adv, net, page, page24, proc,
+    raw, socket, swap, swap-old, sys, tcp, time, udp, unix, vm, vm-adv, zones
 
 --list::
     list the internal and external plugin names
@@ -204,11 +207,11 @@ Here is an overview of the plugins dstat ships with:
 --dbus::
     number of dbus connections (needs python-dbus)
 
---disk-avgrq::
-    average size (in sectors) of the requests that were issued to the device
-
 --disk-avgqu::
     average queue length of the requests that were issued to the device
+
+--disk-avgrq::
+    average size (in sectors) of the requests that were issued to the device
 
 --disk-svctm::
     average service time (in milliseconds) for I/O requests that were issued to the device
@@ -273,6 +276,9 @@ Here is an overview of the plugins dstat ships with:
 --mysql5-conn::
     show the MySQL5 connection stats
 
+--mysql5-innodb::
+    show the MySQL5 innodb stats
+
 --mysql5-io::
     show the MySQL5 I/O stats
 
@@ -300,6 +306,12 @@ Here is an overview of the plugins dstat ships with:
 --nfsd3-ops::
     show extended NFS v3 server operations
 
+--nfsd4-ops::
+    show extended NFS v4 server operations
+
+--nfsstat4::
+    show NFS v4 stats
+
 --ntp::
     show NTP time from an NTP server
 
@@ -315,6 +327,9 @@ Here is an overview of the plugins dstat ships with:
 --qmail::
     show qmail queue sizes (needs qmail)
 
+--redis:
+    show redis stats
+
 --rpc::
     show RPC client calls stats
 
@@ -323,6 +338,24 @@ Here is an overview of the plugins dstat ships with:
 
 --sendmail::
     show sendmail queue size (needs sendmail)
+
+--snmp-cpu::
+    show CPU stats using SNMP from DSTAT_SNMPSERVER
+
+--snmp-load::
+    show load stats using SNMP from DSTAT_SNMPSERVER
+
+--snmp-mem::
+    show memory stats using SNMP from DSTAT_SNMPSERVER
+
+--snmp-net::
+    show network stats using SNMP from DSTAT_SNMPSERVER
+
+--snmp-net-err:
+    show network errors using SNMP from DSTAT_SNMPSERVER
+
+--snmp-sys::
+    show system stats (interrupts and context switches) using SNMP from DSTAT_SNMPSERVER
 
 --snooze::
     show number of ticks per second
@@ -381,6 +414,15 @@ Here is an overview of the plugins dstat ships with:
 --utmp::
     show number of utmp connections (needs python-utmp)
 
+--vm-cpu::
+    show VMware CPU stats from hypervisor
+
+--vm-mem::
+    show VMware memory stats from hypervisor
+
+--vm-mem-adv::
+    show advanced VMware memory stats from hypervisor
+
 --vmk-hba::
     show VMware ESX kernel vmhba stats
 
@@ -389,9 +431,6 @@ Here is an overview of the plugins dstat ships with:
 
 --vmk-nic::
     show VMware ESX kernel port stats
-
---vm-memctl::
-    show ballooning status inside VMware guests
 
 --vz-cpu::
     show CPU usage per OpenVZ guest
@@ -404,6 +443,15 @@ Here is an overview of the plugins dstat ships with:
 
 --wifi::
     wireless link quality and signal to noise ratio
+
+--zfs-arc::
+    show ZFS arc stats
+
+--zfs-l2arc::
+    show ZFS l2arc stats
+
+--zfs-zil::
+    show ZFS zil stats
 
 
 == ARGUMENTS
@@ -447,9 +495,9 @@ this is identical to
 dstat --time --cpu --net --disk --sys --load --proc --top-cpu
 ----
 
-Using dstat to relate cpu stats with interrupts per device:
+Using dstat to relate advanced cpu stats with interrupts per device:
 ----
-dstat -tcyif
+dstat -t --cpu-adv -yif
 ----
 
 
@@ -512,13 +560,13 @@ to influence their behavior, e.g.
     ldd(1), file(1), nm(1), objdump(1), readelf(1)
 
 === Memory usage tools
-    free(1), memusage, memusagestat, slabtop(1), smem(8)
+    free(1), memusage, memusagestat, ps_mem(1), slabtop(1), smem(8)
 
 === Accounting tools
     acct(2), dump-acct(8), dump-utmp(8), lastcomm(1), sa(8)
 
 === Hardware debugging tools
-    dmidecode(8), ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
+    dmidecode(8), ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), numactl(8), smartctl(8), turbostat(8), x86info(1)
 
 === Application debugging
     mailstats(8), qshape(1)

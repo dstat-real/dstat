@@ -4,8 +4,8 @@ mandir = $(datadir)/man
 
 template = dagit.ott
 
-txttargets = $(shell echo *.txt)
-htmltargets = $(patsubst %.txt, %.html, $(txttargets))
+adoctargets = $(shell echo *.adoc)
+htmltargets = $(patsubst %.adoc, %.html, $(adoctargets))
 
 all:
 
@@ -19,25 +19,25 @@ install: dstat.1
 clean:
 	rm -f dstat.1 *.html *.xml
 
-%.1.html: %.1.txt
+%.1.html: %.1.adoc
 	asciidoc -d manpage $<
 
-%.html: %.txt
+%.html: %.adoc
 	asciidoc $<
 
-%.1.xml: %.1.txt
+%.1.xml: %.1.adoc
 	asciidoc -b docbook -d manpage $<
 
 %.1: %.1.xml
 	@xmlto man $<
 
-%.xml: %.txt
+%.xml: %.adoc
 	asciidoc -b docbook -d article -o $@ $<
 
-%.htm: %.txt
+%.htm: %.adoc
 	asciidoc -s -b html4 -d article -o $@ $<
 
-%.xhtml: %.txt
+%.xhtml: %.adoc
 	asciidoc -s -b xhtml11 -d article -o $@ $<
 
 %.tmp.odt: %.xml
