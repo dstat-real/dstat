@@ -305,8 +305,8 @@ Dstat options:
   --vm-adv               enable advanced vm stats
   --zones                enable zoneinfo stats
 
-  --stat1 --stat2        enable (external) plugins by plugin name (see manual)
   --list                 list all available plugins
+  --plugin               enable external plugin by name (see --list)
 
   -a, --all              equals -cdngy (default)
   -f, --full             automatically expand -C, -D, -I, -N and -S lists
