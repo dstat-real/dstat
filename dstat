@@ -1325,7 +1325,7 @@ class dstat_mem(dstat):
             name = l[0].split(':')[0]
             if name in self.vars:
                 self.val[name] = long(l[1]) * 1024.0
-            elif name in adv_extract_vars:
+            if name in adv_extract_vars:
                 adv_val[name] = long(l[1]) * 1024.0
 
         self.val['MemUsed'] = adv_val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached'] - adv_val['SReclaimable'] + adv_val['Shmem']
