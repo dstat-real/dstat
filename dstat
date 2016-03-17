@@ -179,7 +179,7 @@ class Options:
                 self.plugins += plugins
             elif opt in ['--bits']:
                 self.bits = True
-            elif opt in ['--bw', '--blackonwhite']:
+            elif opt in ['--bw', '--black-on-white']:
                 self.blackonwhite = True
             elif opt in ['--color']:
                 self.color = True
