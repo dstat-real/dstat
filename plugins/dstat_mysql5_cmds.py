@@ -6,6 +6,15 @@ mysql_user = os.getenv('DSTAT_MYSQL_USER') or os.getenv('USER')
 global mysql_pwd
 mysql_pwd = os.getenv('DSTAT_MYSQL_PWD')
 
+global mysql_host
+mysql_host = os.getenv('DSTAT_MYSQL_HOST')
+
+global mysql_port
+mysql_port = os.getenv('DSTAT_MYSQL_PORT')
+
+global mysql_socket
+mysql_socket = os.getenv('DSTAT_MYSQL_SOCKET')
+
 class dstat_plugin(dstat):
     """
     Plugin for MySQL 5 commands.
@@ -22,7 +31,19 @@ class dstat_plugin(dstat):
         global MySQLdb
         import MySQLdb
         try:
-            self.db = MySQLdb.connect(user=mysql_user, passwd=mysql_pwd)
+            args = {}
+            if mysql_user:
+                args['user'] = mysql_user
+            if mysql_pwd:
+                args['passwd'] = mysql_pwd
+            if mysql_host:
+                args['host'] = mysql_host
+            if mysql_port:
+                args['port'] = mysql_port
+            if mysql_socket:
+                args['unix_socket'] = mysql_socket
+
+            self.db = MySQLdb.connect(**args)
         except Exception, e:
             raise Exception, 'Cannot interface with MySQL server: %s' % e
 
