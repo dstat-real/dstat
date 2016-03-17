@@ -1314,17 +1314,21 @@ class dstat_mem(dstat):
     def __init__(self):
         self.name = 'memory usage'
         self.nick = ('used', 'free', 'buff', 'cach')
-        self.vars = ('MemTotal', 'MemUsed', 'MemFree', 'Buffers', 'Cached', 'Shmem', 'SReclaimable')
+        self.vars = ('MemUsed', 'MemFree', 'Buffers', 'Cached')
         self.open('/proc/meminfo')
 
     def extract(self):
+        adv_extract_vars = ('MemTotal', 'Shmem', 'SReclaimable')
+        adv_val={}
         for l in self.splitlines():
             if len(l) < 2: continue
             name = l[0].split(':')[0]
-            if name in self.vars + ('MemTotal', ):
+            if name in self.vars:
                 self.val[name] = long(l[1]) * 1024.0
+            if name in adv_extract_vars:
+                adv_val[name] = long(l[1]) * 1024.0
 
-        self.val['MemUsed'] = self.val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached'] - self.val['SReclaimable'] + self.val['Shmem']
+        self.val['MemUsed'] = adv_val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached'] - adv_val['SReclaimable'] + adv_val['Shmem']
 
 class dstat_mem_adv(dstat_mem):
     """
