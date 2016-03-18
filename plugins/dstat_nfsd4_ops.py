@@ -36,6 +36,7 @@ class dstat_plugin(dstat):
         self.type = 'd'
         self.width = 5
         self.scale = 1000
+        self.open("/proc/net/rpc/nfsd")
 
     def check(self):
         # other NFS modules had this, so I left it. It seems to work.
@@ -55,17 +56,18 @@ class dstat_plugin(dstat):
                 'layoutcommit', 'layoutget', 'layoutreturn', 'secinfononam', 'sequence',
                 'set_ssv', 'test_stateid', 'want_deleg', 'destroy_clid', 'reclaim_comp'
                 )
-        f_nfs = open("/proc/net/rpc/nfsd")
-        f_nfs.seek(0)
-        for line in f_nfs:
+
+        for line in self.splitlines():
             fields = line.split()
+
             if fields[0] == "proc4ops": # just grab NFSv4 stats
                 assert int(fields[1]) == len(fields[2:]), ("reported field count (%d) does not match actual field count (%d)" % (int(fields[1]), len(fields[2:])))
                 for var in self.vars:
                     self.set2[var] = fields[nfsd4_names.index(var)]
-                
+
         for name in self.vars:
             self.val[name] = (int(self.set2[name]) - int(self.set1[name])) * 1.0 / elapsed
+
         if step == op.delay:
             self.set1.update(self.set2)
 
