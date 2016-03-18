@@ -2,15 +2,25 @@
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.5.3" />
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>Dstat: pluggable real-time monitoring</title>
 <style type="text/css">
-/* Debug borders */
-p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
-/*
-  border: 1px solid red;
-*/
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
 }
 
 body {
@@ -35,13 +45,8 @@ strong {
   color: #083194;
 }
 
-tt {
-  color: navy;
-}
-
 h1, h2, h3, h4, h5, h6 {
   color: #527bbd;
-  font-family: sans-serif;
   margin-top: 1.2em;
   margin-bottom: 0.5em;
   line-height: 1.3;
@@ -59,9 +64,11 @@ h3 {
 h3 + * {
   clear: left;
 }
+h5 {
+  font-size: 1.0em;
+}
 
 div.sectionbody {
-  font-family: serif;
   margin-left: 0;
 }
 
@@ -77,45 +84,50 @@ p {
 ul, ol, li > p {
   margin-top: 0;
 }
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+pre {
+  white-space: pre-wrap;
+}
 
-span#author {
+#author {
   color: #527bbd;
-  font-family: sans-serif;
   font-weight: bold;
   font-size: 1.1em;
 }
-span#email {
+#email {
 }
-span#revnumber, span#revdate, span#revremark {
-  font-family: sans-serif;
+#revnumber, #revdate, #revremark {
 }
 
-div#footer {
-  font-family: sans-serif;
+#footer {
   font-size: small;
   border-top: 2px solid silver;
   padding-top: 0.5em;
   margin-top: 4.0em;
 }
-div#footer-text {
+#footer-text {
   float: left;
   padding-bottom: 0.5em;
 }
-div#footer-badges {
+#footer-badges {
   float: right;
   padding-bottom: 0.5em;
 }
 
-div#preamble {
+#preamble {
   margin-top: 1.5em;
   margin-bottom: 1.5em;
 }
-div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.imageblock, div.exampleblock, div.verseblock,
 div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
 div.admonitionblock {
   margin-top: 1.0em;
@@ -135,7 +147,6 @@ div.content { /* Block element content. */
 /* Block element titles. */
 div.title, caption.title {
   color: #527bbd;
-  font-family: sans-serif;
   font-weight: bold;
   text-align: left;
   margin-top: 1.0em;
@@ -157,13 +168,15 @@ div.content + div.title {
 
 div.sidebarblock > div.content {
   background: #ffffee;
-  border: 1px solid silver;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
   padding: 0.5em;
 }
 
 div.listingblock > div.content {
-  border: 1px solid silver;
-  background: #f4f4f4;
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
   padding: 0.5em;
 }
 
@@ -171,8 +184,8 @@ div.quoteblock, div.verseblock {
   padding-left: 1.0em;
   margin-left: 1.0em;
   margin-right: 10%;
-  border-left: 5px solid #dddddd;
-  color: #777777;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -182,6 +195,7 @@ div.quoteblock > div.attribution {
 
 div.verseblock > pre.content {
   font-family: inherit;
+  font-size: inherit;
 }
 div.verseblock > div.attribution {
   padding-top: 0.75em;
@@ -211,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -254,35 +268,12 @@ div.compact div, div.compact div {
   margin-bottom: 0.1em;
 }
 
-div.tableblock > table {
-  border: 3px solid #527bbd;
-}
-thead, p.table.header {
-  font-family: sans-serif;
-  font-weight: bold;
-}
 tfoot {
   font-weight: bold;
 }
 td > div.verse {
   white-space: pre;
 }
-p.table {
-  margin-top: 0;
-}
-/* Because the table frame attribute is overriden by CSS in most browsers. */
-div.tableblock > table[frame="void"] {
-  border-style: none;
-}
-div.tableblock > table[frame="hsides"] {
-  border-left-style: none;
-  border-right-style: none;
-}
-div.tableblock > table[frame="vsides"] {
-  border-top-style: none;
-  border-bottom-style: none;
-}
-
 
 div.hdlist {
   margin-top: 0.8em;
@@ -339,25 +330,32 @@ span.footnote, span.footnoteref {
   min-width: 100px;
 }
 
-
-@media print {
-  div#footer-badges { display: none; }
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
 }
 
-div#toc {
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
   margin-bottom: 2.5em;
 }
 
-div#toctitle {
+#toctitle {
   color: #527bbd;
-  font-family: sans-serif;
   font-size: 1.1em;
   font-weight: bold;
   margin-top: 1.0em;
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -373,51 +371,173 @@ div.toclevel4 {
   margin-left: 6em;
   font-size: 0.9em;
 }
-/* Workarounds for IE6's broken and incomplete CSS2. */
 
-div.sidebar-content {
-  background: #ffffee;
-  border: 1px solid silver;
-  padding: 0.5em;
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
 }
-div.sidebar-title, div.image-title {
-  color: #527bbd;
-  font-family: sans-serif;
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
   font-weight: bold;
-  margin-top: 0.0em;
-  margin-bottom: 0.5em;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
 }
 
-div.listingblock div.content {
-  border: 1px solid silver;
-  background: #f4f4f4;
-  padding: 0.5em;
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
 }
 
-div.quoteblock-attribution {
-  padding-top: 0.5em;
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
   text-align: right;
 }
 
-pre.verseblock-content {
-  font-family: inherit;
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
 }
-div.verseblock-attribution {
-  padding-top: 0.75em;
-  text-align: left;
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
 }
-
-div.exampleblock-content {
-  border-left: 3px solid #dddddd;
-  padding-left: 0.5em;
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
 }
 
-/* IE6 sets dynamically generated links as visited. */
-div#toc a:visited { color: blue; }
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
-window.onload = function(){asciidoc.footnotes();}
 var asciidoc = {  // Namespace.
 
 /////////////////////////////////////////////////////////////////////
@@ -459,7 +579,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -479,6 +599,25 @@ toc: function (toclevels) {
   }
 
   var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
   var entries = tocEntries(document.getElementById("content"), toclevels);
   for (var i = 0; i < entries.length; ++i) {
     var entry = entries[i];
@@ -506,24 +645,44 @@ toc: function (toclevels) {
  */
 
 footnotes: function () {
-  var cont = document.getElementById("content");
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
   var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
   var spans = cont.getElementsByTagName("span");
   var refs = {};
   var n = 0;
   for (i=0; i<spans.length; i++) {
     if (spans[i].className == "footnote") {
       n++;
-      // Use [\s\S] in place of . so multi-line matches work.
-      // Because JavaScript has no s (dotall) regex flag.
-      note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
       noteholder.innerHTML +=
         "<div class='footnote' id='_footnote_" + n + "'>" +
         "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
         n + "</a>. " + note + "</div>";
-      spans[i].innerHTML =
-        "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
-        "' title='View footnote' class='footnote'>" + n + "</a>]";
       var id =spans[i].getAttribute("id");
       if (id != null) refs["#"+id] = n;
     }
@@ -543,17 +702,40 @@ footnotes: function () {
       }
     }
   }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
 }
 
 }
+asciidoc.install();
 /*]]>*/
 </script>
 </head>
-<body>
+<body class="article">
 <div id="header">
 <h1>Dstat: pluggable real-time monitoring</h1>
 <span id="author">Dag Wieers</span><br />
-<span id="email"><tt>&lt;<a href="mailto:dag@wieers.com">dag@wieers.com</a>&gt;</tt></span><br />
+<span id="email"><code>&lt;<a href="mailto:dag@wieers.com">dag@wieers.com</a>&gt;</code></span><br />
 <span id="revdate">$Id$</span>
 </div>
 <div id="content">
@@ -564,6 +746,7 @@ held together with the Linux Kernel summit at the University in Cambridge,
 UK in August 2007.</em></p></div>
 </div>
 </div>
+<div class="sect1">
 <h2 id="_introduction">Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Many tools exist to monitor hardware resources and software behaviour, but few
@@ -575,6 +758,8 @@ visually pleases the eye and helps you extract information in real-time.</p></di
 counters that matter to you in the job you&#8217;re doing) you make it easier to
 correlate raw numbers and see a pattern that may otherwise not be visible.</p></div>
 </div>
+</div>
+<div class="sect1">
 <h2 id="_a_case_for_dstat">A case for Dstat</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>A few years ago I was involved in a project that was testing a storage cluster
@@ -604,12 +789,15 @@ network throughput, TCP information, Samba sessions, GPFS throughput,
 accumulated block device throughput, HBA throughput, all within a single
 interval on one screen for the complete cluster.</p></div>
 </div>
+</div>
+<div class="sect1">
 <h2 id="_dstat_characteristics">Dstat characteristics</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>There are many ideas incorporated into Dstat by design, and this section
 serves to list all of them. Not all of them may appeal to the task you&#8217;re
 doing, but the combination may make it an appealing proposition nevertheless.</p></div>
-<h3 id="_history_of_counters">History of counters</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_history_of_counters">History of counters</h3>
 <div class="paragraph"><p>An important characteristic in line-based tools like vmstat, iostat or
 ifstat is the fact that you can compare historical collected data with
 new data. This allows you to have a good feeling of how something is
@@ -617,7 +805,9 @@ evolving.</p></div>
 <div class="paragraph"><p>Compare this to tools like top or nmon, where data is often being refreshed
 and you loose historical information (but in return can provide you with
 a lot more information at the same time).</p></div>
-<h3 id="_adding_unit_indication">Adding unit indication</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_adding_unit_indication">Adding unit indication</h3>
 <div class="paragraph"><p>It was very important that when numbers were compared, they were in the same
 unit, and not eg. a different power exponent. The human mind sometimes works
 in mysterious ways and more so when working with numbers for hours and hours.
@@ -627,7 +817,9 @@ factor.</p></div>
 fixed width. Often when using vmstat or other tools, the columns tend to shift
 depending on the width of the counter. This makes it very inconvenient to find
 counters in the shifted output.</p></div>
-<h3 id="_colour_highlighting_units">Colour highlighting units</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_colour_highlighting_units">Colour highlighting units</h3>
 <div class="paragraph"><p>After I added colours to help improve indicating units, I noticed that the
 colours also helped to show patterns. This of course is very limited,
 nevertheless it instantly shows when numbers are flat or changes are taking
@@ -643,7 +835,9 @@ the colour itself, however a change of colour does mean that a value has gone
 over some pre-defined limit.</td>
 </tr></table>
 </div>
-<h3 id="_intermediate_updates">Intermediate updates</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_intermediate_updates">Intermediate updates</h3>
 <div class="paragraph"><p>During tests, when you choose to see average values over a given time, it can
 be useful to see how the averages evolve. Dstat, by default, displays
 intermediate updates. This means that if you select to see 10 second averages,
@@ -659,13 +853,17 @@ taken over the 4 second timeframe.</strong></p></div>
 the more likely that it nears its final average over that period.</td>
 </tr></table>
 </div>
-<h3 id="_adding_custom_counters">Adding custom counters</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_adding_custom_counters">Adding custom counters</h3>
 <div class="paragraph"><p>Dstat was specifically designed to enable anyone to add their own counters in a
 matter of minutes. The plugin-based system takes care of displaying, colouring
 and adding units to the counters. As a plugin-writer, you only have to focus
 on extracting the counters from the kernel (procfs or sysfs), logfiles or
 daemons.</p></div>
-<h3 id="_selecting_plugins_and_counters">Selecting plugins and counters</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_selecting_plugins_and_counters">Selecting plugins and counters</h3>
 <div class="paragraph"><p>Being able to add custom counters is important, but selecting those counters
 that you really need is even more important if you want to correlate counters
 and see patterns. Less is more.</p></div>
@@ -679,7 +877,9 @@ only allows you to select plugins. However, since you can modify or fork a
 plugin, you still have the ability to select just those counters you prefer.</td>
 </tr></table>
 </div>
-<h3 id="_exporting_to_csv">Exporting to CSV</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_exporting_to_csv">Exporting to CSV</h3>
 <div class="paragraph"><p>Having information on screen is one thing, you most likely need some hard
 evidence later to make your case. (Why else do all the work?)</p></div>
 <div class="paragraph"><p>Dstat allows to write out all counters in the greatest detail possible to CSV.
@@ -697,7 +897,9 @@ different tests to a single file. However, make sure that you tag each test
 properly (eg. by using distinct filenames for each different test).</td>
 </tr></table>
 </div>
-<h3 id="_time_plugin_included">Time-plugin included</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_time_plugin_included">Time-plugin included</h3>
 <div class="paragraph"><p>It may seem a small thing, but having exact time (and date) information for
 your counters allows for a completely different usage as well. By adding
 simple date and time information, Dstat can be used as a background process in
@@ -707,7 +909,9 @@ nightly tasks or to pinpoint their behaviour to certain events that you cannot
 monitor during working hours.</p></div>
 <div class="paragraph"><p>It is also important when you have multiple Dstats running (eg. for nodes in a
 cluster) to correlate counters between the outputs.</p></div>
-<h3 id="_terminal_capabilities">Terminal capabilities</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_terminal_capabilities">Terminal capabilities</h3>
 <div class="paragraph"><p>Dstat also takes into account the width and height of your terminal window and
 modifies output to fit into your terminal. This, of course, has no effect on
 what ends up in the CSV output.</p></div>
@@ -726,6 +930,9 @@ way for Dstat to fix this.</td>
 </tr></table>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_plugins_and_counters">Plugins and counters</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>When we talk about plugins, we make a distinction between those plugins that
@@ -735,7 +942,8 @@ could easily have been created as an external plugin. The basic difference is
 that the internal plugins have no dependencies except on procfs.</p></div>
 <div class="paragraph"><p>Having the basic plugins as part of Dstat, makes sure that Dstat can be moved
 as a self-contained file to other systems.</p></div>
-<h3 id="_internal_plugins">Internal plugins</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_internal_plugins">Internal plugins</h3>
 <div class="paragraph"><p>The plugins that have been selected to be part of the Dstat tool itself, and
 therefor have no dependencies other than procfs, are:</p></div>
 <div class="ulist"><ul>
@@ -746,17 +954,17 @@ aio: asynchronous I/O counters
 </li>
 <li>
 <p>
-cpu, cpu24: CPU counters (<tt>-c</tt> and <tt>-C</tt>)
+cpu, cpu24: CPU counters (<code>-c</code> and <code>-C</code>)
 </p>
 </li>
 <li>
 <p>
-disk, disk24, disk24old: disk counters (<tt>-d</tt> and <tt>-D</tt>)
+disk, disk24, disk24old: disk counters (<code>-d</code> and <code>-D</code>)
 </p>
 </li>
 <li>
 <p>
-epoch: seconds since Epoch (<tt>-T</tt>)
+epoch: seconds since Epoch (<code>-T</code>)
 </p>
 </li>
 <li>
@@ -766,12 +974,12 @@ fs: file system counters
 </li>
 <li>
 <p>
-int, int24: interrupts per IRQ (<tt>-i</tt> and <tt>-I</tt>)
+int, int24: interrupts per IRQ (<code>-i</code> and <code>-I</code>)
 </p>
 </li>
 <li>
 <p>
-io: I/O requests completed (<tt>-r</tt>)
+io: I/O requests completed (<code>-r</code>)
 </p>
 </li>
 <li>
@@ -781,7 +989,7 @@ ipc: IPC counters
 </li>
 <li>
 <p>
-load: load counters (<tt>-l</tt>)
+load: load counters (<code>-l</code>)
 </p>
 </li>
 <li>
@@ -791,22 +999,22 @@ lock: locking counters
 </li>
 <li>
 <p>
-mem: memory usage (<tt>-m</tt>)
+mem: memory usage (<code>-m</code>)
 </p>
 </li>
 <li>
 <p>
-net: network usage (<tt>-n</tt> and <tt>-N</tt>)
+net: network usage (<code>-n</code> and <code>-N</code>)
 </p>
 </li>
 <li>
 <p>
-page, page24: paging counters (<tt>-g</tt>)
+page, page24: paging counters (<code>-g</code>)
 </p>
 </li>
 <li>
 <p>
-proc: process counters (<tt>-p</tt>)
+proc: process counters (<code>-p</code>)
 </p>
 </li>
 <li>
@@ -816,7 +1024,7 @@ raw: raw socket counters
 </li>
 <li>
 <p>
-swap, swapold: swap usage (<tt>-s</tt> and <tt>-S</tt>)
+swap, swapold: swap usage (<code>-s</code> and <code>-S</code>)
 </p>
 </li>
 <li>
@@ -826,7 +1034,7 @@ socket: socket counters
 </li>
 <li>
 <p>
-sys: system (kernel) countersA (<tt>-y</tt>)
+sys: system (kernel) countersA (<code>-y</code>)
 </p>
 </li>
 <li>
@@ -836,7 +1044,7 @@ tcp: TCP socket counters
 </li>
 <li>
 <p>
-time: date and time (<tt>-t</tt>)
+time: date and time (<code>-t</code>)
 </p>
 </li>
 <li>
@@ -857,9 +1065,11 @@ vm: virtual memory counters
 </ul></div>
 <div class="paragraph"><p>For backward compatibility with older kernels there is a cascading system that
 selects the most appropriate internal plugin for your kernel. (eg. the
-<tt>dstat_disk</tt> plugin falls back to <tt>dstat_disk24</tt> and <tt>dstat_disk24old</tt>) At this
+<code>dstat_disk</code> plugin falls back to <code>dstat_disk24</code> and <code>dstat_disk24old</code>) At this
 moment there is no such system for external plugins.</p></div>
-<h3 id="_external_plugins">External plugins</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_external_plugins">External plugins</h3>
 <div class="paragraph"><p>This basic functionality is easily extended by writing your own plugins
 (subclasses of the python Dstat class) which are then inserted at runtime
 into Dstat. A set of <em>external</em> modules exist for:</p></div>
@@ -996,7 +1206,7 @@ mysql-ops: MySQL operations counters
 </li>
 <li>
 <p>
-net-mackets: number of packets received and transmitted
+net-packets: number of packets received and transmitted
 </p>
 </li>
 <li>
@@ -1185,7 +1395,9 @@ wifi: WIFI quality information
 </p>
 </li>
 </ul></div>
-<h3 id="_most_wanted_plugins">Most-wanted plugins</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_most_wanted_plugins">Most-wanted plugins</h3>
 <div class="paragraph"><p>Hoping someone interested reads this document, I added a few plugins that
 would be &#8220;very nice&#8221; to have but are currently lacking:</p></div>
 <div class="ulist"><ul>
@@ -1225,49 +1437,59 @@ systemtap: connecting Dstat to systemtap counters
 </ul></div>
 <div class="paragraph"><p>Creative souls with other ideas are welcome as well !</p></div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_using_dstat">Using Dstat</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Central to the Dstat command line interface is the selection of plugins. The
 selection and order of options influence the Dstat output directly.</p></div>
-<h3 id="_enabling_plugins">Enabling plugins</h3><div style="clear:left"></div>
-<div class="paragraph"><p>The internal plugins have short and/or long options within Dstat, eg. <tt>-c</tt> or
-<tt>--cpu</tt> will enable the cpu counters.</p></div>
+<div class="sect2">
+<h3 id="_enabling_plugins">Enabling plugins</h3>
+<div class="paragraph"><p>The internal plugins have short and/or long options within Dstat, eg. <code>-c</code> or
+<code>--cpu</code> will enable the cpu counters.</p></div>
 <div class="paragraph"><p>The external plugins are enable by a long option including their name,
-eg. <tt>--top-cpu</tt></p></div>
+eg. <code>--top-cpu</code></p></div>
 <div class="paragraph"><p>The following examples will enable the time, cpu and disk plugins, and are
 equal.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -tcd
-dstat --time --cpu --disk</tt></pre>
+<pre><code>dstat -tcd
+dstat --time --cpu --disk</code></pre>
 </div></div>
-<h3 id="_total_or_individual_counters">Total or individual counters</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_total_or_individual_counters">Total or individual counters</h3>
 <div class="paragraph"><p>Some of the plugins can show both total values or individual values and
 therefor have an extra option to influence this decision.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -d -D sda,sdb
+<pre><code>dstat -d -D sda,sdb
 dstat -n -N eth0,eth1
-dstat -c -C total,0,1</tt></pre>
+dstat -c -C total,0,1</code></pre>
 </div></div>
 <div class="paragraph"><p>You can show both the individual values and total values as follows:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>[dag@horsea ~]$ dstat -d -D total,hda,hdc
+<pre><code>[dag@horsea ~]$ dstat -d -D total,hda,hdc
 -dsk/total----dsk/hda-----dsk/hdc--
  read  writ: read  writ: read  writ
 1384k 1502k: 114k 1332k:  81k  359B
    0    44k:   0    44k:   0     0
-   0     0 :   0     0 :   0     0</tt></pre>
+   0     0 :   0     0 :   0     0</code></pre>
 </div></div>
-<div class="paragraph"><p>The special <tt>-f</tt> or <tt>--full</tt> option allows to select individual counters by
-default, and can be overruled by <tt>-C</tt>, <tt>-D</tt>, <tt>-I</tt>, <tt>-N</tt> or <tt>-S</tt>.</p></div>
-<h3 id="_influencing_output">Influencing output</h3><div style="clear:left"></div>
-<div class="paragraph"><p>Dstat has a few more options to influence its output. With the <tt>--nocolor</tt>
-one can disable colours. The <tt>--noheaders</tt> option disables repeating headers.
-The <tt>--noupdate</tt> option disables intermediate updates. The <tt>--output</tt> option
+<div class="paragraph"><p>The special <code>-f</code> or <code>--full</code> option allows to select individual counters by
+default, and can be overruled by <code>-C</code>, <code>-D</code>, <code>-I</code>, <code>-N</code> or <code>-S</code>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_influencing_output">Influencing output</h3>
+<div class="paragraph"><p>Dstat has a few more options to influence its output. With the <code>--nocolor</code>
+one can disable colours. The <code>--noheaders</code> option disables repeating headers.
+The <code>--noupdate</code> option disables intermediate updates. The <code>--output</code> option
 is used for writing out to a CSV file.</p></div>
-<h3 id="_plugin_search_path">Plugin search path</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_plugin_search_path">Plugin search path</h3>
 <div class="paragraph"><p>Dstat looks in the following places for plugins. This allows a user without
 root privileges to use some extra plugins.</p></div>
 <div class="ulist"><ul>
@@ -1292,17 +1514,20 @@ root privileges to use some extra plugins.</p></div>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>The option <tt>--list</tt> shows the available plugins and their location in the
+<div class="paragraph"><p>The option <code>--list</code> shows the available plugins and their location in the
 order that the plugin search path is used.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">Plugins are named <tt>dstat_&lt;name&gt;.py</tt>.</td>
+<td class="content">Plugins are named <code>dstat_&lt;name&gt;.py</code>.</td>
 </tr></table>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_use_cases">Use-cases</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Below are some use-cases to demonstrate the usage of Dstat.</p></div>
@@ -1316,45 +1541,48 @@ because this document is not printed in colour (and I did not prepare it in
 colour :-)).</td>
 </tr></table>
 </div>
-<h3 id="_simple_system_check">Simple system check</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_simple_system_check">Simple system check</h3>
 <div class="paragraph"><p>Let&#8217;s say you quickly want to see if the system is doing alright. In the past
-this probably was a <tt>vmstat 1</tt>, as of now you would do:</p></div>
+this probably was a <code>vmstat 1</code>, as of now you would do:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -taf</tt></pre>
+<pre><code>dstat -taf</code></pre>
 </div></div>
 <div class="listingblock">
 <div class="title">Sample output</div>
 <div class="content">
-<pre><tt>[dag@rhun dag]$ dstat -taf
+<pre><code>[dag@rhun dag]$ dstat -taf
 -----time----- -------cpu0-usage------ --dsk/sda-----dsk/sr0-- --net/eth1- ---paging-- ---system--
   date/time   |usr sys idl wai hiq siq| read  writ: read  writ| recv  send|  in   out | int   csw
 02-08 02:42:48| 10   2  85   2   0   0|  22k   23k: 1.8B    0 |   0     0 |2588B 2952B| 558   580
 02-08 02:42:49|  4   3  93   0   0   0|   0     0 :   0     0 |   0     0 |   0     0 |1116   962
 02-08 02:42:50|  5   2  90   0   2   1|   0    28k:   0     0 |   0     0 |   0     0 |1380  1136
 02-08 02:42:51| 11   6  82   0   1   0|   0     0 :   0     0 |   0     0 |   0     0 |1277  1340
-02-08 02:42:52|  3   3  93   0   1   0|   0    84k:   0     0 |   0     0 |   0     0 |1311  1034</tt></pre>
+02-08 02:42:52|  3   3  93   0   1   0|   0    84k:   0     0 |   0     0 |   0     0 |1311  1034</code></pre>
 </div></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">The <tt>-t</tt> here is completely optional and generally wastes space. But
+<td class="content">The <code>-t</code> here is completely optional and generally wastes space. But
 often you are not monitoring for 10 seconds but rather measure in minutes or
 hours. Having a general idea on what timescale counters have been averaged is
 nevertheless interesting.</td>
 </tr></table>
 </div>
-<h3 id="_what_is_this_system_doing_now">What is this system doing now ?</h3><div style="clear:left"></div>
-<div class="paragraph"><p>I often run both the <tt>dstat_top_cpu</tt> and <tt>dstat_top_mem</tt> programs on a system,
+</div>
+<div class="sect2">
+<h3 id="_what_is_this_system_doing_now">What is this system doing now ?</h3>
+<div class="paragraph"><p>I often run both the <code>dstat_top_cpu</code> and <code>dstat_top_mem</code> programs on a system,
 just to see what a system is doing. Having a quick look at what application
 is using the most CPU over a few minutes and to see what the general usage
 of memory is of the top application gives away a lot about a system.</p></div>
 <div class="listingblock">
 <div class="title">Sample output</div>
 <div class="content">
-<pre><tt>[dag@horsea dag]$ dstat -c --top-cpu -dng --top-mem
+<pre><code>[dag@horsea dag]$ dstat -c --top-cpu -dng --top-mem
 ----total-cpu-usage---- -most-expensive- -dsk/total- -net/total- ---paging-- -most-expensive-
 usr sys idl wai hiq siq|  cpu process   | read  writ| recv  send|  in   out | memory process
   9   2  80   9   0   0|kswapd         0| 123k  164k|   0     0 |9196B   18k|rsync        74M
@@ -1363,29 +1591,33 @@ usr sys idl wai hiq siq|  cpu process   | read  writ| recv  send|  in   out | me
   3   2  94   1   0   0|sendmail       1|4096B    0 |2291B 4190B|   0     0 |rsync        74M
   2   3  95   0   0   0|httpd          1|   0     0 |2871B 3201B|   0     0 |rsync        74M
  10   7  83   0   0   0|httpd         13|   0     0 |2216B   10k|   0     0 |rsync        74M
-  2   2  96   0   0   0|                |   0    52k| 724B 2674B|   0     0 |rsync        74M</tt></pre>
+  2   2  96   0   0   0|                |   0    52k| 724B 2674B|   0     0 |rsync        74M</code></pre>
 </div></div>
-<h3 id="_what_process_is_using_all_my_cpu_memory_or_i_o_at_4_20_am">What process is using all my CPU, memory or I/O at 4:20 AM ?</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_what_process_is_using_all_my_cpu_memory_or_i_o_at_4_20_am">What process is using all my CPU, memory or I/O at 4:20 AM ?</h3>
 <div class="paragraph"><p>Imagine the monitoring team notices strange peaks, a system engineer got a
 worthless message, the system was swapping extensively, a process got killed.</p></div>
 <div class="paragraph"><p>Something indicates the system is doing something unexpected but what is
 causing it and why ? As of now you can do:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>screen dstat -tcy --top-cpu 120
+<pre><code>screen dstat -tcy --top-cpu 120
 screen dstat -tmgs --top-mem 120
-screen dstat -tdi --top-io 120</tt></pre>
+screen dstat -tdi --top-io 120</code></pre>
 </div></div>
 <div class="paragraph"><p>to see what process is using the most CPU, the most memory and the most I/O
 resources.</p></div>
 <div class="paragraph"><p>And hopefully one day we can do:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -tn --top-net 120
-dstat -tn --top-x 120</tt></pre>
+<pre><code>dstat -tn --top-net 120
+dstat -tn --top-x 120</code></pre>
 </div></div>
 <div class="paragraph"><p>Leave it running during the night and in the morning you can see the light.</p></div>
-<h3 id="_how_much_ticks_per_second_on_my_kernel">How much ticks per second on my kernel ?</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_how_much_ticks_per_second_on_my_kernel">How much ticks per second on my kernel ?</h3>
 <div class="paragraph"><p>In some cases it can be useful to see how many ticks (timer interrupts) your
 kernel is producing. With older kernels this is a fixed number (usually 100,
 250 or 1000) but on newer kernels the number can be dynamic.</p></div>
@@ -1393,12 +1625,14 @@ kernel is producing. With older kernels this is a fixed number (usually 100,
 so in that case if you want to see what is happening, you can simply do:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -ti -I0 --snooze --debug</tt></pre>
+<pre><code>dstat -ti -I0 --snooze --debug</code></pre>
 </div></div>
 <div class="paragraph"><p>Dstat nowadays can also detect lost ticks (when the number of ticks do not
 match the time progress. This is useful to correlate VM issues with other
 problems.</p></div>
-<h3 id="_what_device_is_slowing_down_my_system">What device is slowing down my system ?</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_what_device_is_slowing_down_my_system">What device is slowing down my system ?</h3>
 <div class="paragraph"><p>A nice feature of Dstat is that it can show how many interrupts each of your
 devices is generating. The <em>cpu</em> stats already show this in percentage as
 <em>hard interrupt</em> and <em>soft interrupt</em>, and the <em>sys</em> stats shows the total
@@ -1409,31 +1643,31 @@ Sometimes too many interrupts can slow down a system. If you want to correlate
 bad performance with hardware interrupts, you can run a command like:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -tyif
-dstat -tyi -I 12,58,iwlagn -f 5</tt></pre>
+<pre><code>dstat -tyif
+dstat -tyi -I 12,58,iwlagn -f 5</code></pre>
 </div></div>
-<div class="paragraph"><p>Much like <tt>watch -n1 -d cat /proc/interrupts</tt> on steroids.</p></div>
+<div class="paragraph"><p>Much like <code>watch -n1 -d cat /proc/interrupts</code> on steroids.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -t -y -i -f</tt></pre>
+<pre><code>dstat -t -y -i -f</code></pre>
 </div></div>
 <div class="paragraph"><p>which then results in:</p></div>
 <div class="listingblock">
 <div class="title">Sample output</div>
 <div class="content">
-<pre><tt>[dag@rhun ~]$ dstat -t -y -i -f 5
+<pre><code>[dag@rhun ~]$ dstat -t -y -i -f 5
 -----time----- ---system-- -------------------interrupts------------------
   date/time   | int   csw |  1     9     12    14    15    58   177   185
 13-08 21:52:53| 740   923 |   1     0    18     5     1    17     4   131
 13-08 21:52:58|1491  2085 |   0     4   351     1     2    37     0    97
 13-08 21:53:03|1464  1981 |   0     0   332     1     3    31     0    96
 13-08 21:53:08|1343  1977 |   0     0   215     1     2    32     0    93
-13-08 21:53:13|1145  1918 |   0     0    12     0     3    33     0    95</tt></pre>
+13-08 21:53:13|1145  1918 |   0     0    12     0     3    33     0    95</code></pre>
 </div></div>
 <div class="paragraph"><p>When having the following hardware:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>[dag@rhun ~]$ cat /proc/interrupts
+<pre><code>[dag@rhun ~]$ cat /proc/interrupts
            CPU0
   0:  143766685    IO-APIC-edge  timer
   1:     374043    IO-APIC-edge  i8042
@@ -1447,56 +1681,64 @@ dstat -tyi -I 12,58,iwlagn -f 5</tt></pre>
 NMI:          0
 LOC:  143766578
 ERR:          0
-MIS:          0</tt></pre>
+MIS:          0</code></pre>
 </div></div>
 <div class="paragraph"><p>Or select specific interrupts:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -t -y -i -I 12,58,185 -f 5</tt></pre>
+<pre><code>dstat -t -y -i -I 12,58,185 -f 5</code></pre>
 </div></div>
-<div class="paragraph"><p>Another possibility is to use the <tt>--top-int</tt> plugin, showing you the most
+<div class="paragraph"><p>Another possibility is to use the <code>--top-int</code> plugin, showing you the most
 frequent plugin on your system:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>[dag@rhun ~]# dstat -t --top-int
+<pre><code>[dag@rhun ~]# dstat -t --top-int
 ----system---- ---most-frequent----
      time     |     interrupt
 11-06 08:34:53|ahci              5
 11-06 08:34:54|i8042            69
 11-06 08:34:55|i8042            45
 11-06 08:34:56|ehci/usb2        12
-11-06 08:34:57|</tt></pre>
+11-06 08:34:57|</code></pre>
 </div></div>
-<h3 id="_how_does_my_wifi_signal_evolve_when_i_move_my_laptop_or_ap_through_the_house">How does my WIFI signal evolve when I move my laptop or AP through the house ?</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_how_does_my_wifi_signal_evolve_when_i_move_my_laptop_or_ap_through_the_house">How does my WIFI signal evolve when I move my laptop or AP through the house ?</h3>
 <div class="paragraph"><p>Something I was looking into when trying to find the optimal location for the
 WIFI access point. However I must say that another tool I wrote <em>Dwscan</em> is
 currently more sophisticated.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -t --wifi</tt></pre>
+<pre><code>dstat -t --wifi</code></pre>
 </div></div>
-<h3 id="_is_my_swraid_performing_as_it_claims">Is my SWRAID performing as it claims ?</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_is_my_swraid_performing_as_it_claims">Is my SWRAID performing as it claims ?</h3>
 <div class="paragraph"><p>You can monitor I/O throughput for any block device. By default dstat limits
 itself to real block devices to prevent having the same I/O to be counted more
 than once, but if you want to monitor a SWRAID device, or a multipath device,
 you can simply do that by doing:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -td -D md0,md1,sda,sdb,hda</tt></pre>
+<pre><code>dstat -td -D md0,md1,sda,sdb,hda</code></pre>
 </div></div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_writing_your_own_dstat_plugin">Writing your own Dstat plugin</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Dstat is completely written in python and this makes it extremely convenient
 to write your own plugins. The many plugins that come with Dstat are an
 excellent source of information if you want to write your own.</p></div>
-<h3 id="_introducing_the_hello_world_plugin">Introducing the hello world plugin</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_introducing_the_hello_world_plugin">Introducing the hello world plugin</h3>
 <div class="paragraph"><p>The following plugin does nothing more than write "Hello world!" to its
 output.</p></div>
 <div class="listingblock">
 <div class="title">The dstat_helloworld plugin in its full glory.</div>
 <div class="content">
-<pre><tt>class dstat_helloworld(dstat):
+<pre><code>class dstat_helloworld(dstat):
     ``"
     Example "Hello world!" output plugin for aspiring Dstat developers.
     ``"
@@ -1509,54 +1751,56 @@ output.</p></div>
         self.scale = 0                      <b>&lt;6&gt;</b>
 
     def extract(self):
-        self.val['text'] = 'Hello world!'   <b>&lt;7&gt;</b></tt></pre>
+        self.val['text'] = 'Hello world!'   <b>&lt;7&gt;</b></code></pre>
 </div></div>
 <div class="paragraph"><p>In this example, there are several components:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-<tt>self.name</tt> contains the plugin&#8217;s visible title.
+<code>self.name</code> contains the plugin&#8217;s visible title.
 </p>
 </li>
 <li>
 <p>
-<tt>self.nick</tt> is a list of the counter names
+<code>self.nick</code> is a list of the counter names
 </p>
 </li>
 <li>
 <p>
-<tt>self.vars</tt> is a list of the variable names for each counter
+<code>self.vars</code> is a list of the variable names for each counter
 </p>
 </li>
 <li>
 <p>
-<tt>self.type</tt> defines the counter type: string, percentage, integer, float
+<code>self.type</code> defines the counter type: string, percentage, integer, float
 </p>
 </li>
 <li>
 <p>
-<tt>self.width</tt> defines the column width
+<code>self.width</code> defines the column width
 </p>
 </li>
 <li>
 <p>
-<tt>self.scale</tt> influences the coloring and unit type
+<code>self.scale</code> influences the coloring and unit type
 </p>
 </li>
 <li>
 <p>
-<tt>self.val</tt> contains the counter values that are being displayed
+<code>self.val</code> contains the counter values that are being displayed
 </p>
 </li>
 </ol></div>
-<h3 id="_parsing_counters">Parsing counters</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_parsing_counters">Parsing counters</h3>
 <div class="paragraph"><p>The following example shows how information is collected and counters are
-processed. It also includes a <tt>check()</tt> method to properly bail out when the
+processed. It also includes a <code>check()</code> method to properly bail out when the
 system fails to meet some plugin criteria.</p></div>
 <div class="listingblock">
 <div class="title">The dstat_postfix plugin</div>
 <div class="content">
-<pre><tt>class dstat_postfix(dstat):
+<pre><code>class dstat_postfix(dstat):
     def __init__(self):
         self.name = 'postfix'
         self.nick = ('inco', 'actv', 'dfrd', 'bnce', 'defr')
@@ -1571,7 +1815,7 @@ system fails to meet some plugin criteria.</p></div>
 
     def extract(self):
         for item in self.vars:                                             <b>&lt;3&gt;</b>
-            self.val[item] = len(glob.glob('/var/spool/postfix/'+item+'/*/*')</tt></pre>
+            self.val[item] = len(glob.glob('/var/spool/postfix/'+item+'/*/*')</code></pre>
 </div></div>
 <div class="paragraph"><p>This example shows the following items:</p></div>
 <div class="olist arabic"><ol class="arabic">
@@ -1583,48 +1827,60 @@ type, width and scale specify decimal, column width a,d coloring based on
 </li>
 <li>
 <p>
-The <tt>check()</tt> method tests conditions and bails out of they are not met
+The <code>check()</code> method tests conditions and bails out of they are not met
 </p>
 </li>
 <li>
 <p>
-To make processing easier we have opted to use as value names (<tt>self.vars</tt>)
-    the name of the postfix queues and store counts in <tt>self.val</tt>
+To make processing easier we have opted to use as value names (<code>self.vars</code>)
+    the name of the postfix queues and store counts in <code>self.val</code>
 </p>
 </li>
 </ol></div>
-<h3 id="_opening_files">Opening files</h3><div style="clear:left"></div>
-<div class="paragraph"><p>Dstat provides its own <tt>dopen()</tt> function to plugins. Using <tt>dopen()</tt> instead
-of <tt>open()</tt> plugins do not need to reopen files to update their counters. But
+</div>
+<div class="sect2">
+<h3 id="_opening_files">Opening files</h3>
+<div class="paragraph"><p>Dstat provides its own <code>dopen()</code> function to plugins. Using <code>dopen()</code> instead
+of <code>open()</code> plugins do not need to reopen files to update their counters. But
 this is only useful when plugins open a few files. For eg. opening <em>/proc/pid</em>
 files the number of open files would only be increasing as the number of
 processes increases.</p></div>
-<h3 id="_piping_to_an_application">Piping to an application</h3><div style="clear:left"></div>
-<div class="paragraph"><p>Dstat provides its own <tt>dpopen()</tt> function to plugins. This function allows
+</div>
+<div class="sect2">
+<h3 id="_piping_to_an_application">Piping to an application</h3>
+<div class="paragraph"><p>Dstat provides its own <code>dpopen()</code> function to plugins. This function allows
 the plugin to open stdin, stdout and stderr pipes for 2-way communication with
-processes.  To see this in action, take a look at the <tt>dstat_gpfs</tt> plugins or
-the <tt>dstat_mysql</tt> plugins.</p></div>
+processes.  To see this in action, take a look at the <code>dstat_gpfs</code> plugins or
+the <code>dstat_mysql</code> plugins.</p></div>
 <div class="paragraph"><p>Piping to an application is more expensive than getting kernel counters from
 <em>/proc</em>, but it beats having to run a program and capturing the output.</p></div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_known_issues">Known issues</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>There are some known issues that are important to understand when using Dstat.</p></div>
-<h3 id="_writing_dstat_and_plugins_in_c">Writing Dstat and plugins in C</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_writing_dstat_and_plugins_in_c">Writing Dstat and plugins in C</h3>
 <div class="paragraph"><p>It makes sense to reimplement Dstat or some of its plugins in C and still
 allow the writing of Python (or even Perl) plugins. Tests have shown that for
 example processing <em>/proc/pid</em> in C makes the plugin 3 times faster. And this
 did not take into account the processing of the results and displaying the
 output.</p></div>
 <div class="paragraph"><p>So rewriting in C makes a lot of sense, but it is also much more complicated.</p></div>
-<h3 id="_python_1_5">Python 1.5</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_python_1_5">Python 1.5</h3>
 <div class="paragraph"><p>There used to be a Python 1.5 version of Dstat, but with RHEL2 going out of
 support in 2009 I decided to no longer spend the extra effort to sync and test
 the Dstat15 version.</p></div>
 <div class="paragraph"><p>Leaving Python 1.5 behind means that plugins do not longer have to be
 compatible with Python 1.5 either. It is no coincedence that after this event
 a major overhaul was made to the plugin interface.</p></div>
-<h3 id="_counter_rollovers">Counter rollovers</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_counter_rollovers">Counter rollovers</h3>
 <div class="paragraph"><p>Unfortunately Dstat is susceptible for counters that &#8220;rollover&#8221;. This means
 that a counter gets bigger than its maximum value the data-structure is capable
 of storing. As a result the counter is reset.</p></div>
@@ -1653,6 +1909,9 @@ changes to improve handling them.</td>
 </tr></table>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_dstat_performance">Dstat performance</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>As mentioned several times now, Dstat is written in python. There are various
@@ -1674,7 +1933,8 @@ single plugin and profiling infrastructure to counter any excuses for sloppy
 plugin development.</td>
 </tr></table>
 </div>
-<h3 id="_plugin_performance">Plugin performance</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_plugin_performance">Plugin performance</h3>
 <div class="paragraph"><p>If we look at the basic plugins, there are no real performance issues with
 Dstat. Loading Dstat takes longer to start than eg. vmstat, but once running,
 Dstat&#8217;s performance for the same functionality is up to par with vmstat,
@@ -1682,8 +1942,10 @@ ifstat and other similar tools.</p></div>
 <div class="paragraph"><p>However there are <strong>some plugins that are much more resource intensive than
 others</strong> and the selection of plugins determines Dstat&#8217;s performance in a major
 way.</p></div>
-<h3 id="_performance_monitoring_dstat">Performance monitoring Dstat</h3><div style="clear:left"></div>
-<div class="paragraph"><p>Dstat comes with some plugins (starting with <tt>dstat_</tt>) to check the overhead
+</div>
+<div class="sect2">
+<h3 id="_performance_monitoring_dstat">Performance monitoring Dstat</h3>
+<div class="paragraph"><p>Dstat comes with some plugins (starting with <code>dstat_</code>) to check the overhead
 of itself, this together with the selection of plugins makes it very
 convenient to measure the overhead of individual plugins. The following
 options exist (as plugins):</p></div>
@@ -1749,10 +2011,10 @@ the command-line.
 <p>
 This option is not a plugin, but internal to Dstat. It will cause Dstat to
 show the actual time in milliseconds from start to end at the end of each
-line. This should be more or less close to the output of the <tt>dstat_dstat</tt> and
-<tt>dstat_dstat_cpu</tt> plugins.
+line. This should be more or less close to the output of the <code>dstat_dstat</code> and
+<code>dstat_dstat_cpu</code> plugins.
 </p>
-<div class="paragraph"><p>It also influences the internal <tt>dstat_time</tt> plugin to show milliseconds
+<div class="paragraph"><p>It also influences the internal <code>dstat_time</code> plugin to show milliseconds
 instead of seconds, which may help showing the accuracy of Dstat itself.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1768,48 +2030,50 @@ running, but will clean it up after exit.
 </p>
 </dd>
 </dl></div>
-<h3 id="_measuring_plugins">Measuring plugins</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_measuring_plugins">Measuring plugins</h3>
 <div class="paragraph"><p>Here is a small example of how one can measure the impact of a plugin.</p></div>
 <div class="listingblock">
 <div class="title">The cost of running the timer plugin</div>
 <div class="content">
-<pre><tt>[dag@rhun dag]$ dstat -t --debug
+<pre><code>[dag@rhun dag]$ dstat -t --debug
 Module dstat_time
 -----time-----
   date/time
 19-08 20:34:21  5.90ms
 19-08 20:34:22  0.17ms
 19-08 20:34:23  0.18ms
-19-08 20:34:24  0.18ms</tt></pre>
+19-08 20:34:24  0.18ms</code></pre>
 </div></div>
 <div class="paragraph"><p>Compare this with other plugins to see what the cost is of an individual
 plugin.</p></div>
 <div class="listingblock">
-<div class="title">The cost of running the <tt>dstat_cpu</tt> plugin</div>
+<div class="title">The cost of running the <code>dstat_cpu</code> plugin</div>
 <div class="content">
-<pre><tt>[dag@rhun dstat]$ dstat -c --debug
+<pre><code>[dag@rhun dstat]$ dstat -c --debug
 Module dstat_cpu requires ['/proc/stat']
 ----total-cpu-usage----
 usr sys idl wai hiq siq
  15   3  77   4   0   1 11.07ms
   5   3  92   0   0   0  0.66ms
   5   4  91   0   0   0  0.65ms
-  5   3  92   0   0   0  0.66ms</tt></pre>
+  5   3  92   0   0   0  0.66ms</code></pre>
 </div></div>
 <div class="paragraph"><p>As you can see, getting the CPU counters and calculating the CPU usage takes
 up 0.5 milliseconds on this particular system. But if we look at the usage of
-the <tt>dstat_top_cpu</tt> plugin:</p></div>
+the <code>dstat_top_cpu</code> plugin:</p></div>
 <div class="listingblock">
-<div class="title">The cost of running the <tt>dstat_top_cpu</tt> plugin</div>
+<div class="title">The cost of running the <code>dstat_top_cpu</code> plugin</div>
 <div class="content">
-<pre><tt>[dag@rhun dstat]$ dstat --top-cpu --debug
+<pre><code>[dag@rhun dstat]$ dstat --top-cpu --debug
 Module dstat_top_cpu
 -most-expensive-
   cpu process
 Xorg           2 43.82ms
 Xorg           1 33.23ms
 firefox-bin    2 33.54ms
-Xorg           1 33.24ms</tt></pre>
+Xorg           1 33.24ms</code></pre>
 </div></div>
 <div class="paragraph"><p>we see that processing the <em>/proc/pid</em> files causes the top-cpu plugin to use
 an additional 33ms.</p></div>
@@ -1829,6 +2093,9 @@ information (eg. communicating with the mysql client, or processing the mail
 queue) may not actually use any local resources, but the latency causes
 Dstat to slow down processing other counters.</p></div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_future_development">Future development</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The Dstat release contains a <em>TODO</em> file highlighting all the items and
@@ -1896,6 +2163,8 @@ Create an object-model and namespace for plugins and counters so that
 </li>
 </ul></div>
 </div>
+</div>
+<div class="sect1">
 <h2 id="_links">Links</h2>
 <div class="sectionbody">
 <div class="ulist"><ul>
@@ -1917,10 +2186,11 @@ Create an object-model and namespace for plugins and counters so that
 </ul></div>
 </div>
 </div>
+</div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2010-06-14 10:43:26 CEST
+Last updated 2015-07-04 14:07:27 CEST
 </div>
 </div>
 </body>

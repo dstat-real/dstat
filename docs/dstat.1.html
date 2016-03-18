@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>dstat(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,9 +87,15 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
+}
+pre {
+  white-space: pre-wrap;
 }
 
 #author {
@@ -179,7 +185,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -219,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -349,7 +355,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +413,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,12 +453,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -514,23 +510,30 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
-/* Overrides for manpage documents */
-h1 {
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
   padding-top: 0.5em;
   padding-bottom: 0.5em;
   border-top: 2px solid silver;
   border-bottom: 2px solid silver;
 }
-h2 {
+body.manpage h2 {
   border-style: none;
 }
-div.sectionbody {
+body.manpage div.sectionbody {
   margin-left: 3em;
 }
 
 @media print {
-  div#toc { display: none; }
+  body.manpage div#toc { display: none; }
 }
+
 
 </style>
 <script type="text/javascript">
@@ -576,7 +579,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -605,7 +608,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -651,7 +654,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -786,8 +789,8 @@ information.</td>
 </dt>
 <dd>
 <p>
-    enable cpu stats (system, user, idle, wait, hardware interrupt, software
-    interrupt)
+    enable cpu stats (system, user, idle, wait), for more CPU related
+    stats also see <strong>--cpu-adv</strong> and <strong>--cpu-use</strong>
 </p>
 </dd>
 <dt class="hdlist1">
@@ -804,7 +807,8 @@ information.</td>
 </dt>
 <dd>
 <p>
-    enable disk stats (read, write)
+    enable disk stats (read, write), for more disk related stats look
+    into the other <strong>--disk</strong> plugins
 </p>
 </dd>
 <dt class="hdlist1">
@@ -852,7 +856,8 @@ information.</td>
 </dt>
 <dd>
 <p>
-    enable memory stats (used, buffers, cache, free)
+    enable memory stats (used, buffers, cache, free); for more memory
+    related stats also try <strong>--mem-adv</strong> and <strong>--swap</strong>
 </p>
 </dd>
 <dt class="hdlist1">
@@ -936,7 +941,23 @@ information.</td>
 </p>
 </dd>
 <dt class="hdlist1">
---fs
+--cpu-adv
+</dt>
+<dd>
+<p>
+    enable advanced cpu stats
+</p>
+</dd>
+<dt class="hdlist1">
+--cpu-use
+</dt>
+<dd>
+<p>
+    enable only cpu usage stats
+</p>
+</dd>
+<dt class="hdlist1">
+--fs, --filesystem
 </dt>
 <dd>
 <p>
@@ -957,6 +978,14 @@ information.</td>
 <dd>
 <p>
     enable file lock stats (posix, flock, read, write)
+</p>
+</dd>
+<dt class="hdlist1">
+--mem-adv
+</dt>
+<dd>
+<p>
+    enable advanced memory stats
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1036,9 +1065,9 @@ Possible internal stats are
 </dt>
 <dd>
 <p>
-    aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc,
-    load, lock, mem, net, page, page24, proc, raw, socket, swap, swapold,
-    sys, tcp, time, udp, unix, vm
+    aio, cpu, cpu24, cpu-adv, cpu-use, disk, disk24, disk24-old, epoch, fs,
+    int, int24, io, ipc, load, lock, mem, mem-adv, net, page, page24, proc,
+    raw, socket, swap, swap-old, sys, tcp, time, udp, unix, vm, vm-adv, zones
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1074,6 +1103,14 @@ Possible internal stats are
 </p>
 </dd>
 <dt class="hdlist1">
+--bits
+</dt>
+<dd>
+<p>
+    force bits for values expressed in bytes
+</p>
+</dd>
+<dt class="hdlist1">
 --float
 </dt>
 <dd>
@@ -1102,7 +1139,7 @@ Possible internal stats are
 </dt>
 <dd>
 <p>
-    disable colors (implies <strong>--noupdate</strong>)
+    disable colors
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1180,11 +1217,35 @@ Here is an overview of the plugins dstat ships with:</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--disk-avgqu
+</dt>
+<dd>
+<p>
+    average queue length of the requests that were issued to the device
+</p>
+</dd>
+<dt class="hdlist1">
+--disk-avgrq
+</dt>
+<dd>
+<p>
+    average size (in sectors) of the requests that were issued to the device
+</p>
+</dd>
+<dt class="hdlist1">
+--disk-svctm
+</dt>
+<dd>
+<p>
+    average service time (in milliseconds) for I/O requests that were issued to the device
+</p>
+</dd>
+<dt class="hdlist1">
 --disk-tps
 </dt>
 <dd>
 <p>
-    per disk transactions per second (tps) stats
+    number of transfers per second that were issued to the device
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1192,7 +1253,15 @@ Here is an overview of the plugins dstat ships with:</p></div>
 </dt>
 <dd>
 <p>
-    per disk utilization in percentage
+    percentage of CPU time during which I/O requests were issued to the device (bandwidth utilization for the device)
+</p>
+</dd>
+<dt class="hdlist1">
+--disk-wait
+</dt>
+<dd>
+<p>
+    average time (in milliseconds) for I/O requests issued to the device to be served
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1332,6 +1401,14 @@ Here is an overview of the plugins dstat ships with:</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--mysql5-innodb
+</dt>
+<dd>
+<p>
+    show the MySQL5 innodb stats
+</p>
+</dd>
+<dt class="hdlist1">
 --mysql5-io
 </dt>
 <dd>
@@ -1404,6 +1481,22 @@ Here is an overview of the plugins dstat ships with:</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--nfsd4-ops
+</dt>
+<dd>
+<p>
+    show extended NFS v4 server operations
+</p>
+</dd>
+<dt class="hdlist1">
+--nfsstat4
+</dt>
+<dd>
+<p>
+    show NFS v4 stats
+</p>
+</dd>
+<dt class="hdlist1">
 --ntp
 </dt>
 <dd>
@@ -1443,6 +1536,10 @@ Here is an overview of the plugins dstat ships with:</p></div>
     show qmail queue sizes (needs qmail)
 </p>
 </dd>
+</dl></div>
+<div class="paragraph"><p>--redis:
+    show redis stats</p></div>
+<div class="dlist"><dl>
 <dt class="hdlist1">
 --rpc
 </dt>
@@ -1465,6 +1562,50 @@ Here is an overview of the plugins dstat ships with:</p></div>
 <dd>
 <p>
     show sendmail queue size (needs sendmail)
+</p>
+</dd>
+<dt class="hdlist1">
+--snmp-cpu
+</dt>
+<dd>
+<p>
+    show CPU stats using SNMP from DSTAT_SNMPSERVER
+</p>
+</dd>
+<dt class="hdlist1">
+--snmp-load
+</dt>
+<dd>
+<p>
+    show load stats using SNMP from DSTAT_SNMPSERVER
+</p>
+</dd>
+<dt class="hdlist1">
+--snmp-mem
+</dt>
+<dd>
+<p>
+    show memory stats using SNMP from DSTAT_SNMPSERVER
+</p>
+</dd>
+<dt class="hdlist1">
+--snmp-net
+</dt>
+<dd>
+<p>
+    show network stats using SNMP from DSTAT_SNMPSERVER
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>--snmp-net-err:
+    show network errors using SNMP from DSTAT_SNMPSERVER</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--snmp-sys
+</dt>
+<dd>
+<p>
+    show system stats (interrupts and context switches) using SNMP from DSTAT_SNMPSERVER
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1620,6 +1761,30 @@ Here is an overview of the plugins dstat ships with:</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--vm-cpu
+</dt>
+<dd>
+<p>
+    show VMware CPU stats from hypervisor
+</p>
+</dd>
+<dt class="hdlist1">
+--vm-mem
+</dt>
+<dd>
+<p>
+    show VMware memory stats from hypervisor
+</p>
+</dd>
+<dt class="hdlist1">
+--vm-mem-adv
+</dt>
+<dd>
+<p>
+    show advanced VMware memory stats from hypervisor
+</p>
+</dd>
+<dt class="hdlist1">
 --vmk-hba
 </dt>
 <dd>
@@ -1641,14 +1806,6 @@ Here is an overview of the plugins dstat ships with:</p></div>
 <dd>
 <p>
     show VMware ESX kernel port stats
-</p>
-</dd>
-<dt class="hdlist1">
---vm-memctl
-</dt>
-<dd>
-<p>
-    show ballooning status inside VMware guests
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1683,6 +1840,30 @@ Here is an overview of the plugins dstat ships with:</p></div>
     wireless link quality and signal to noise ratio
 </p>
 </dd>
+<dt class="hdlist1">
+--zfs-arc
+</dt>
+<dd>
+<p>
+    show ZFS arc stats
+</p>
+</dd>
+<dt class="hdlist1">
+--zfs-l2arc
+</dt>
+<dd>
+<p>
+    show ZFS l2arc stats
+</p>
+</dd>
+<dt class="hdlist1">
+--zfs-zil
+</dt>
+<dd>
+<p>
+    show ZFS zil stats
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1713,28 +1894,28 @@ average on a new line, just like with vmstat.</p></div>
 <div class="paragraph"><p>Using dstat to relate disk-throughput with network-usage (eth0), total CPU-usage and system counters:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -dnyc -N eth0 -C total -f 5</tt></pre>
+<pre><code>dstat -dnyc -N eth0 -C total -f 5</code></pre>
 </div></div>
 <div class="paragraph"><p>Checking dstat&#8217;s behaviour and the system impact of dstat:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -taf --debug</tt></pre>
+<pre><code>dstat -taf --debug</code></pre>
 </div></div>
 <div class="paragraph"><p>Using the time plugin together with cpu, net, disk, system, load, proc and
 top_cpu plugins:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -tcndylp --top-cpu</tt></pre>
+<pre><code>dstat -tcndylp --top-cpu</code></pre>
 </div></div>
 <div class="paragraph"><p>this is identical to</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat --time --cpu --net --disk --sys --load --proc --top-cpu</tt></pre>
+<pre><code>dstat --time --cpu --net --disk --sys --load --proc --top-cpu</code></pre>
 </div></div>
-<div class="paragraph"><p>Using dstat to relate cpu stats with interrupts per device:</p></div>
+<div class="paragraph"><p>Using dstat to relate advanced cpu stats with interrupts per device:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>dstat -tcyif</tt></pre>
+<pre><code>dstat -t --cpu-adv -yif</code></pre>
 </div></div>
 </div>
 </div>
@@ -1762,18 +1943,51 @@ improvements or bugreports, please send them to:
 <div class="paragraph"><p>Paths that may contain external dstat_*.py plugins:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>~/.dstat/
+<pre><code>~/.dstat/
 (path of binary)/plugins/
 /usr/share/dstat/
-/usr/local/share/dstat/</tt></pre>
+/usr/local/share/dstat/</code></pre>
 </div></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_environment_variables">ENVIRONMENT VARIABLES</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>dstat will read additional command line arguments from the environment
-variable <strong>DSTAT_OPTS</strong>.</p></div>
+<div class="paragraph"><p>Dstat will read additional command line arguments from the environment
+variable <strong>DSTAT_OPTS</strong>. You can use this to configure Dstat&#8217;s default
+behavior, e.g. if you have a black-on-white terminal:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>export DSTAT_OPTS="--bw --noupdate"</code></pre>
+</div></div>
+<div class="paragraph"><p>Other internal or external plugins have their own environment variables
+to influence their behavior, e.g.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>DSTAT_NTPSERVER</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>DSTAT_MYSQL
+DSTAT_MYSQL_HOST
+DSTAT_MYSQL_PORT
+DSTAT_MYSQL_SOCKET
+DSTAT_MYSQL_USER
+DSTAT_MYSQL_PWD</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>DSTAT_SNMPSERVER
+DSTAT_SNMPCOMMUNITY</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>DSTAT_SQUID_OPTS</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>DSTAT_TIMEFMT</code></pre>
+</div></div>
 </div>
 </div>
 <div class="sect1">
@@ -1783,70 +1997,63 @@ variable <strong>DSTAT_OPTS</strong>.</p></div>
 <h3 id="_performance_tools">Performance tools</h3>
 <div class="literalblock">
 <div class="content">
-<pre><tt>ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(1), nfsstat(1), nstat(8), powertop(1), vmstat(1), xosview(1)</tt></pre>
-</div></div>
-</div>
-<div class="sect2">
-<h3 id="_debugging_tools">Debugging tools</h3>
-<div class="literalblock">
-<div class="content">
-<pre><tt>htop(1), lslk(1), lsof(8), top(1)</tt></pre>
+<pre><code>htop(1), ifstat(1), iftop(8), iostat(1), mpstat(1), netstat(8), nfsstat(8), perf(1), powertop(1), rtacct(8), top(1), vmstat(8), xosview(1)</code></pre>
 </div></div>
 </div>
 <div class="sect2">
 <h3 id="_process_tracing">Process tracing</h3>
 <div class="literalblock">
 <div class="content">
-<pre><tt>ltrace(1), pidstat(1), pmap(1), ps(1), pstack(1), strace(1)</tt></pre>
+<pre><code>lslk(8), lsof(8), ltrace(1), pidstat(1), pmap(1), ps(1), pstack(1), strace(1)</code></pre>
 </div></div>
 </div>
 <div class="sect2">
 <h3 id="_binary_debugging">Binary debugging</h3>
 <div class="literalblock">
 <div class="content">
-<pre><tt>ldd(1), file(1), nm(1), objdump(1), readelf(1)</tt></pre>
+<pre><code>ldd(1), file(1), nm(1), objdump(1), readelf(1)</code></pre>
 </div></div>
 </div>
 <div class="sect2">
 <h3 id="_memory_usage_tools">Memory usage tools</h3>
 <div class="literalblock">
 <div class="content">
-<pre><tt>free(1), memusage, memusagestat, slabtop(1)</tt></pre>
+<pre><code>free(1), memusage, memusagestat, ps_mem(1), slabtop(1), smem(8)</code></pre>
 </div></div>
 </div>
 <div class="sect2">
 <h3 id="_accounting_tools">Accounting tools</h3>
 <div class="literalblock">
 <div class="content">
-<pre><tt>acct(2), dump-acct(8), dump-utmp(8), lastcomm(1), sa(8)</tt></pre>
+<pre><code>acct(2), dump-acct(8), dump-utmp(8), lastcomm(1), sa(8)</code></pre>
 </div></div>
 </div>
 <div class="sect2">
 <h3 id="_hardware_debugging_tools">Hardware debugging tools</h3>
 <div class="literalblock">
 <div class="content">
-<pre><tt>dmidecode, ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)</tt></pre>
+<pre><code>dmidecode(8), ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), numactl(8), smartctl(8), turbostat(8), x86info(1)</code></pre>
 </div></div>
 </div>
 <div class="sect2">
 <h3 id="_application_debugging">Application debugging</h3>
 <div class="literalblock">
 <div class="content">
-<pre><tt>mailstats(8), qshape(1)</tt></pre>
+<pre><code>mailstats(8), qshape(1)</code></pre>
 </div></div>
 </div>
 <div class="sect2">
 <h3 id="_xorg_related_tools">Xorg related tools</h3>
 <div class="literalblock">
 <div class="content">
-<pre><tt>xdpyinfo(1), xrestop(1)</tt></pre>
+<pre><code>xdpyinfo(1), xrestop(1)</code></pre>
 </div></div>
 </div>
 <div class="sect2">
 <h3 id="_other_useful_info">Other useful info</h3>
 <div class="literalblock">
 <div class="content">
-<pre><tt>collectl(1), proc(5), procinfo(8)</tt></pre>
+<pre><code>collectl(1), proc(5), procinfo(8)</code></pre>
 </div></div>
 </div>
 </div>
@@ -1864,8 +2071,8 @@ variable <strong>DSTAT_OPTS</strong>.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 0.7.0<br />
-Last updated 2011-07-18 23:35:41 CEST
+Version 0.7.3<br />
+Last updated 2015-07-04 14:07:27 CEST
 </div>
 </div>
 </body>

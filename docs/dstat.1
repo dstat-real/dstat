@@ -2,12 +2,12 @@
 .\"     Title: dstat
 .\"    Author: Dag Wieers <dag@wieers.com>
 .\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
-.\"      Date: April 2013
+.\"      Date: August 2014
 .\"    Manual: \ \&
-.\"    Source: \ \& 0.7.2
+.\"    Source: \ \& 0.7.3
 .\"  Language: English
 .\"
-.TH "DSTAT" "1" "April 2013" "\ \& 0\&.7\&.2" "\ \&"
+.TH "DSTAT" "1" "August 2014" "\ \& 0\&.7\&.3" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * set default formatting
 .\" -----------------------------------------------------------------
@@ -54,7 +54,10 @@ Users of Sleuthkit might find Sleuthkit\(cqs dstat being renamed to datastat to 
 .PP
 \-c, \-\-cpu
 .RS 4
-enable cpu stats (system, user, idle, wait, hardware interrupt, software interrupt)
+enable cpu stats (system, user, idle, wait), for more CPU related stats also see
+\fB\-\-cpu\-adv\fR
+and
+\fB\-\-cpu\-use\fR
 .RE
 .PP
 \-C 0,3,total
@@ -66,7 +69,9 @@ to show all CPUs
 .PP
 \-d, \-\-disk
 .RS 4
-enable disk stats (read, write)
+enable disk stats (read, write), for more disk related stats look into the other
+\fB\-\-disk\fR
+plugins
 .RE
 .PP
 \-D total,hda
@@ -96,7 +101,10 @@ enable load average stats (1 min, 5 mins, 15mins)
 .PP
 \-m, \-\-mem
 .RS 4
-enable memory stats (used, buffers, cache, free)
+enable memory stats (used, buffers, cache, free); for more memory related stats also try
+\fB\-\-mem\-adv\fR
+and
+\fB\-\-swap\fR
 .RE
 .PP
 \-n, \-\-net
@@ -149,7 +157,17 @@ enable system stats (interrupts, context switches)
 enable aio stats (asynchronous I/O)
 .RE
 .PP
-\-\-fs
+\-\-cpu\-adv
+.RS 4
+enable advanced cpu stats
+.RE
+.PP
+\-\-cpu\-use
+.RS 4
+enable only cpu usage stats
+.RE
+.PP
+\-\-fs, \-\-filesystem
 .RS 4
 enable filesystem stats (open files, inodes)
 .RE
@@ -162,6 +180,11 @@ enable ipc stats (message queue, semaphores, shared memory)
 \-\-lock
 .RS 4
 enable file lock stats (posix, flock, read, write)
+.RE
+.PP
+\-\-mem\-adv
+.RS 4
+enable advanced memory stats
 .RE
 .PP
 \-\-raw
@@ -213,7 +236,7 @@ for options
 .PP
 Possible internal stats are
 .RS 4
-aio, cpu, cpu24, disk, disk24, disk24old, epoch, fs, int, int24, io, ipc, load, lock, mem, net, page, page24, proc, raw, socket, swap, swapold, sys, tcp, time, udp, unix, vm
+aio, cpu, cpu24, cpu\-adv, cpu\-use, disk, disk24, disk24\-old, epoch, fs, int, int24, io, ipc, load, lock, mem, mem\-adv, net, page, page24, proc, raw, socket, swap, swap\-old, sys, tcp, time, udp, unix, vm, vm\-adv, zones
 .RE
 .PP
 \-\-list
@@ -236,6 +259,11 @@ expand \-C, \-D, \-I, \-N and \-S discovery lists
 equals \-pmgdsc \-D total
 .RE
 .PP
+\-\-bits
+.RS 4
+force bits for values expressed in bytes
+.RE
+.PP
 \-\-float
 .RS 4
 force float values on screen (mutual exclusive with
@@ -255,8 +283,7 @@ change colors for white background terminal
 .PP
 \-\-nocolor
 .RS 4
-disable colors (implies
-\fB\-\-noupdate\fR)
+disable colors
 .RE
 .PP
 \-\-noheaders
@@ -302,14 +329,14 @@ CPU frequency in percentage (needs ACPI)
 number of dbus connections (needs python\-dbus)
 .RE
 .PP
-\-\-disk\-avgrq
-.RS 4
-average size (in sectors) of the requests that were issued to the device
-.RE
-.PP
 \-\-disk\-avgqu
 .RS 4
 average queue length of the requests that were issued to the device
+.RE
+.PP
+\-\-disk\-avgrq
+.RS 4
+average size (in sectors) of the requests that were issued to the device
 .RE
 .PP
 \-\-disk\-svctm
@@ -417,6 +444,11 @@ show the MySQL5 command stats
 show the MySQL5 connection stats
 .RE
 .PP
+\-\-mysql5\-innodb
+.RS 4
+show the MySQL5 innodb stats
+.RE
+.PP
 \-\-mysql5\-io
 .RS 4
 show the MySQL5 I/O stats
@@ -462,6 +494,16 @@ show NFS v3 server operations
 show extended NFS v3 server operations
 .RE
 .PP
+\-\-nfsd4\-ops
+.RS 4
+show extended NFS v4 server operations
+.RE
+.PP
+\-\-nfsstat4
+.RS 4
+show NFS v4 stats
+.RE
+.PP
 \-\-ntp
 .RS 4
 show NTP time from an NTP server
@@ -486,6 +528,8 @@ show total number of processes
 .RS 4
 show qmail queue sizes (needs qmail)
 .RE
+.sp
+\-\-redis: show redis stats
 .PP
 \-\-rpc
 .RS 4
@@ -500,6 +544,33 @@ show RPC server calls stats
 \-\-sendmail
 .RS 4
 show sendmail queue size (needs sendmail)
+.RE
+.PP
+\-\-snmp\-cpu
+.RS 4
+show CPU stats using SNMP from DSTAT_SNMPSERVER
+.RE
+.PP
+\-\-snmp\-load
+.RS 4
+show load stats using SNMP from DSTAT_SNMPSERVER
+.RE
+.PP
+\-\-snmp\-mem
+.RS 4
+show memory stats using SNMP from DSTAT_SNMPSERVER
+.RE
+.PP
+\-\-snmp\-net
+.RS 4
+show network stats using SNMP from DSTAT_SNMPSERVER
+.RE
+.sp
+\-\-snmp\-net\-err: show network errors using SNMP from DSTAT_SNMPSERVER
+.PP
+\-\-snmp\-sys
+.RS 4
+show system stats (interrupts and context switches) using SNMP from DSTAT_SNMPSERVER
 .RE
 .PP
 \-\-snooze
@@ -597,6 +668,21 @@ show process that will be killed by OOM the first
 show number of utmp connections (needs python\-utmp)
 .RE
 .PP
+\-\-vm\-cpu
+.RS 4
+show VMware CPU stats from hypervisor
+.RE
+.PP
+\-\-vm\-mem
+.RS 4
+show VMware memory stats from hypervisor
+.RE
+.PP
+\-\-vm\-mem\-adv
+.RS 4
+show advanced VMware memory stats from hypervisor
+.RE
+.PP
 \-\-vmk\-hba
 .RS 4
 show VMware ESX kernel vmhba stats
@@ -610,11 +696,6 @@ show VMware ESX kernel interrupt stats
 \-\-vmk\-nic
 .RS 4
 show VMware ESX kernel port stats
-.RE
-.PP
-\-\-vm\-memctl
-.RS 4
-show ballooning status inside VMware guests
 .RE
 .PP
 \-\-vz\-cpu
@@ -635,6 +716,21 @@ show OpenVZ user beancounters
 \-\-wifi
 .RS 4
 wireless link quality and signal to noise ratio
+.RE
+.PP
+\-\-zfs\-arc
+.RS 4
+show ZFS arc stats
+.RE
+.PP
+\-\-zfs\-l2arc
+.RS 4
+show ZFS l2arc stats
+.RE
+.PP
+\-\-zfs\-zil
+.RS 4
+show ZFS zil stats
 .RE
 .SH "ARGUMENTS"
 .sp
@@ -698,13 +794,13 @@ dstat \-\-time \-\-cpu \-\-net \-\-disk \-\-sys \-\-load \-\-proc \-\-top\-cpu
 .RE
 .\}
 .sp
-Using dstat to relate cpu stats with interrupts per device:
+Using dstat to relate advanced cpu stats with interrupts per device:
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-dstat \-tcyif
+dstat \-t \-\-cpu\-adv \-yif
 .fi
 .if n \{\
 .RE
@@ -746,7 +842,75 @@ Paths that may contain external dstat_*\&.py plugins:
 .\}
 .SH "ENVIRONMENT VARIABLES"
 .sp
-dstat will read additional command line arguments from the environment variable \fBDSTAT_OPTS\fR\&.
+Dstat will read additional command line arguments from the environment variable \fBDSTAT_OPTS\fR\&. You can use this to configure Dstat\(cqs default behavior, e\&.g\&. if you have a black\-on\-white terminal:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+export DSTAT_OPTS="\-\-bw \-\-noupdate"
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Other internal or external plugins have their own environment variables to influence their behavior, e\&.g\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+DSTAT_NTPSERVER
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+DSTAT_MYSQL
+DSTAT_MYSQL_HOST
+DSTAT_MYSQL_PORT
+DSTAT_MYSQL_SOCKET
+DSTAT_MYSQL_USER
+DSTAT_MYSQL_PWD
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+DSTAT_SNMPSERVER
+DSTAT_SNMPCOMMUNITY
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+DSTAT_SQUID_OPTS
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+DSTAT_TIMEFMT
+.fi
+.if n \{\
+.RE
+.\}
 .SH "SEE ALSO"
 .SS "Performance tools"
 .sp
@@ -787,7 +951,7 @@ ldd(1), file(1), nm(1), objdump(1), readelf(1)
 .RS 4
 .\}
 .nf
-free(1), memusage, memusagestat, smem(8), slabtop(1)
+free(1), memusage, memusagestat, ps_mem(1), slabtop(1), smem(8)
 .fi
 .if n \{\
 .RE
@@ -809,7 +973,7 @@ acct(2), dump\-acct(8), dump\-utmp(8), lastcomm(1), sa(8)
 .RS 4
 .\}
 .nf
-dmidecode(8), ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), smartctl(8), x86info(1)
+dmidecode(8), ifinfo(1), lsdev(1), lshal(1), lshw(1), lsmod(8), lspci(8), lsusb(8), numactl(8), smartctl(8), turbostat(8), x86info(1)
 .fi
 .if n \{\
 .RE
