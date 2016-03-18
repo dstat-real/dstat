@@ -4,7 +4,7 @@
 
 Summary: Pluggable real-time performance monitoring tool
 Name: dstat
-Version: 0.7.2svn
+Version: 0.7.3
 Release: 1
 License: GPL
 Group: System Environment/Base
@@ -48,14 +48,14 @@ never expected.
 
 %files
 %defattr(-, root, root, 0755)
-%doc AUTHORS ChangeLog COPYING README TODO docs/*.html docs/*.txt examples/
+%doc AUTHORS ChangeLog COPYING README TODO docs/*.html docs/*.adoc examples/
 %doc %{_mandir}/man1/dstat.1*
 %{_bindir}/dstat
 %{_datadir}/dstat/
 
 %changelog
-* Thu Jun 17 2010 Dag Wieers <dag@wieers.com> - 0.7.2svn-1
-- Updated to release 0.7.2svn.
+* Fri Mar 18 2016 Dag Wieers <dag@wieers.com> - 0.7.3-1
+- Updated to release 0.7.3.
 
 * Tue Jun 15 2010 Dag Wieers <dag@wieers.com> - 0.7.2-1
 - Updated to release 0.7.2.
