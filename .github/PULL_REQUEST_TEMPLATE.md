@@ -1,21 +1,16 @@
 ##### ISSUE TYPE
-
 <!--- Please pick one and delete the rest: -->
  - New plugin pull-request
  - Feature pull-request
  - Bugfix pull-request
  - Docs pull-request
 
-
 ##### DSTAT VERSION
-
 ```
 <!--- Paste verbatim output from “ansible --version” here -->
 ```
 
-
 ##### SUMMARY
-
 <!--- Please describe the change and the reason for it -->
 
 <!---
