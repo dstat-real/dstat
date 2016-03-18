@@ -13,7 +13,8 @@
 ### You should have received a copy of the GNU General Public License
 ### along with this program; if not, write to the Free Software
 ### Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-### Copyright 2004-2010 Dag Wieers <dag@wieers.com>
+
+### Copyright 2004-2016 Dag Wieers <dag@wieers.com>
 
 from __future__ import generators
 
@@ -663,7 +664,7 @@ class dstat_cpu(dstat):
 
 class dstat_cpu_use(dstat_cpu):
     def __init__(self):
-        self.name = 'cpu usage'
+        self.name = 'per cpu usage'
         self.type = 'p'
         self.width = 3
         self.scale = 34
@@ -2249,6 +2250,7 @@ def initterm():
     ### Unbuffered sys.stdout
 #    sys.stdout = os.fdopen(1, 'w', 0)
 
+    termsize = None, 0
     try:
         global fcntl, struct, termios
         import fcntl, struct, termios
