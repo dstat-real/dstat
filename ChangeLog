@@ -1,4 +1,4 @@
-* 0.7.3 - Like a Phoenix from the ashes - release 03/17/2016
+* 0.7.3 - Like a Phoenix from the ashes - release 2016-03-17
 - Provide kernel configuration options to error mesages where possible
 - Added external dstat_md_dstat plugin to show the resync progress of SWRAID (Bert de Bruijn)
 - Changed color of 100% to white to make it stand out (Bert de Bruijn)
@@ -18,7 +18,7 @@
 - Fixed improper process names using spaces instead of \0 (Edward Smith)
 - Added --cpu-use plugin with onlu CPU usage per CPU (Christian Neukirchen)
 
-* 0.7.2 - Real soon now - release 15/06/2010
+* 0.7.2 - Real soon now - release 2010-06-15
 - Added external dstat_disk_tps plugin to show transactions per second
 - Added support for filtering /dev/vdaX devices (KVM virtio)
 - Added external dstat_squid plugin to show squid counters (Jason Friedland)
@@ -40,7 +40,7 @@
 - Fixed python 2.6 string exception issue (Dbt 585219)
 - Documentation improvements
 
-* 0.7.1 - Just the three of us - release 22/02/2010
+* 0.7.1 - Just the three of us - release 2010-02-22
 - Fix external plugins on python 2.2 and older (eg. RHEL3)
 - Documentation improvements
 - Implement linecache for top-plugins (caching for statistics)
@@ -54,7 +54,7 @@
 - Introduced proc_pidlist() for top-plugins
 - New tchg() function to format the time depending on width
 
-* 0.7.0 - Tokyo - release 25/11/2009
+* 0.7.0 - Tokyo - release 2009-11-25
 - Fixed dstat_disk plugin for total calculation on 2.6.25+ kernels (Noel J. Bergman)
 - Precompile regular expressions used as a disk filter (self.diskfilter)
 - Raise a warning when discovery returns empty
@@ -89,7 +89,7 @@
 - Mass rename plugins to follow better convention (impacts existing options)
 - This release was 'sponsored' by the Linux Foundation during the Japan Linux Symposium
 
-* 0.6.9 - Locarno - release 02/12/2008
+* 0.6.9 - Locarno - release 2008-12-02
 - Input text color is now gray (again)
 - Added external dstat_lustre plugin (Brock Palen, Kilian Vavalotti)
 - Validate integer values in /proc/swaps (Bert de Bruijn)
@@ -101,7 +101,7 @@
 - Added internal dstat_vm plugin showing page faults, allocations and frees
 - Added internal dstat_io plugin showing number of completed I/O requests
 
-* 0.6.8 - Buenos Aires - release 12/09/2008
+* 0.6.8 - Buenos Aires - release 2008-09-12
 - Added improved tick patch (Kelly Long)
 - Show milliseconds in dstat_time when using --debug cfr. dstat_epoch
 - Difference in integer rounding should not affect colouring
@@ -121,7 +121,7 @@
 - Default to 25/80 when terminal height/width is set to zero, eg. XEmacs shell (Jeff Mincy)
 - Removed complex process name since /proc/pid/cmdline behaves different on new kernels (Adrian Alves)
 
-* 0.6.7 - Cambridge overdue - released 26/02/2008
+* 0.6.7 - Cambridge overdue - released 2008-02-26
 - Only rewrite xterm title when XTERM_SHELL is set to bash
 - Added more Dbt (Debian bug tracker) ids in the ChangeLog and TODO
 - Use sys.exit() instead of exit() before color support is detected
@@ -144,7 +144,7 @@
 - Added VMware ESX dstat_vmknic plugin (Bert de Bruijn)
 - Added infrastructure to allow C plugins
 
-* 0.6.6 - Unemployed - released 28/04/2007
+* 0.6.6 - Unemployed - released 2007-04-28
 - Removed SwapCached from the Cached counter (Dbt 418326, Peter Rabbitson)
 - Fixed a file descriptor problem on kernel 2.4 (Liviu Daia)
 - Install manpage as part of the make install phase (Scott Baker)
@@ -152,7 +152,7 @@
 - Improved dev() for kernel 2.4 device names (Dbt 377199, Filippo Giunchedi)
 - If stdout is not a TTY, don't limit the line length (Jason)
 
-* 0.6.5 - Torrox - released 17/04/2007
+* 0.6.5 - Torrox - released 2007-04-17
 - Added VMware ESX plugins (Bert de Bruijn)
 - Added tcp6 and udp6 statistics within dstat_tcp and dstat_udp
 - Added module readlines() taking care of seek() and multiple files
@@ -161,7 +161,7 @@
 - Removed broken dstat_clock plugin (use dstat_time or dstat_epoch)
 - Disabled the generic exception handling of OSError and IOError to force a stacktrace (supastuff@freenode)
 
-* 0.6.4 - Ahoy - released 12/12/2006
+* 0.6.4 - Ahoy - released 2006-12-12
 - Fixed dstat_clock to use localtime() instead of gmtime()
 - Added external plugin dstat_vz for openvz cpu statistics
 - Removed the underscoring of the counter titles
@@ -170,7 +170,7 @@
 - Renamed dstat_time plugin to dstat_epoch (-T/--epoch)
 - Moved dstat_clock plugin into main dstat program as dstat_time (-t/--time)
 
-* 0.6.3 - Amsterdam - released 26/06/2006
+* 0.6.3 - Amsterdam - released 2006-06-26
 - Changed default (silver) color of delimiter to gray
 - Fixed sum() and enumerate() only when it isn't there (Jesse Young)
 - Added external plugins dstat_app
@@ -185,14 +185,14 @@
 - Added dist, rpm and srpm targets to Makefile
 - Moved documentation to asciidoc at last
 
-* 0.6.2 - Cumbernauld - released 08/03/2006
+* 0.6.2 - Cumbernauld - released 2006-03-08
 - Fixed situation where no TERM environment variable was set (William Webber)
 - Print out terminal debug info (TERM env and terminal type)
 - Added SwapCached value to Cached (Bert de Bruijn)
 - Added external plugin dstat_clock, a human-readable alternative for dstat_time
 - Fixed problem with Broken pipe when doing eg. dstat | head -1 (Eike Herzbach)
 
-* 0.6.1 - Fishkill - released 05/09/2005
+* 0.6.1 - Fishkill - released 2005-09-05
 - Look for plugins in ~/.dstat/ too
 - Added '-M list' to show the list of available modules per path
 - Fixed a bug in dpopen causing gpfs/gpfsop to fail after a while
@@ -210,7 +210,7 @@
 - Added external plugin dstat_nfsd3op
 - Improvements to plugin error handling
 
-* 0.6.0 - Bettiesbaai - released 29/05/2005
+* 0.6.0 - Bettiesbaai - released 2005-05-29
 - Removed keyboard input prevention patch. (Dbt 304673, Marc Lehmann)
 - Fixed bug with: dstat -tit -I 177
 - Added ipc stats (--ipc)
@@ -253,11 +253,11 @@
 - Started collecting different proc-files for debugging
 - Disable headers if less than 6 lines in terminal
 
-* 0.5.10 - released 08/04/2005
+* 0.5.10 - released 2005-04-08
 - Small fix to restore terminal for all exit paths (Dbt 303526, Modesto Alexandre)
 - Get rid of duplicate 'screen width too small' error message in dstat15
 
-* 0.5.9 - released 28/03/2005
+* 0.5.9 - released 2005-03-28
 - Make default list total lists (cpu, disk, net)
 - Fix clearline ANSI to work on older (Debian?) rxvt (Joshua Rodman)
 - Improved color/vt100 terminal capabilities logic (Dbt 300288, Charles Lepple)
@@ -266,7 +266,7 @@
 - Small fix to handle the edge of the counters better
 - Prevent keyboard input/echo when running
 
-* 0.5.8 - released 15/03/2005
+* 0.5.8 - released 2005-03-15
 - Added user stats (-u), using python-utmp
 - Bail out if all requested stats fail
 - Replaced --noheader option by --noheaders option (like vmstat)
@@ -278,13 +278,13 @@
 - Replaced save and restore ANSI to save and restore VT100 (Olav Vitters)
 - Backported dstat to python 1.5 again
 
-* 0.5.7 - released 31/12/2004
+* 0.5.7 - released 2004-12-31
 - Change Makefile to not install when run without target (Kurt Roeckx)
 - Fixed another crash caused by /proc instability
 - Added --csv option to output Comma-Seperated-Value output
 - If output is not a tty, don't care about line-width
 
-* 0.5.6 - released 20/12/2004
+* 0.5.6 - released 2004-12-20
 - Made sys and int stats unit-aware (so 10000 int/sec -> 10.0k) (Anton Blanchard)
 - Improve conv() function and stat show() functions
 - Improved the calculation of the cpu usage
@@ -304,18 +304,18 @@
 - Improvement in output, 10.0k or 5.0 will be displayed simply as 10k or 5
 - proc stats now show floats
 
-* 0.5.5 - released 02/12/2004
+* 0.5.5 - released 2004-02-12
 - In fact, round() was not the problem, use str() instead. (Anton Blanchard)
 - Abandoned the use of round() as it is limited to integers (Juergen Kreileder)
 
-* 0.5.4 - released 25/10/2004
+* 0.5.4 - released 2004-10-25
 - Added a python 1.5 version of dstat (Ville Herva)
 - Fixed a problem with count
 - Improved the logic for displaying repetitive headers
 - Now --nocolor implies --noupdate (since it implies no ANSI escape sequences)
 - Removed the 'Exiting on user request' message
 
-* 0.5.3 - released 21/10/2004
+* 0.5.3 - released 2004-10-21
 - Added -M or --mods option to allow modules
 - Added --full option to expand the -D, -I and -N discovery lists
 - Re-added the number of new processes (the --vmstat will no longer resemble vmstat)
@@ -327,17 +327,17 @@
 - Signal handling cleanup
 - Partitions are excluded from discovery on 2.4 kernels
 
-* 0.5.2 - released 13/10/2004
+* 0.5.2 - released 2004-10-13
 - Improved disk and net discovery functions (Ville Herva)
 - Fixed a bug with values when using --noupdate (Pasi Pirhonen)
 - Documented the internals a bit more, hoping people will contribute
 - Implemented a fix for when the output exceeds terminal columns
 
-* 0.5.1 - released 11/10/2004
+* 0.5.1 - released 2004-10-11
 - Fixed bug that caused counters to not be averages when delay > 1
 - Added time stats (-t)
 
-* 0.5 - released 11/10/2004
+* 0.5 - released 2004-10-11
 - Changed some more int()'s into long()'s (Pasi Pirhonen)
 - Fixed the cpu out of index, /proc instability (Pasi Pirhonen)
 - Improved the rounding function
@@ -349,7 +349,7 @@
 - When counters roll over, show dash
 - Fixed 2 crash bugs caused by /proc instability
 
-* 0.4 - released 26/10/2004
+* 0.4 - released 2004-10-26
 - Added interrupt stats (-i)
 - Order of the stats adhere the order of the options
 - Interval more precise, using signals instead of sleep
