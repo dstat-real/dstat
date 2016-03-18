@@ -33,8 +33,8 @@ clean:
 	$(MAKE) -C docs clean
 
 test:
-	dstat -taf 1 5
-	dstat -t --all-plugins 1 5
+	./dstat -taf 1 5
+	./dstat -t --all-plugins 1 5
 
 dist: clean
 	$(MAKE) -C docs dist
