@@ -32,6 +32,10 @@ clean:
 	rm -f examples/*.pyc plugins/*.pyc
 	$(MAKE) -C docs clean
 
+test:
+	dstat -taf 1 5
+	dstat -t --all-plugins 1 5
+
 dist: clean
 	$(MAKE) -C docs dist
 #	svn up && svn list -R | pax -d -w -x ustar -s ,^,$(name)-$(version)/, | bzip2 >../$(name)-$(version).tar.bz2
