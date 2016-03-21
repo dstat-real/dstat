@@ -14,8 +14,12 @@
 ```
 
 <!---
-For extra credit, clone the latest development from the master branch
-and test if the issue still occurs with the development version.
+Please test your issue using the latest release, and using the master branch.
+Download the latest release and the master branch from:
+
+    https://github.com/dagwieers/dstat/releases
+    https://github.com/dagwieers/dstat/archive/master.tar.gz
+
 Mention below which versions work correctly, or when it started to fail.
 -->
 
