@@ -1,9 +1,10 @@
-##### SUMMARY
-<!--- Please explain the problem briefly -->
+<!--- Verify that your issue/request is not already reported in GitHub -->
 
+##### SUMMARY
+<!--- Explain the problem briefly here, details go way below -->
 
 ##### ISSUE TYPE
-<!--- Please pick one and delete the rest: -->
+<!--- Pick one below and delete the rest: -->
  - Bug Report
  - Feature Idea
  - Documentation Report
@@ -14,19 +15,20 @@
 ```
 
 <!---
-Please test your issue using the latest release, and using the master branch.
+Test your issue using the latest release AND using the master branch code.
 Download the latest release and the master branch from:
 
     https://github.com/dagwieers/dstat/releases
     https://github.com/dagwieers/dstat/archive/master.tar.gz
 
+You can run dstat directly from the source tree using: ./dstat
 Mention below which versions work correctly, or when it started to fail.
 -->
 
 ##### OS / ENVIRONMENT
 <!---
-Please mention the OS you are running Dstat from, and anything
-platform-specific for the plugin you are running.
+Mention the OS you are running Dstat from, and anything platform-specific
+that could be related to your issue.
 -->
 
 ##### STEPS TO REPRODUCE
