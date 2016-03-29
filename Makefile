@@ -36,18 +36,6 @@ test:
 	./dstat -taf 1 5
 	./dstat -t --all-plugins 1 5
 
-travis:
-	python2.4 ./dstat -taf 1 5
-	python2.4 ./dstat -t --all-plugins 1 5
-	python2.6 ./dstat -taf 1 5
-	python2.6 ./dstat -t --all-plugins 1 5
-	python2.7 ./dstat -taf 1 5
-	python2.7 ./dstat -t --all-plugins 1 5
-	python3.4 ./dstat -taf 1 5
-	python3.4 ./dstat -t --all-plugins 1 5
-	python3.5 ./dstat -taf 1 5
-	python3.5 ./dstat -t --all-plugins 1 5
-
 dist: clean
 	$(MAKE) -C docs dist
 #	svn up && svn list -R | pax -d -w -x ustar -s ,^,$(name)-$(version)/, | bzip2 >../$(name)-$(version).tar.bz2
