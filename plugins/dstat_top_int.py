@@ -12,7 +12,7 @@ class dstat_plugin(dstat):
         self.type = 's'
         self.width = 20
         self.scale = 0
-        self.intset1 = [ 0 ] * 1024
+        self.intset1 = [ ]
         self.open('/proc/stat')
         self.names = self.names()
 
@@ -23,9 +23,10 @@ class dstat_plugin(dstat):
             if len(l) <= cpunr: continue
             l1 = l[0].split(':')[0]
             ### Cleanup possible names from /proc/interrupts
-            l2 = ' '.join(l[cpunr+2:])
+            l2 = ' '.join(l[cpunr+3:])
             l2 = l2.replace('_hcd:', '/')
             l2 = re.sub('@pci[:\d+\.]+', '', l2)
+            l2 = re.sub('ahci\[[:\da-z\.]+\]', 'ahci', l2)
             ret[l1] = l2
         return ret
 
@@ -34,7 +35,10 @@ class dstat_plugin(dstat):
         self.val['total'] = 0.0
         for line in self.splitlines():
             if line[0] == 'intr':
-                self.intset2 = [ long(int) for int in line[3:] ]
+                self.intset2 = [ long(i) for i in line[3:] ]
+
+        if not self.intset1:
+            self.intset1 = [ 0 for i in self.intset2 ]
 
         for i in range(len(self.intset2)):
             total = (self.intset2[i] - self.intset1[i]) * 1.0 / elapsed
