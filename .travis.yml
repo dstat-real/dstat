@@ -9,7 +9,7 @@ addons:
     packages:
       - python2.4
       - python2.6
-      - python3.4
+#      - python3.4
       - python3.5
 #install:
 #  - pip install dbus-python
@@ -18,10 +18,10 @@ script:
   - python2.4 ./dstat -taf 1 5
   - python2.6 ./dstat -taf 1 5
   - python2.7 ./dstat -taf 1 5
-  - python3.4 ./dstat -taf 1 5
-  - python3.5 ./dstat -taf 1 5
-  - python2.4 ./dstat -t --all-plugins 1 5
+#  - python3.4 ./dstat -taf 1 5
+#  - python3.5 ./dstat -taf 1 5
+#  - python2.4 ./dstat -t --all-plugins 1 5
   - python2.6 ./dstat -t --all-plugins 1 5
   - python2.7 ./dstat -t --all-plugins 1 5
-  - python3.4 ./dstat -t --all-plugins 1 5
-  - python3.5 ./dstat -t --all-plugins 1 5
+#  - python3.4 ./dstat -t --all-plugins 1 5
+#  - python3.5 ./dstat -t --all-plugins 1 5
