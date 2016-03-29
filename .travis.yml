@@ -1,26 +1,31 @@
 dist: trusty
-sudo: required
+sudo: false
 services:
   - docker
 language: python
-matrix:
-  include:
-    - python: 2.6
-    - python: 2.7
-    - python: 3.4
-    - python: 3.5
+python: 2.7
+#matrix:
+#  include:
+#    - python: 2.4
+#    - python: 2.6
+#    - python: 2.7
+#    - python: 3.4
+#    - python: 3.5
+addons:
+  apt:
+    packages:
+      - python2.4
+      - python2.6
+      - python3.4
+      - python3.5
 #install:
 #  - pip install dbus-python
 #  - pip install python-utmp
 script:
-  - make test
+#  - python2.4 -m compileall -fq dstat.py
+#  - python2.6 -m compileall -fq dstat.py
+#  - python2.7 -m compileall -fq dstat.py
+#  - make test
+  - make travis
 after_success:
   - coveralls
-#notifications:
-#  irc:
-#    channels:
-#      - "chat.freenode.net#ansible-notices"
-#    on_success: change
-#    on_failure: always
-#    skip_join: true
-#    nick: ansibletravis
