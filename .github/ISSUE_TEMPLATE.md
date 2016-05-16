@@ -1,4 +1,4 @@
-<!--- Verify that your issue/request is not already reported in GitHub -->
+<!--- Verify first that your issue/request is not already reported in GitHub -->
 
 ##### SUMMARY
 <!--- Explain the problem briefly here, details go way below -->
@@ -11,7 +11,7 @@
 
 ##### DSTAT VERSION
 ```
-<!--- Paste verbatim output from “dstat --version” here -->
+<!--- Paste verbatim output from “dstat --version” here between tripple quotes -->
 ```
 
 <!---
@@ -33,16 +33,15 @@ that could be related to your issue.
 
 ##### STEPS TO REPRODUCE
 <!---
-For bugs, please show exactly how to reproduce the problem. For new
-features, show how the feature would be used.
+For bugs, show exactly how to reproduce the problem.
+For new features, show how the feature would be used.
 -->
 
 ```
-<!--- Paste example use or output here -->
+<!--- Paste example use or output here between quotes -->
 ```
 
 <!--- You can also paste gist.github.com links for larger files -->
-
 
 ##### EXPECTED RESULTS
 <!--- What did you expect to happen when running the steps above? -->
@@ -51,5 +50,5 @@ features, show how the feature would be used.
 <!--- What actually happened? Try running with debug enabled "dstat --debug" -->
 
 ```
-<!--- Paste verbatim command output here -->
+<!--- Paste verbatim command output between quotes -->
 ```
