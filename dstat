@@ -2761,7 +2761,9 @@ def perform(update):
             if op.header and rows >= 6:
                 if oldvislist != vislist:
                     showheader = True
-                elif step == 1 and loop % (rows - 1) == 0:
+                elif not op.update and loop % (rows - 2) == 0:
+                    showheader = True
+                elif op.update and step == 1 and loop % (rows - 1) == 0:
                     showheader = True
 
             oldvislist = vislist
