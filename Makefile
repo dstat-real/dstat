@@ -52,4 +52,4 @@ srpm: dist
 	rpmbuild -ts --clean --rmspec --define "_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm" --define "_srcrpmdir ../" ../$(name)-$(version).tar.bz2
 
 snap:
-	snapcraft
+	cd packaging/snap/; snapcraft
