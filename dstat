@@ -1485,8 +1485,8 @@ class dstat_raw(dstat):
         self.nick = ('raw',)
         self.vars = ('sockets',)
         self.type = 'd'
-        self.width = 3
-        self.scale = 100
+        self.width = 4
+        self.scale = 1000
         self.open('/proc/net/raw')
 
     def extract(self):
@@ -1501,8 +1501,8 @@ class dstat_socket(dstat):
     def __init__(self):
         self.name = 'sockets'
         self.type = 'd'
-        self.width = 3
-        self.scale = 100
+        self.width = 4
+        self.scale = 1000
         self.open('/proc/net/sockstat')
         self.nick = ('tot', 'tcp', 'udp', 'raw', 'frg')
         self.vars = ('sockets:', 'TCP:', 'UDP:', 'RAW:', 'FRAG:')
@@ -1612,7 +1612,7 @@ class dstat_tcp(dstat):
         self.vars = ('listen', 'established', 'syn', 'wait', 'close')
         self.type = 'd'
         self.width = 4
-        self.scale = 100
+        self.scale = 1000
         self.open('/proc/net/tcp', '/proc/net/tcp6')
 
     def extract(self):
@@ -1653,8 +1653,8 @@ class dstat_udp(dstat):
         self.nick = ('lis', 'act')
         self.vars = ('listen', 'established')
         self.type = 'd'
-        self.width = 3
-        self.scale = 100
+        self.width = 4
+        self.scale = 1000
         self.open('/proc/net/udp', '/proc/net/udp6')
 
     def extract(self):
@@ -1669,8 +1669,8 @@ class dstat_unix(dstat):
         self.nick = ('dgm', 'str', 'lis', 'act')
         self.vars = ('datagram', 'stream', 'listen', 'established')
         self.type = 'd'
-        self.width = 3
-        self.scale = 100
+        self.width = 4
+        self.scale = 1000
         self.open('/proc/net/unix')
 
     def extract(self):
