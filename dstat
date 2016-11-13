@@ -307,7 +307,7 @@ Dstat options:
   --zones                  enable zoneinfo stats
 
   --list                   list all available plugins
-  --plugin                 enable external plugin by name (see --list)
+  --<plugin-name>          enable external plugin by name (see --list)
 
   -a, --all                equals -cdngy (default)
   -f, --full               automatically expand -C, -D, -I, -N and -S lists

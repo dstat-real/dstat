@@ -142,7 +142,7 @@ information.
 --zones::
     enable zoneinfo stats (d32F, d32H, normF, normH)
 
---plugin-name::
+--<plugin-name>::
     enable (external) plugins by plugin name, see *PLUGINS* for options
 
 Possible internal stats are::
