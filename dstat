@@ -39,7 +39,7 @@ except NameError:
     False = 0
 
 ### Workaround for python < 2.3
-#if 'enumerate' not in __builtins__.__dict__.keys():
+#if 'enumerate' not in __builtins__.__dict__:
 if sys.version_info >= (2, 2) and sys.version_info < (2, 3):
     def enumerate(sequence):
         index = 0
@@ -56,7 +56,7 @@ elif sys.version_info < (2, 2):
         return seqlist
 
 ### Workaround for python < 2.3
-#if 'sum' not in __builtins__.__dict__.keys():
+#if 'sum' not in __builtins__.__dict__:
 if sys.version_info < (2, 3):
     def sum(sequence):
         ret = 0
@@ -831,7 +831,7 @@ class dstat_disk(dstat):
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
         for name in varlist:
-            if name in self.discover + ['total'] + op.diskset.keys():
+            if name in self.discover + ['total'] or name in op.diskset:
                 ret.append(name)
         return ret
 
@@ -850,12 +850,12 @@ class dstat_disk(dstat):
             if name in self.vars and name != 'total':
                 self.set2[name] = ( self.set2[name][0] + long(l[5]), self.set2[name][1] + long(l[9]) )
             for diskset in self.vars:
-                if diskset in op.diskset.keys():
+                if diskset in op.diskset:
                     for disk in op.diskset[diskset]:
                         if fnmatch.fnmatch(name, disk):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[5]), self.set2[diskset][1] + long(l[9]) )
 
-        for name in self.set2.keys():
+        for name in self.set2:
             self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
 
         if step == op.delay:
@@ -917,7 +917,7 @@ class dstat_disk24(dstat):
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
         for name in varlist:
-            if name in self.discover + ['total'] + op.diskset.keys():
+            if name in self.discover + ['total'] or name in op.diskset:
                 ret.append(name)
         return ret
 
@@ -934,12 +934,12 @@ class dstat_disk24(dstat):
             if name in self.vars:
                 self.set2[name] = ( self.set2[name][0] + long(l[6]), self.set2[name][1] + long(l[10]) )
             for diskset in self.vars:
-                if diskset in op.diskset.keys():
+                if diskset in op.diskset:
                     for disk in op.diskset[diskset]:
                         if fnmatch.fnmatch(name, disk):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[6]), self.set2[diskset][1] + long(l[10]) )
 
-        for name in self.set2.keys():
+        for name in self.set2:
             self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
 
         if step == op.delay:
@@ -988,7 +988,7 @@ class dstat_disk24_old(dstat):
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
         for name in varlist:
-            if name in self.discover + ['total'] + op.diskset.keys():
+            if name in self.discover + ['total'] or name in op.diskset:
                 ret.append(name)
         return ret
 
@@ -1012,13 +1012,13 @@ class dstat_disk24_old(dstat):
                 if name in self.vars and name != 'total':
                     self.set2[name] = ( self.set2[name][0] + long(l[2]), self.set2[name][1] + long(l[3]) )
                 for diskset in self.vars:
-                    if diskset in op.diskset.keys():
+                    if diskset in op.diskset:
                         for disk in op.diskset[diskset]:
                             if fnmatch.fnmatch(name, disk):
                                 self.set2[diskset] = ( self.set2[diskset][0] + long(l[2]), self.set2[diskset][1] + long(l[3]) )
             break
 
-        for name in self.set2.keys():
+        for name in self.set2:
             self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
 
         if step == op.delay:
@@ -1106,7 +1106,7 @@ class dstat_int(dstat):
         for name in varlist:
             if name in self.discover + ['total',]:
                 ret.append(name)
-            elif name.lower() in self.intmap.keys():
+            elif name.lower() in self.intmap:
                 ret.append(self.intmap[name.lower()])
         return ret
 
@@ -1173,7 +1173,7 @@ class dstat_int24(dstat):
         for name in varlist:
             if name in self.discover:
                 ret.append(name)
-            elif name.lower() in self.intmap.keys():
+            elif name.lower() in self.intmap:
                 ret.append(self.intmap[name.lower()])
         return ret
 
@@ -1190,7 +1190,7 @@ class dstat_int24(dstat):
 #                   for mod in l[2+cpunr:]:
 #                       self.set2[mod] = long(l[1])
 
-        for name in self.set2.keys():
+        for name in self.set2:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
 
         if step == op.delay:
@@ -1233,7 +1233,7 @@ class dstat_io(dstat):
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
         for name in varlist:
-            if name in self.discover + ['total'] + op.diskset.keys():
+            if name in self.discover + ['total'] or name in op.diskset:
                 ret.append(name)
         return ret
 
@@ -1252,12 +1252,12 @@ class dstat_io(dstat):
             if name in self.vars and name != 'total':
                 self.set2[name] = ( self.set2[name][0] + long(l[3]), self.set2[name][1] + long(l[7]) )
             for diskset in self.vars:
-                if diskset in op.diskset.keys():
+                if diskset in op.diskset:
                     for disk in op.diskset[diskset]:
                         if fnmatch.fnmatch(name, disk):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
 
-        for name in self.set2.keys():
+        for name in self.set2:
             self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
 
         if step == op.delay:
@@ -1396,7 +1396,7 @@ class dstat_net(dstat):
                 self.set2['total'] = ( self.set2['total'][0] + long(l[1]), self.set2['total'][1] + long(l[9]))
 
         if update:
-            for name in self.set2.keys():
+            for name in self.set2:
                 self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
                 if self.val[name][0] < 0: self.val[name][0] += maxint + 1
                 if self.val[name][1] < 0: self.val[name][1] += maxint + 1
@@ -1886,9 +1886,9 @@ def dopen(filename):
     if not os.path.exists(filename):
         raise Exception, 'File %s does not exist' % filename
 #        return None
-    if 'fds' not in globals().keys():
+    if 'fds' not in globals():
         fds = {}
-    if file not in fds.keys():
+    if file not in fds:
         fds[filename] = open(filename, 'r', 0)
     else:
         fds[filename].seek(0)
@@ -1897,7 +1897,7 @@ def dopen(filename):
 def dclose(filename):
     "Close an open file and remove file descriptor from list"
     global fds
-    if not 'fds' in globals().keys(): fds = {}
+    if not 'fds' in globals(): fds = {}
     if filename in fds:
         fds[filename].close()
         del(fds[filename])
@@ -1906,8 +1906,8 @@ def dpopen(cmd):
     "Open a pipe for reuse, if already opened, return pipes"
     global pipes, select
     import select
-    if 'pipes' not in globals().keys(): pipes = {}
-    if cmd not in pipes.keys():
+    if 'pipes' not in globals(): pipes = {}
+    if cmd not in pipes:
         try:
             import asubprocess
             p = subprocess.Popen(cmd, shell=True, bufsize=0, close_fds=True,
@@ -2604,9 +2604,9 @@ def main():
 
     ### Empty ansi and theme database if no colors are requested
     if not op.color:
-        for key in color.keys():
+        for key in color:
             color[key] = ''
-        for key in theme.keys():
+        for key in theme:
             theme[key] = ''
         theme['colors_hi'] = (ansi['default'],)
         theme['colors_lo'] = (ansi['default'],)
@@ -2631,7 +2631,7 @@ def main():
         for mod in mods:
             pluginfile = 'dstat_' + mod.replace('-', '_')
             try:
-                if pluginfile not in globals().keys():
+                if pluginfile not in globals():
                     import imp
                     fp, pathname, description = imp.find_module(pluginfile, pluginpath)
                     fp.close()

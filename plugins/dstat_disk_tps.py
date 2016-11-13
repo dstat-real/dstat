@@ -43,7 +43,7 @@ class dstat_plugin(dstat):
 #           if len(varlist) > 2: varlist = varlist[0:2]
             varlist.sort()
         for name in varlist:
-            if name in self.discover + ['total'] + op.diskset.keys():
+            if name in self.discover + ['total'] or name in op.diskset:
                 ret.append(name)
         return ret
 
@@ -62,12 +62,12 @@ class dstat_plugin(dstat):
             if name in self.vars and name != 'total':
                 self.set2[name] = ( self.set2[name][0] + long(l[3]), self.set2[name][1] + long(l[7]))
             for diskset in self.vars:
-                if diskset in op.diskset.keys():
+                if diskset in op.diskset:
                     for disk in op.diskset[diskset]:
                         if re.match('^'+disk+'$', name):
                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
 
-        for name in self.set2.keys():
+        for name in self.set2:
             self.val[name] = map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name])
 
         if step == op.delay:

@@ -25,7 +25,7 @@ class dstat_plugin(dstat):
         map(lambda x, y: self.set2.update({x: (int(y), )}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,20)))
 
         if update:
-            for name in self.set2.keys():
+            for name in self.set2:
 #                self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
                 self.val[name] = map(lambda x, y: (y - x) * 1.0, self.set1[name], self.set2[name])
 

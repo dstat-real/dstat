@@ -72,7 +72,7 @@ class dstat_plugin(dstat):
                 self.set2[name] = (rcv_value, xmit_value)
             self.set2['total'] = ( self.set2['total'][0] + rcv_value, self.set2['total'][1] + xmit_value)
         if update:
-            for name in self.set2.keys():
+            for name in self.set2:
                 self.val[name] = [
                     (self.set2[name][0] - self.set1[name][0]) * 4.0 / elapsed,
                     (self.set2[name][1] - self.set1[name][1]) * 4.0/ elapsed,

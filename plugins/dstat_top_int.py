@@ -45,7 +45,7 @@ class dstat_plugin(dstat):
 
             ### Put the highest value in self.val
             if total > self.val['total']:
-                if str(i+1) in self.names.keys():
+                if str(i+1) in self.names:
                     self.val['name'] = self.names[str(i+1)]
                 else:
                     self.val['name'] = 'int ' + str(i+1)

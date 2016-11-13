@@ -67,7 +67,7 @@ class dstat_plugin(dstat):
         for name in list:
             if name in self.discover:
                 ret.append(name)
-#           elif name.lower() in self.intmap.keys():
+#           elif name.lower() in self.intmap:
 #               ret.append(self.intmap[name.lower()])
         return ret
 
@@ -89,7 +89,7 @@ class dstat_plugin(dstat):
                 for i in l[1:1+self.vmkcpunr()]:
                     self.set2[name] = self.set2[name] + long(i)
 
-        for name in self.set2.keys():
+        for name in self.set2:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
 
         if step == op.delay:
