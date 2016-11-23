@@ -2550,9 +2550,6 @@ def main():
     user = getpass.getuser()
     hostname = os.uname()[1]
 
-    ### Disable line-wrapping (does not work ?)
-    sys.stdout.write('\033[7l')
-
     ### Write term-title
     if sys.stdout.isatty():
         shell = os.getenv('XTERM_SHELL')
@@ -2608,9 +2605,14 @@ def main():
             color[key] = ''
         for key in theme:
             theme[key] = ''
+        for key in ansi:
+            ansi[key] = ''
         theme['colors_hi'] = (ansi['default'],)
         theme['colors_lo'] = (ansi['default'],)
 #        print color['blackbg']
+
+    ### Disable line-wrapping (does not work ?)
+    sys.stdout.write(ansi['nolinewrap'])
 
     if not op.update:
         interval = op.delay
