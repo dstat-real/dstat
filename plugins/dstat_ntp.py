@@ -28,7 +28,7 @@ class dstat_plugin(dstat):
         self.type = 's'
         self.width = len(time.strftime(self.timefmt, time.localtime()))
         self.scale = 0
-        self.epoch = 2208988800L
+        self.epoch = 2208988800
 #        socket.setdefaulttimeout(0.25)
         self.socket = socket.socket( socket.AF_INET, socket.SOCK_DGRAM )
         self.socket.settimeout(0.25)
