@@ -19,6 +19,6 @@ class dstat_plugin(dstat):
             raise Exception('Needs pysnmp and pyasn1 modules')
 
     def extract(self):
-        map(lambda x, y: self.val.update({x: float(y)}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,4,1,2021,10,1,3)))
+        list(map(lambda x, y: self.val.update({x: float(y)}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,4,1,2021,10,1,3))))
 
 # vim:ts=4:sw=4:et

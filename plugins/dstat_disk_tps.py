@@ -68,7 +68,7 @@ class dstat_plugin(dstat):
                             self.set2[diskset] = ( self.set2[diskset][0] + int(l[3]), self.set2[diskset][1] + int(l[7]) )
 
         for name in self.set2:
-            self.val[name] = map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name])
+            self.val[name] = list(map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name]))
 
         if step == op.delay:
             self.set1.update(self.set2)

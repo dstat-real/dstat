@@ -55,7 +55,7 @@ class dstat_plugin(dstat):
     def vars(self):
         ret = []
         if op.disklist:
-            varlist = map(self.basename, op.disklist)
+            varlist = list(map(self.basename, op.disklist))
         else:
             varlist = []
             for name in self.discover:

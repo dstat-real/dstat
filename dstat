@@ -2211,7 +2211,7 @@ def csvheader(totlist):
 def info(level, msg):
     "Output info message"
 #   if level <= op.verbose:
-    print(string, file=sys.stderr)
+    print(msg, file=sys.stderr)
 
 def die(ret, msg):
     "Print error and exit with errorcode"

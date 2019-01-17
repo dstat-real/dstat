@@ -116,7 +116,7 @@ class dstat_plugin(dstat):
         last_line = None
 
         try:
-	    for repeats in range(3):
+            for repeats in range(3):
                 for last_line in cmd_readlines(self.condor_status_cmd):
                     pass
 
