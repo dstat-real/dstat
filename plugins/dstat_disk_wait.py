@@ -27,7 +27,7 @@ class dstat_plugin(dstat):
             ret.append(name)
         for item in objlist: ret.append(item)
         if not ret:
-            raise Exception, "No suitable block devices found to monitor"
+            raise Exception('No suitable block devices found to monitor')
         return ret
 
     def vars(self):
@@ -58,10 +58,10 @@ class dstat_plugin(dstat):
             name = l[2]
             if name not in self.vars: continue
             self.set2[name] = dict(
-                rd_ios = long(l[3]),
-                wr_ios = long(l[7]),
-                rd_ticks = long(l[6]),
-                wr_ticks = long(l[10]),
+                rd_ios = int(l[3]),
+                wr_ios = int(l[7]),
+                rd_ticks = int(l[6]),
+                wr_ticks = int(l[10]),
             )
 
         for name in self.vars:

@@ -16,7 +16,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.access('/proc/self/io', os.R_OK):
-            raise Exception, 'Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20'
+            raise Exception('Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20')
 
     def extract(self):
         self.output = ''
@@ -25,9 +25,9 @@ class dstat_plugin(dstat):
         for pid in proc_pidlist():
             try:
                 ### Reset values
-                if not self.pidset2.has_key(pid):
+                if pid not in self.pidset2:
                     self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0}
-                if not self.pidset1.has_key(pid):
+                if pid not in self.pidset1:
                     self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0}
 
                 ### Extract name
@@ -46,7 +46,7 @@ class dstat_plugin(dstat):
             write_usage = (self.pidset2[pid]['wchar:'] - self.pidset1[pid]['wchar:']) * 1.0 / elapsed
             usage = read_usage + write_usage
 #            if usage > 0.0:
-#                print '%s %s:%s' % (pid, read_usage, write_usage)
+#                print('%s %s:%s' % (pid, read_usage, write_usage))
 
             ### Get the process that spends the most jiffies
             if usage > self.val['usage']:

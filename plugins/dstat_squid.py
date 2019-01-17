@@ -31,7 +31,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.access('/usr/sbin/squidclient', os.X_OK):
-            raise Exception, 'Needs squidclient binary'
+            raise Exception('Needs squidclient binary')
         cmd_test('/usr/sbin/squidclient %s mgr:info' % squidclient_options)
         return True
  
@@ -41,11 +41,11 @@ class dstat_plugin(dstat):
                 if l[0].strip() in self.vars:
                     self.val[l[0].strip()] = l[1].strip()
                     break
-        except IOError, e:
-            if op.debug > 1: print '%s: lost pipe to squidclient, %s' % (self.filename, e)
+        except IOError as e:
+            if op.debug > 1: print('%s: lost pipe to squidclient, %s' % (self.filename, e))
             for name in self.vars: self.val[name] = -1
-        except Exception, e:
-            if op.debug > 1: print '%s: exception' (self.filename, e)
+        except Exception as e:
+            if op.debug > 1: print('%s: exception' (self.filename, e))
             for name in self.vars: self.val[name] = -1
 
 # vim:ts=4:sw=4:et

@@ -21,7 +21,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.path.exists('/proc/acpi/ibm/fan'):
-            raise Exception, 'Needs kernel IBM-ACPI support'
+            raise Exception('Needs kernel IBM-ACPI support')
 
     def extract(self):
         if os.path.exists('/proc/acpi/ibm/fan'):

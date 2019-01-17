@@ -13,7 +13,7 @@ class dstat_plugin(dstat):
             global cmdgen
             from pysnmp.entity.rfc3413.oneliner import cmdgen
         except:
-            raise Exception, 'Needs pysnmp and pyasn1 modules'
+            raise Exception('Needs pysnmp and pyasn1 modules')
 
     def name(self):
         return self.vars

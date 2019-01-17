@@ -44,7 +44,7 @@ class dstat_plugin(dstat):
             line = next(lines)
             if line:
                 stats = DStatParser(*[self._to_float(x) for x in line])
-                # print stats
+                # print(stats)
                 self.set2['cls'] = 0
                 self.set2['fgc'] = int(stats.FGC)
                 self.set2['heap'] = (
@@ -72,15 +72,15 @@ class dstat_plugin(dstat):
             if step == op.delay:
                 self.set1.update(self.set2)
 
-        except IOError, e:
+        except IOError as e:
             if op.debug > 1:
-                print '%s: lost pipe to jstat, %s' % (self.filename, e)
+                print('%s: lost pipe to jstat, %s' % (self.filename, e))
             for name in self.vars:
                 self.val[name] = -1
 
-        except Exception, e:
+        except Exception as e:
             if op.debug > 1:
-                print '%s: exception' % e
+                print('%s: exception' % e)
             for name in self.vars:
                 self.val[name] = -1
 

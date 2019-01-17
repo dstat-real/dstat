@@ -25,7 +25,7 @@ class dstat_plugin(dstat):
             ret.append(name)
         for item in objlist: ret.append(item)
         if not ret:
-            raise Exception, "No suitable block devices found to monitor"
+            raise Exception('No suitable block devices found to monitor')
         return ret
 
     def vars(self):
@@ -58,14 +58,14 @@ class dstat_plugin(dstat):
             if l[3:] == ['0',] * 11: continue
             name = l[2]
             if not self.diskfilter.match(name):
-                self.set2['total'] = ( self.set2['total'][0] + long(l[3]), self.set2['total'][1] + long(l[7]) )
+                self.set2['total'] = ( self.set2['total'][0] + int(l[3]), self.set2['total'][1] + int(l[7]) )
             if name in self.vars and name != 'total':
-                self.set2[name] = ( self.set2[name][0] + long(l[3]), self.set2[name][1] + long(l[7]))
+                self.set2[name] = ( self.set2[name][0] + int(l[3]), self.set2[name][1] + int(l[7]))
             for diskset in self.vars:
                 if diskset in op.diskset:
                     for disk in op.diskset[diskset]:
                         if re.match('^'+disk+'$', name):
-                            self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
+                            self.set2[diskset] = ( self.set2[diskset][0] + int(l[3]), self.set2[diskset][1] + int(l[7]) )
 
         for name in self.set2:
             self.val[name] = map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name])

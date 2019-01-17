@@ -20,7 +20,7 @@ class dstat_plugin(dstat):
         for name in self.vars:
             wifi = iwlibs.Wireless(name)
             stat, qual, discard, missed_beacon = wifi.getStatistics()
-#           print qual.quality, qual.signallevel, qual.noiselevel
+#           print(qual.quality, qual.signallevel, qual.noiselevel)
             if qual.quality == 0 or qual.signallevel == -101 or qual.noiselevel == -101 or qual.signallevel == -256 or qual.noiselevel == -256:
                 self.val[name] = ( -1, -1 )
             else:

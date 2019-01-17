@@ -11,7 +11,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.access('/var/spool/postfix/active', os.R_OK):
-            raise Exception, 'Cannot access postfix queues'
+            raise Exception('Cannot access postfix queues')
 
     def extract(self):
         for item in self.vars:

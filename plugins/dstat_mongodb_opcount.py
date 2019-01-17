@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
       if mongodb_pwd:
         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
       self.db = self.m.admin
-    except Exception, e:
-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
+    except Exception as e:
+      raise Exception('Cannot interface with MongoDB server: %s' % e)
 
     self.name    = 'mongodb counts'
     self.nick    = ('qry', 'ins', 'upd', 'del', 'gtm', 'cmd')
@@ -42,5 +42,5 @@ class dstat_plugin(dstat):
         if not name in self.lastVal:
           self.lastVal[name] = opct.get(name)
 
-        self.val[name]     = (long(opct.get(name)) - self.lastVal[name]) / elapsed
+        self.val[name]     = (int(opct.get(name)) - self.lastVal[name]) / elapsed
         self.lastVal[name] = opct.get(name)

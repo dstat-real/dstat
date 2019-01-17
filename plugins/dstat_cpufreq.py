@@ -14,7 +14,7 @@ class dstat_plugin(dstat):
     def check(self): 
         for cpu in glob.glob('/sys/devices/system/cpu/cpu[0-9]*'):
             if not os.access(cpu+'/cpufreq/scaling_cur_freq', os.R_OK):
-                raise Exception, 'Cannot access acpi %s frequency information' % os.path.basename(cpu)
+                raise Exception('Cannot access acpi %s frequency information' % os.path.basename(cpu))
 
     def vars(self):
         ret = []

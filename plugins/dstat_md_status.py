@@ -23,7 +23,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.path.exists('/proc/mdstat'):
-            raise Exception, 'Needs kernel md support'
+            raise Exception('Needs kernel md support')
 
     def extract(self):
         pct = 0

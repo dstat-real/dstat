@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
       if mongodb_pwd:
         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
       self.db = self.m.admin
-    except Exception, e:
-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
+    except Exception as e:
+      raise Exception('Cannot interface with MongoDB server: %s' % e)
 
     line = self.db.command("serverStatus")
     if 'storageEngine' in line:
@@ -50,11 +50,11 @@ class dstat_plugin(dstat):
     for name in self.vars:
       if name in ('extra_info.page_faults'):
         if not name in self.lastVal:
-          self.lastVal[name] = long(self.getDoc(status, name))
-        self.val[name] = (long(self.getDoc(status, name)) - self.lastVal[name])
+          self.lastVal[name] = int(self.getDoc(status, name))
+        self.val[name] = (int(self.getDoc(status, name)) - self.lastVal[name])
         self.lastVal[name] = self.getDoc(status, name)
       else:
-        self.val[name] = (long(self.getDoc(status, name)))
+        self.val[name] = (int(self.getDoc(status, name)))
 
 
 

@@ -18,11 +18,11 @@ class dstat_plugin(dstat):
     def extract(self):
         l = self.splitline()
 #        l = linecache.getline('/proc/%s/schedstat' % self.pid, 1).split()
-        self.val['virtual'] = long(l[0]) * pagesize / 1024
-        self.val['resident'] = long(l[1]) * pagesize / 1024
-        self.val['shared'] = long(l[2]) * pagesize / 1024
-#        self.val['text'] = long(l[3]) * pagesize / 1024
-#        self.val['library'] = long(l[4]) * pagesize / 1024
-        self.val['data'] = long(l[5]) * pagesize / 1024
+        self.val['virtual'] = int(l[0]) * pagesize / 1024
+        self.val['resident'] = int(l[1]) * pagesize / 1024
+        self.val['shared'] = int(l[2]) * pagesize / 1024
+#        self.val['text'] = int(l[3]) * pagesize / 1024
+#        self.val['library'] = int(l[4]) * pagesize / 1024
+        self.val['data'] = int(l[5]) * pagesize / 1024
 
 # vim:ts=4:sw=4:et

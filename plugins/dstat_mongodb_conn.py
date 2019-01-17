@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
       if mongodb_pwd:
         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
       self.db = self.m.admin
-    except Exception, e:
-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
+    except Exception as e:
+      raise Exception('Cannot interface with MongoDB server: %s' % e)
 
     self.name    = 'mongodb con'
     self.nick    = ('curr', 'avail')
@@ -37,7 +37,7 @@ class dstat_plugin(dstat):
     status = self.db.command("serverStatus")
 
     for name in self.vars:
-      self.val[name] = (long(self.getDoc(status, name)))
+      self.val[name] = (int(self.getDoc(status, name)))
 
   def getDoc(self, dic, doc):
     par = doc.split('.')

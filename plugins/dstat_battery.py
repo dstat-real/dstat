@@ -18,7 +18,7 @@ class dstat_plugin(dstat):
         elif glob.glob('/sys/class/power_supply/BAT*'):
             self.battery_type = "sysfs"
         else:
-            raise Exception, "No ACPI battery information found."
+            raise Exception('No ACPI battery information found.')
 
     def vars(self):
         ret = []

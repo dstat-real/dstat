@@ -24,9 +24,9 @@ class dstat_plugin(dstat):
                 except:
                     self.sesbus = None
             except:
-                raise Exception, 'Unable to connect to dbus message bus'
+                raise Exception('Unable to connect to dbus message bus')
         except:
-            raise Exception, 'Needs python-dbus module'
+            raise Exception('Needs python-dbus module')
 
     def extract(self):
         self.val['system'] = len(self.sysbus.ListServices()) - 1
@@ -34,8 +34,8 @@ class dstat_plugin(dstat):
             self.val['session'] = len(self.sesbus.ListServices()) - 1
         except:
             self.val['session'] = -1
-#       print dir(b); print dir(s); print dir(d); print d.ListServices()
-#       print dir(d)
-#       print d.ListServices()
+#       print(dir(b)); print(dir(s)); print(dir(d)); print(d.ListServices())
+#       print(dir(d))
+#       print(d.ListServices())
 
 # vim:ts=4:sw=4:et

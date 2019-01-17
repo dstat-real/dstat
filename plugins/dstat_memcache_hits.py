@@ -20,9 +20,9 @@ class dstat_plugin(dstat):
             import memcache
             self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
         except:
-            raise Exception, 'Plugin needs the memcache module'
+            raise Exception('Plugin needs the memcache module')
 
     def extract(self):
         stats = self.mc.get_stats()
         for key in self.vars:
-            self.val[key] = long(stats[0][1][key])
+            self.val[key] = int(stats[0][1][key])

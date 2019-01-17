@@ -20,9 +20,9 @@ class dstat_plugin(dstat):
                 self.stdin.write('reset\n')
                 readpipe(self.stdout)
             except IOError:
-                raise Exception, 'Cannot interface with gpfs mmpmon binary'
+                raise Exception('Cannot interface with gpfs mmpmon binary')
             return True
-        raise Exception, 'Needs GPFS mmpmon binary'
+        raise Exception('Needs GPFS mmpmon binary')
 
     def extract(self):
         try:
@@ -32,14 +32,14 @@ class dstat_plugin(dstat):
                 if not line: continue
                 l = line.split()
                 for name in self.vars:
-                    self.set2[name] = long(l[l.index(name)+1])
+                    self.set2[name] = int(l[l.index(name)+1])
             for name in self.vars:
                 self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
-        except IOError, e:
-            if op.debug > 1: print '%s: lost pipe to mmpmon, %s' % (self.filename, e)
+        except IOError as e:
+            if op.debug > 1: print('%s: lost pipe to mmpmon, %s' % (self.filename, e))
             for name in self.vars: self.val[name] = -1
-        except Exception, e:
-            if op.debug > 1: print '%s: exception %s' % (self.filename, e)
+        except Exception as e:
+            if op.debug > 1: print('%s: exception %s' % (self.filename, e))
             for name in self.vars: self.val[name] = -1
 
         if step == op.delay:

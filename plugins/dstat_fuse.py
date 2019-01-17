@@ -17,9 +17,9 @@ class dstat_plugin(dstat):
         info(1, "Module %s is still experimental." % self.filename)
 
         if not os.path.exists(self.fusectl_path):
-            raise Exception, "%s not mounted" % self.fusectl_path
+            raise Exception('%s not mounted' % self.fusectl_path)
         if len(os.listdir(self.fusectl_path)) == 0:
-            raise Exception, "No fuse filesystems mounted"
+            raise Exception('No fuse filesystems mounted')
 
     def vars(self):
         self.dirs = os.listdir(self.fusectl_path)
@@ -30,7 +30,7 @@ class dstat_plugin(dstat):
                 atleast_one_ok = True
 
         if not atleast_one_ok:
-            raise Exception, "User is not root or no fuse filesystems mounted"
+            raise Exception('User is not root or no fuse filesystems mounted')
 
         return self.dirs
 
@@ -39,7 +39,7 @@ class dstat_plugin(dstat):
             path = self.fusectl_path + d + "/waiting"
             if os.path.exists(path):
                 line = dopen(path).readline()
-                self.val[d] = long(line)
+                self.val[d] = int(line)
             else:
                 self.val[d] = 0
 

@@ -26,7 +26,7 @@ class dstat_plugin(dstat):
             if len(l) < 15: continue
 
             ### Reset previous value if it doesn't exist
-            if not self.set1.has_key(pid):
+            if pid not in self.set1:
                 self.set1[pid] = 0
 
             self.set2[pid] = int(l[15]) + int(l[16])

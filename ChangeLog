@@ -1,3 +1,6 @@
+* 0.8.0 - To be released
+- Added Python 3 support
+
 * 0.7.3 - Like a Phoenix from the ashes - release 2016-03-17
 - Provide kernel configuration options to error mesages where possible
 - Added external dstat_md_dstat plugin to show the resync progress of SWRAID (Bert de Bruijn)

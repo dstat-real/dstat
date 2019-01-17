@@ -35,7 +35,7 @@ class dstat_plugin(dstat):
         self.val['total'] = 0.0
         for line in self.splitlines():
             if line[0] == 'intr':
-                self.intset2 = [ long(i) for i in line[3:] ]
+                self.intset2 = [ int(i) for i in line[3:] ]
 
         if not self.intset1:
             self.intset1 = [ 0 for i in self.intset2 ]

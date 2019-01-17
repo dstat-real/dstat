@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
       if mongodb_pwd:
         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
       self.db = self.m.admin
-    except Exception, e:
-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
+    except Exception as e:
+      raise Exception('Cannot interface with MongoDB server: %s' % e)
 
     self.name    = 'mongodb queues'
     self.nick    = ('ar', 'aw', 'qt', 'qw')
@@ -39,7 +39,7 @@ class dstat_plugin(dstat):
     alock = glock['activeClients']
     qlock = glock['currentQueue']
 
-    self.val['ar'] = long(alock['readers'])
-    self.val['aw'] = long(alock['writers'])
-    self.val['qr'] = long(qlock['readers'])
-    self.val['qw'] = long(qlock['writers'])
+    self.val['ar'] = int(alock['readers'])
+    self.val['aw'] = int(alock['writers'])
+    self.val['qr'] = int(qlock['readers'])
+    self.val['qw'] = int(qlock['writers'])

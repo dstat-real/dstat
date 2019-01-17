@@ -22,7 +22,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.access('/proc/self/schedstat', os.R_OK):
-            raise Exception, 'Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12'
+            raise Exception('Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12')
 
     def extract(self):
         self.output = ''
@@ -31,7 +31,7 @@ class dstat_plugin(dstat):
         for pid in proc_pidlist():
             try:
                 ### Reset values
-                if not self.pidset1.has_key(pid):
+                if pid not in self.pidset1:
                     self.pidset1[pid] = {'run_ticks': 0}
 
                 ### Extract name
@@ -46,7 +46,7 @@ class dstat_plugin(dstat):
 
             if len(l) != 3: continue
 
-            self.pidset2[pid] = {'run_ticks': long(l[0])}
+            self.pidset2[pid] = {'run_ticks': int(l[0])}
 
             totrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / elapsed
 

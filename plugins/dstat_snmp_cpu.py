@@ -15,7 +15,7 @@ class dstat_plugin(dstat):
             global cmdgen
             from pysnmp.entity.rfc3413.oneliner import cmdgen
         except:
-            raise Exception, 'Needs pysnmp and pyasn1 modules'
+            raise Exception('Needs pysnmp and pyasn1 modules')
 
     def extract(self):
         self.set2['usr'] = int(snmpget(self.server, self.community, (1,3,6,1,4,1,2021,11,50,0)))

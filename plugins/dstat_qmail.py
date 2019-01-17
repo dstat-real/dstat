@@ -15,7 +15,7 @@ class dstat_plugin(dstat):
     def check(self):
         for item in self.vars:
             if not os.access('/var/qmail/queue/'+item, os.R_OK):
-                raise Exception, 'Cannot access qmail queues'
+                raise Exception('Cannot access qmail queues')
 
     def extract(self):
         for item in self.vars:

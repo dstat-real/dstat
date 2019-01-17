@@ -41,14 +41,14 @@ class dstat_plugin(dstat):
                 self.nick.append(name.lower())
 
         else:
-            raise Exception, 'Needs kernel thermal, ACPI or IBM-ACPI support'
+            raise Exception('Needs kernel thermal, ACPI or IBM-ACPI support')
 
     def check(self):
         if not os.path.exists('/proc/acpi/ibm/thermal') and \
            not os.path.exists('/proc/acpi/thermal_zone/') and \
            not os.path.exists('/sys/devices/virtual/thermal/') and \
            not os.path.exists('/sys/bus/acpi/devices/LNXTHERM:00/thermal_zone/'):
-            raise Exception, 'Needs kernel thermal, ACPI or IBM-ACPI support'
+            raise Exception('Needs kernel thermal, ACPI or IBM-ACPI support')
 
     def extract(self):
         if os.path.exists('/sys/devices/virtual/thermal/'):

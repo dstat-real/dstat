@@ -27,7 +27,7 @@ class condor_classad:
             self.attributes = condor_classad._parse(config)
 
         if self.attributes == None:
-            raise Exception, 'condor_config must be initialized either using a file or config text'
+            raise Exception('condor_config must be initialized either using a file or config text')
 
         local_config_file = self['LOCAL_CONFIG_FILE']
 
@@ -65,7 +65,7 @@ class condor_classad:
     @staticmethod
     def _read_from_file(filename):
         if not os.access(filename, os.R_OK):
-            raise Exception, 'Unable to read file %s' % filename
+            raise Exception('Unable to read file %s' % filename)
         try:
             f = open(filename)
             return condor_classad._parse((f.read()))
@@ -91,25 +91,25 @@ class dstat_plugin(dstat):
     def check(self):
         config_file = os.environ['CONDOR_CONFIG']
         if config_file == None:
-            raise Exception, 'Environment varibale CONDOR_CONFIG is missing'
+            raise Exception('Environment varibale CONDOR_CONFIG is missing')
         self.condor_config = condor_classad(config_file)
 
         bin_dir = self.condor_config['BIN']
         if bin_dir == None:
-            raise Exception, 'Unable to find BIN directory in condor config file %s' % config_file
+            raise Exception('Unable to find BIN directory in condor config file %s' % config_file)
 
         self.condor_status_cmd = os.path.join(bin_dir, 'condor_q')
 
         if not os.access(self.condor_status_cmd, os.X_OK):
-            raise Exception, 'Needs %s in the path' % self.condor_status_cmd
+            raise Exception('Needs %s in the path' % self.condor_status_cmd)
         else:
             try:
                 p = os.popen(self.condor_status_cmd+' 2>&1 /dev/null')
                 ret = p.close()
                 if ret:
-                    raise Exception, 'Cannot interface with Condor - condor_q returned != 0?'
+                    raise Exception('Cannot interface with Condor - condor_q returned != 0?')
             except IOError:
-                raise Exception, 'Unable to execute %s' % self.condor_status_cmd
+                raise Exception('Unable to execute %s' % self.condor_status_cmd)
             return True
 
     def extract(self):
@@ -122,7 +122,7 @@ class dstat_plugin(dstat):
 
                 m = CONDOR_Q_STAT_PATTER.match(last_line)
                 if m == None:
-                    raise Exception, 'Invalid output from %s. Got: %s' % (cmd, last_line)
+                    raise Exception('Invalid output from %s. Got: %s' % (cmd, last_line))
 
                 stats = [int(s.strip()) for s in m.groups()]
                 for i,j in enumerate(self.vars):

@@ -25,7 +25,7 @@ class dstat_plugin(dstat):
         try:
             list = os.listdir('/proc/vmware/scsi/')
         except:
-            raise Exception, 'Needs VMware ESX'
+            raise Exception('Needs VMware ESX')
         for name in list:
             for line in dopen('/proc/vmware/scsi/%s/stats' % name).readlines():
                 l = line.split()
@@ -54,7 +54,7 @@ class dstat_plugin(dstat):
         try:
             os.listdir('/proc/vmware')
         except:
-            raise Exception, 'Needs VMware ESX'
+            raise Exception('Needs VMware ESX')
         info(1, 'The vmkhba module is an EXPERIMENTAL module.')
 
     def extract(self):
@@ -68,9 +68,9 @@ class dstat_plugin(dstat):
                 if l[0] == 'cmds': continue
                 if l[2] == '0' and l[4] == '0': continue
                 if l == ['0', ] * 13: continue
-                self.set2['total'] = ( self.set2['total'][0] + long(l[2]), self.set2['total'][1] + long(l[4]) )
+                self.set2['total'] = ( self.set2['total'][0] + int(l[2]), self.set2['total'][1] + int(l[4]) )
                 if name in self.vars and name != 'total':
-                    self.set2[name] = ( long(l[2]), long(l[4]) )
+                    self.set2[name] = ( int(l[2]), int(l[4]) )
 
             for name in self.set2:
                 self.val[name] = map(lambda x, y: (y - x) * 1024.0 / elapsed, self.set1[name], self.set2[name])

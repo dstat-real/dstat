@@ -27,11 +27,11 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.path.exists('/proc/vz'):
-            raise Exception, 'System does not have OpenVZ support'
+            raise Exception('System does not have OpenVZ support')
         elif not os.path.exists('/proc/bc'):
-            raise Exception, 'System does not have (new) OpenVZ beancounter support'
+            raise Exception('System does not have (new) OpenVZ beancounter support')
         elif not glob.glob('/proc/bc/*/ioacct'):
-            raise Exception, 'System does not have any OpenVZ containers'
+            raise Exception('System does not have any OpenVZ containers')
         info(1, 'Module %s is still experimental.' % self.filename)
 
     def name(self):
@@ -54,10 +54,10 @@ class dstat_plugin(dstat):
                 if len(l) != 2: continue
                 if l[0] not in self.nick: continue
                 index = self.nick.index(l[0])
-                self.set2[name][index] = long(l[1])
-                self.set2['total'][index] = self.set2['total'][index] + long(l[1])
-#            print name, self.val[name], self.set2[name][0], self.set2[name][1]
-#            print name, self.val[name], self.set1[name][0], self.set1[name][1]
+                self.set2[name][index] = int(l[1])
+                self.set2['total'][index] = self.set2['total'][index] + int(l[1])
+#            print(name, self.val[name], self.set2[name][0], self.set2[name][1])
+#            print(name, self.val[name], self.set1[name][0], self.set1[name][1])
 
             self.val[name] = map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name])
 

@@ -30,10 +30,10 @@ class dstat_plugin(dstat):
             if len(l) < 15: continue
 
             ### Reset previous value if it doesn't exist
-            if not self.pidset1.has_key(pid):
+            if pid not in self.pidset1:
                 self.pidset1[pid] = 0
 
-            self.pidset2[pid] = long(l[13]) + long(l[14])
+            self.pidset2[pid] = int(l[13]) + int(l[14])
             usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / elapsed / cpunr
 
             ### Is it a new topper ?

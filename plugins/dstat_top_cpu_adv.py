@@ -14,7 +14,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.access('/proc/self/io', os.R_OK):
-            raise Exception, 'Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20'
+            raise Exception('Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20')
         return True
 
     def extract(self):
@@ -24,9 +24,9 @@ class dstat_plugin(dstat):
         for pid in proc_pidlist():
             try:
                 ### Reset values
-                if not self.pidset2.has_key(pid):
+                if pid not in self.pidset2:
                     self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
-                if not self.pidset1.has_key(pid):
+                if pid not in self.pidset1:
                     self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
 
                 ### Extract name

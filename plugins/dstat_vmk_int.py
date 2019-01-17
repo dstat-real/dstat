@@ -53,7 +53,7 @@ class dstat_plugin(dstat):
             name = l[0].split(':')[0]
             amount = 0
             for i in l[1:1+self.vmkcpunr()]:
-                amount = amount + long(i)
+                amount = amount + int(i)
             if amount > 20: ret.append(str(name))
         return ret
 
@@ -75,7 +75,7 @@ class dstat_plugin(dstat):
         try:
             os.listdir('/proc/vmware')
         except:
-            raise Exception, 'Needs VMware ESX'
+            raise Exception('Needs VMware ESX')
         info(1, 'The vmkint module is an EXPERIMENTAL module.')
 
     def extract(self):
@@ -87,7 +87,7 @@ class dstat_plugin(dstat):
             if name in self.vars:
                 self.set2[name] = 0
                 for i in l[1:1+self.vmkcpunr()]:
-                    self.set2[name] = self.set2[name] + long(i)
+                    self.set2[name] = self.set2[name] + int(i)
 
         for name in self.set2:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed

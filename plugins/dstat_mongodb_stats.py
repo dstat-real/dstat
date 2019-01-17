@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
       if mongodb_pwd:
         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
       self.db = self.m.admin
-    except Exception, e:
-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
+    except Exception as e:
+      raise Exception('Cannot interface with MongoDB server: %s' % e)
 
     stats  = self.db.command("listDatabases")
     self.dbList = []
@@ -67,5 +67,5 @@ class dstat_plugin(dstat):
       self.db = self.m.get_database(db)
       stats = self.db.command("dbStats")
       for name in self.vars:
-        self.set[name] += long(stats.get(name)) / (1024 * 1024)
+        self.set[name] += int(stats.get(name)) / (1024 * 1024)
     self.val = self.set

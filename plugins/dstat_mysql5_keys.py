@@ -46,7 +46,7 @@ class dstat_plugin(dstat):
 
             self.db = MySQLdb.connect(**args)
         except:
-            raise Exception, 'Cannot interface with MySQL server'
+            raise Exception('Cannot interface with MySQL server')
 
     def extract(self):
         try:
@@ -64,7 +64,7 @@ class dstat_plugin(dstat):
             if step == op.delay:
                 self.set1.update(self.set2)
 
-        except Exception, e:
+        except Exception as e:
             for name in self.vars:
                 self.val[name] = -1
 

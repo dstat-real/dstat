@@ -17,7 +17,7 @@ class dstat_plugin(dstat):
         for l in self.splitlines():
             if not l or l[0] != 'proc3': continue
             for i, name in enumerate(self.vars):
-                self.set2[name] = long(l[i+2])
+                self.set2[name] = int(l[i+2])
 
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed

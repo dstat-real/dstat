@@ -44,8 +44,8 @@ class dstat_plugin(dstat):
                 args['unix_socket'] = mysql_socket
 
             self.db = MySQLdb.connect(**args)
-        except Exception, e:
-            raise Exception, 'Cannot interface with MySQL server: %s' % e
+        except Exception as e:
+            raise Exception('Cannot interface with MySQL server: %s' % e)
 
     def extract(self):
         try:
@@ -55,8 +55,8 @@ class dstat_plugin(dstat):
                 line = c.fetchone()
                 if line[0] in self.vars:
                     if line[0] + 'raw' in self.set2:
-                        self.set2[line[0]] = long(line[1]) - self.set2[line[0] + 'raw']
-                    self.set2[line[0] + 'raw'] = long(line[1])
+                        self.set2[line[0]] = int(line[1]) - self.set2[line[0] + 'raw']
+                    self.set2[line[0] + 'raw'] = int(line[1])
 
             for name in self.vars:
                 self.val[name] = self.set2[name] * 1.0 / elapsed
@@ -64,6 +64,6 @@ class dstat_plugin(dstat):
             if step == op.delay:
                 self.set1.update(self.set2)
 
-        except Exception, e:
+        except Exception as e:
             for name in self.vars:
                 self.val[name] = -1

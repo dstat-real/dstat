@@ -12,7 +12,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.access('/var/spool/mqueue', os.R_OK):
-            raise Exception, 'Cannot access sendmail queue'
+            raise Exception('Cannot access sendmail queue')
 
     def extract(self):
         self.val['queue'] = len(glob.glob('/var/spool/mqueue/qf*'))

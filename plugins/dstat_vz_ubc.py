@@ -50,14 +50,14 @@ class dstat_plugin(dstat):
             elif len(l) == 7:
                 name = l[0][0:-1]
                 if name in self.vars:
-                    self.set2[name] = self.set2[name] + long(l[6])
-                self.set2['total'] = self.set2['total'] + long(l[6])
+                    self.set2[name] = self.set2[name] + int(l[6])
+                self.set2['total'] = self.set2['total'] + int(l[6])
             elif name == '0':
                 continue
             else:
                 if name in self.vars:
-                    self.set2[name] = self.set2[name] + long(l[5])
-                self.set2['total'] = self.set2['total'] + long(l[5])
+                    self.set2[name] = self.set2[name] + int(l[5])
+                self.set2['total'] = self.set2['total'] + int(l[5])
 
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed

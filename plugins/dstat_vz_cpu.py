@@ -51,8 +51,8 @@ class dstat_plugin(dstat):
         for l in self.splitlines():
             if len(l) < 6 or l[0] == 'VEID': continue
             name = l[0]
-            self.set2[name] = ( long(l[1]), long(l[3]), long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), long(l[2]) )
-            self.set2['total'] = ( self.set2['total'][0] + long(l[1]), self.set2['total'][1] + long(l[3]), self.set2['total'][2] + long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), self.set2['total'][3] + long(l[2]) )
+            self.set2[name] = ( int(l[1]), int(l[3]), int(l[4]) - int(l[1]) - int(l[2]) - int(l[3]), int(l[2]) )
+            self.set2['total'] = ( self.set2['total'][0] + int(l[1]), self.set2['total'][1] + int(l[3]), self.set2['total'][2] + int(l[4]) - int(l[1]) - int(l[2]) - int(l[3]), self.set2['total'][3] + int(l[2]) )
 
         for name in self.vars:
             for i in range(self.cols):

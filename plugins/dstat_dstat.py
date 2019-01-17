@@ -20,8 +20,8 @@ class dstat_plugin(dstat):
     def extract(self):
         l = self.splitline()
 #        l = linecache.getline('/proc/%s/schedstat' % self.pid, 1).split()
-        self.set2['cputime'] = long(l[0])
-        self.set2['latency'] = long(l[1])
+        self.set2['cputime'] = int(l[0])
+        self.set2['latency'] = int(l[1])
 
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed

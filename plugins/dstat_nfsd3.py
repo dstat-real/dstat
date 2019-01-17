@@ -16,12 +16,12 @@ class dstat_plugin(dstat):
     def extract(self):
         for l in self.splitlines():
             if not l or l[0] != 'proc3': continue
-            self.set2['read'] = long(l[8])
-            self.set2['write'] = long(l[9])
-            self.set2['readdir'] = long(l[18]) + long(l[19])
-            self.set2['inode'] = long(l[3]) + long(l[4]) + long(l[5]) + long(l[6]) + long(l[7]) + long(l[10]) + long(l[11]) + long(l[12]) + long(l[13]) + long(l[14]) + long(l[15]) + long(l[16]) + long(l[17])
-            self.set2['filesystem'] = long(l[20]) + long(l[21]) + long(l[22])
-            self.set2['commit'] = long(l[23])
+            self.set2['read'] = int(l[8])
+            self.set2['write'] = int(l[9])
+            self.set2['readdir'] = int(l[18]) + int(l[19])
+            self.set2['inode'] = int(l[3]) + int(l[4]) + int(l[5]) + int(l[6]) + int(l[7]) + int(l[10]) + int(l[11]) + int(l[12]) + int(l[13]) + int(l[14]) + int(l[15]) + int(l[16]) + int(l[17])
+            self.set2['filesystem'] = int(l[20]) + int(l[21]) + int(l[22])
+            self.set2['commit'] = int(l[23])
 
         for name in self.vars:
             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed

@@ -28,7 +28,7 @@ class dstat_plugin(dstat):
             ret.append(name)
         for item in objlist: ret.append(item)
         if not ret:
-            raise Exception, "No suitable block devices found to monitor"
+            raise Exception('No suitable block devices found to monitor')
         return ret
 
     def basename(self, disk):
@@ -43,12 +43,12 @@ class dstat_plugin(dstat):
                     if target[0] != '/':
                         target = os.path.join(os.path.dirname(disk), target)
                         target = os.path.normpath(target)
-                    print 'dstat: symlink %s -> %s' % (disk, target)
+                    print('dstat: symlink %s -> %s' % (disk, target))
                     disk = target
                 # trim leading /dev/
                 return disk[5:]
             else:
-                print 'dstat: %s does not exist' % disk
+                print('dstat: %s does not exist' % disk)
         else:
             return disk
 
@@ -80,7 +80,7 @@ class dstat_plugin(dstat):
             name = l[2]
             if name not in self.vars: continue
             self.set2[name] = dict(
-                tot_ticks = long(l[12])
+                tot_ticks = int(l[12])
             )
 
         for name in self.vars:

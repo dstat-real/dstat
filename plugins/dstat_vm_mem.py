@@ -20,7 +20,7 @@ class dstat_plugin(dstat):
 
             self.gl = vmguestlib.VMGuestLib()
         except:
-            raise Exception, 'Needs python-vmguestlib module'
+            raise Exception('Needs python-vmguestlib module')
 
     def extract(self):
         self.gl.UpdateInfo()

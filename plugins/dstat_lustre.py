@@ -7,7 +7,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not os.path.exists('/proc/fs/lustre/llite'):
-            raise Exception, 'Lustre filesystem not found'
+            raise Exception('Lustre filesystem not found')
         info(1, 'Module %s is still experimental.' % self.filename)
 
     def name(self):
@@ -22,9 +22,9 @@ class dstat_plugin(dstat):
                 l = line.split()
                 if len(l) < 6: continue
                 if l[0] == 'read_bytes':
-                    read = long(l[6])
+                    read = int(l[6])
                 elif l[0] == 'write_bytes':
-                    write = long(l[6])
+                    write = int(l[6])
             self.set2[name] = (read, write)
 
             self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])

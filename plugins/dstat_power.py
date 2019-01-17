@@ -27,7 +27,7 @@ class dstat_plugin(dstat):
 
     def check(self):
         if not self.batteries:
-            raise Exception, 'No battery information found, no power usage statistics'
+            raise Exception('No battery information found, no power usage statistics')
 
     def extract(self):
         amperes_drawn = 0
