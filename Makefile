@@ -33,6 +33,7 @@ clean:
 	$(MAKE) -C docs clean
 
 test:
+	./dstat --version
 	./dstat -taf 1 5
 	./dstat -t --all-plugins 1 5
 
