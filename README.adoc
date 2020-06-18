@@ -2,6 +2,14 @@
 
 image:https://travis-ci.org/rear/rear.svg?branch=master["Build Status", link="https://travis-ci.org/dagwieers/dstat"]
 
+=== DSTAT development has been terminated
+
+Due to actions taken by RedHat to https://github.com/dstat-real/dstat/issues/170[hijack] the DSTAT name, further development of this project has ceased. Development of this project is taking place on the https://github.com/scottchiefbaker/dool[Dool] fork.
+
+So long and thanks for all the fish
+
+=== Information
+
 Dstat is a versatile replacement for vmstat, iostat, mpstat, netstat and ifstat. Dstat overcomes some of their limitations and while also adding extra features, more counters and flexibility. Dstat is handy for monitoring systems during performance tuning tests, benchmarks or troubleshooting.
 
 Dstat allows you to view all of your system resources instantly. For example you can compare disk usage in combination with interrupts from your IDE controller, or compare network bandwidth directly with disk throughput.
